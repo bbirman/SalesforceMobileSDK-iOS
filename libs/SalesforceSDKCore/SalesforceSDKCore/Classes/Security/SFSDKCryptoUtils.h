@@ -63,7 +63,7 @@ extern NSUInteger const kSFPBKDFDefaultSaltByteLength;
  * @param stringToHash The plaintext string used to generate the key.
  * @return An SFPBKDFData object representing the derived key.
  */
-+ (SFPBKDFData *)createPBKDF2DerivedKey:(NSString *)stringToHash;
++ (SFPBKDFData *)createPBKDF2DerivedKey:(NSString *)stringToHash; //BB can this go?
 
 /**
  * Creates a PBKDF2 derived key from an input key (string), a salt, number of derivation

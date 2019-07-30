@@ -209,6 +209,7 @@ static NSString * const kKeyStoreDecryptionFailedMessage = @"Could not decrypt k
 
 #pragma mark - SFPasscodeManager encryption key updates
 
+// BB this should go away... SFPasscodeKeyStore can be deleted, what else can go with it?
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     // Starting in SDK 6.0, we no longer use SFPasscodeKeyStore.

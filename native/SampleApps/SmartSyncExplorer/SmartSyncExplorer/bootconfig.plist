@@ -8,8 +8,8 @@
 		<string>api</string>
 	</array>
 	<key>oauthRedirectURI</key>
-	<string>testsfdc:///mobilesdk/detect/oauth/done</string>
+	<string>testsfdc:///mobilesdk/passcode/</string>
 	<key>remoteAccessConsumerKey</key>
-	<string>3MVG9Iu66FKeHhINkB1l7xt7kR8czFcCTUhgoA8Ol2Ltf1eYHOU4SqQRSEitYFDUpqRWcoQ2.dBv_a1Dyu5xa</string>
+    <string>3MVG9SemV5D80oBcXZ2EUzbcJw55wUaPgferCZS0NA58q0N.PWbIpYMjjZ9P.y_0dC6_1lBSBPy69Z96c7XFM</string>
 </dict>
 </plist>

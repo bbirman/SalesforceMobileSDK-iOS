@@ -43,7 +43,7 @@ static NSMutableDictionary *PasscodeProviderMap;
 {
     SFSHA256PasscodeProvider *sha256Prov = [[SFSHA256PasscodeProvider alloc] initWithProviderName:kSFPasscodeProviderSHA256];
     SFPBKDF2PasscodeProvider *pbkdf2Prov = [[SFPBKDF2PasscodeProvider alloc] initWithProviderName:kSFPasscodeProviderPBKDF2];
-    
+    //BB why do we initualize both?
     PasscodeProviderMap = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
                            sha256Prov, kSFPasscodeProviderSHA256,
                            pbkdf2Prov, kSFPasscodeProviderPBKDF2,

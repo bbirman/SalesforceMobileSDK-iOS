@@ -232,7 +232,7 @@ NS_SWIFT_NAME(SalesforceManager)
          [SFPasscodeProviderManager addPasscodeProvider:myProvider];
          [SalesforceSDKManager setPreferredPasscodeProvider:myProviderName];
  */
-@property (nonatomic, nullable, copy) NSString *preferredPasscodeProvider NS_SWIFT_UNAVAILABLE("");
+@property (nonatomic, nullable, copy) NSString *preferredPasscodeProvider NS_SWIFT_UNAVAILABLE(""); //BB we should get rid of this?
 
 /**
  Gets or sets a block that will return a user agent string, created with an optional qualifier.

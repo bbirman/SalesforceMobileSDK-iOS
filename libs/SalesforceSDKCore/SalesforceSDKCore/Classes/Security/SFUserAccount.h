@@ -54,8 +54,7 @@ typedef NS_ENUM(NSUInteger, SFUserAccountLoginState) {
     SFUserAccountLoginStateLoggingOut,
 } NS_SWIFT_NAME(UserAccount.LoginState);
 
-/** Class that represents an `account`. An `account` represents
- a user together with the current community it is logged in.
+/** Class that represents an account.
  */
 NS_SWIFT_NAME(UserAccount)
 @interface SFUserAccount : NSObject <NSSecureCoding>
@@ -85,7 +84,8 @@ NS_SWIFT_NAME(UserAccount)
 
 /** The user's email
  */
-@property (nonatomic, copy, nullable) NSString *email SFSDK_DEPRECATED(7.1, 8.0, "Use SFUserAccount.idData properties instead");
+@property (nonatomic, copy, nullable) NSString *email __attribute__((availability(ios, introduced=1.0, deprecated=7.1, message="do something" ) ));
+//@property (nonatomic, copy, nullable) NSString *email SFSDK_DEPRECATED(7.1, 8.0, "Use SFUserAccount.idData properties instead");
 
 /** The user's organization name
  */
