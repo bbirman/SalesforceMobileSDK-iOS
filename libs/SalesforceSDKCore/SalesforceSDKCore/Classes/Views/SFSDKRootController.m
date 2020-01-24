@@ -73,6 +73,7 @@
 
 -(BOOL)shouldAutorotate
 {
+    // ERROR: -[UIAlertController supportedInterfaceOrientations] was invoked recursively! Instead of using presentingViewController = <SFSDKRootController: 0x7f965470c6b0>, will return super's value
     UIViewController *topViewController = [SFSDKRootController topViewController:self];
     if (topViewController!=nil && topViewController!=self)
         return [topViewController shouldAutorotate];

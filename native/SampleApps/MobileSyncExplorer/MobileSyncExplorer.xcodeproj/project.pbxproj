@@ -664,7 +664,6 @@
 				TargetAttributes = {
 					827C631019E6018C00027484 = {
 						LastSwiftMigration = 0830;
-						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
 								enabled = 1;
@@ -1119,6 +1118,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_WARNINGS = NO;
 				CODE_SIGN_ENTITLEMENTS = MobileSyncExplorer/MobileSyncExplorer.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = XD7TD9S6ZU;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MobileSyncExplorer/MobileSyncExplorer-Prefix.pch";
 				INFOPLIST_FILE = "MobileSyncExplorer/MobileSyncExplorer-Info.plist";
@@ -1128,8 +1130,9 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.MobileSyncExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
 				WRAPPER_EXTENSION = app;
 			};
@@ -1142,6 +1145,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_WARNINGS = NO;
 				CODE_SIGN_ENTITLEMENTS = MobileSyncExplorer/MobileSyncExplorer.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = XD7TD9S6ZU;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MobileSyncExplorer/MobileSyncExplorer-Prefix.pch";
 				INFOPLIST_FILE = "MobileSyncExplorer/MobileSyncExplorer-Info.plist";
@@ -1151,8 +1157,9 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.MobileSyncExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 4.0;
 				WRAPPER_EXTENSION = app;
 			};
