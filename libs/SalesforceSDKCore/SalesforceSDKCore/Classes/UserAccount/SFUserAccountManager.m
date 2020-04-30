@@ -197,11 +197,13 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         _authViewHandler = [[SFSDKAuthViewHandler alloc]
         initWithDisplayBlock:^(SFSDKAuthViewHolder *viewHandler) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
-            [strongSelf presentLoginView:viewHandler];
+            [strongSelf presentLoginView:viewHandler sceneId:self.authSession.oauthRequest.sceneId]; //Should this call self? Other way to get it?
         } dismissBlock:^() {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             [strongSelf dismissAuthViewControllerIfPresent];
         }];
+        
+        _authSessions = [NSMutableArray new];
         
         [self populateErrorHandlers];
      }
@@ -337,8 +339,8 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     return result;
 }
 
-- (BOOL)loginWithCompletion:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failure:(SFUserAccountManagerFailureCallbackBlock)failureBlock {
-    return [self authenticateWithCompletion:completionBlock failure:failureBlock];
+- (BOOL)loginWithCompletion:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failure:(SFUserAccountManagerFailureCallbackBlock)failureBlock sceneId:(NSString *)sceneId {
+    return [self authenticateWithCompletion:completionBlock failure:failureBlock sceneId:sceneId];
 }
 
 - (BOOL)refreshCredentials:(SFOAuthCredentials *)credentials completion:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failure:(SFUserAccountManagerFailureCallbackBlock)failureBlock {
@@ -384,6 +386,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (void)stopCurrentAuthentication:(void (^)(BOOL))completionBlock {
+    // BB TODO
     if (![NSThread isMainThread]) {
         dispatch_async(dispatch_get_main_queue(), ^{
             [self stopCurrentAuthentication:completionBlock];
@@ -397,25 +400,27 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     } else {
         [SFSDKCoreLogger e:[self class] format:@"Authentication has already been stopped."];
     }
-    
+
     if (completionBlock) {
         [self dismissAuthViewControllerIfPresent:^{
             completionBlock(result);
-        }];
+        } sceneId:self.authSession.oauthRequest.sceneId]; // This is nil
     }
   
 }
 
-- (BOOL)authenticateWithCompletion:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failure:(SFUserAccountManagerFailureCallbackBlock)failureBlock {
-    if (_authSession && _authSession.isAuthenticating) {
-        [SFSDKCoreLogger e:[self class] format:@"Login has already been called. Stop current authentication using SFUserAccountmanger::stopAuthentication and then retry."];
-        return NO;
-    }
+- (BOOL)authenticateWithCompletion:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failure:(SFUserAccountManagerFailureCallbackBlock)failureBlock sceneId:(NSString *)sceneId {
+    // BB TODO
+//    if (_authSession && _authSession.isAuthenticating) {
+//        [SFSDKCoreLogger e:[self class] format:@"Login has already been called. Stop current authentication using SFUserAccountmanger::stopAuthentication and then retry."];
+//        return NO;
+//    }
     SFSDKAuthRequest *request = [self defaultAuthRequest];
+    request.sceneId = sceneId;
     if (request.ipdEnabled) {
        return [self authenticateUsingIDP:request completion:completionBlock failure:failureBlock];
     }
-    return [self authenticateWithRequest:request completion:completionBlock failure:failureBlock];
+    return [self authenticateWithRequest:request completion:completionBlock failure:failureBlock]; //Screen goes black here
 }
 
 -(SFSDKAuthRequest *)defaultAuthRequest {
@@ -442,8 +447,9 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     authSession.authSuccessCallback = completionBlock;
     authSession.oauthCoordinator.delegate = self;
     self.authSession = authSession;
+    [self.authSessions addObject:authSession];
     dispatch_async(dispatch_get_main_queue(), ^{
-        [SFSDKWebViewStateManager removeSession];
+        //[SFSDKWebViewStateManager removeSession]; // BB TODO UNDO
         [authSession.oauthCoordinator authenticate];
     });
     return self.authSession.isAuthenticating;
@@ -507,7 +513,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         __strong typeof(weakSelf) strongSelf = weakSelf;
         strongSelf.authSession.isAuthenticating = NO;
         [strongSelf authenticateWithRequest:session.oauthRequest completion:session.authSuccessCallback failure:session.authFailureCallback];
-    }];
+    } sceneId:session.oauthRequest.sceneId];
     
 }
 
@@ -582,34 +588,36 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 
 - (void)dismissAuthViewControllerIfPresent
 {
-    [self dismissAuthViewControllerIfPresent:nil];
+    [self dismissAuthViewControllerIfPresent:nil sceneId:nil];
 }
 
-- (void)dismissAuthViewControllerIfPresent:(void (^)(void))completionBlock {
+- (void)dismissAuthViewControllerIfPresent:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     if (![NSThread isMainThread]) {
         dispatch_sync(dispatch_get_main_queue(), ^{
-            [self dismissAuthViewControllerIfPresent:completionBlock];
+            [self dismissAuthViewControllerIfPresent:completionBlock sceneId:sceneId];
         });
         return;
     }
-    
-    if (![SFSDKWindowManager sharedManager].authWindow.isEnabled) {
+    // add check for scene id, for case of of this method being called when auth session not populated, or move check higher up?
+    SFSDKWindowContainer *authWindow = [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId];
+
+    if (![[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].isEnabled) { //BB TODO
         if (completionBlock) completionBlock();
         return;
     }
-    
-    UIViewController *presentedViewController = [SFSDKWindowManager sharedManager].authWindow.viewController.presentedViewController;
-    
-    if (presentedViewController && presentedViewController.isBeingPresented) {
+
+    UIViewController *presentedViewController = authWindow.viewController.presentedViewController;
+
+    if (presentedViewController) { // && presentedViewController.isBeingPresented BB TODO isBeingPresented return nil?
         [presentedViewController dismissViewControllerAnimated:NO completion:^{
-            [[SFSDKWindowManager sharedManager].authWindow dismissWindowAnimated:NO withCompletion:^{
+            [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId] dismissWindowAnimated:NO withCompletion:^{
                 if (completionBlock) {
                     completionBlock();
                 }
             }];
         }];
     } else {
-        [[SFSDKWindowManager sharedManager].authWindow dismissWindowAnimated:NO withCompletion:^{
+        [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId] dismissWindowAnimated:NO withCompletion:^{
             if (completionBlock) {
                 completionBlock();
             }
@@ -851,7 +859,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     [self dismissAuthViewControllerIfPresent:^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
         [strongSelf authenticateWithRequest:strongSelf.authSession.oauthRequest completion:strongSelf.authSession.authSuccessCallback  failure:strongSelf.authSession.authFailureCallback];
-    }];
+    } sceneId:nil];
 }
 
 #pragma mark - SFSDKUserSelectionViewDelegate (IDP App flow Related Actions)
@@ -1477,7 +1485,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         __strong typeof(weakSelf) strongSelf = weakSelf;
         [strongSelf dismissAuthViewControllerIfPresent:^{
              [strongSelf.authSession.oauthCoordinator beginIDPFlow];
-        }];
+        } sceneId:nil];
     });
 }
 
@@ -1565,8 +1573,10 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 - (void)loggedIn:(BOOL)fromOffline coordinator:(SFOAuthCoordinator *)coordinator notifyDelegatesOfFailure:(BOOL)shouldNotify {
     if (!fromOffline) {
         SFIdentityCoordinator *identityCoordinator = [[SFIdentityCoordinator alloc] initWithAuthSession:coordinator.authSession];
-        self.authSession.identityCoordinator = identityCoordinator;
-        self.authSession.notifiesDelegatesOfFailure = shouldNotify;
+//        self.authSession.identityCoordinator = identityCoordinator; // BB TODO auth session
+//        self.authSession.notifiesDelegatesOfFailure = shouldNotify;
+        coordinator.authSession.identityCoordinator = identityCoordinator;
+        coordinator.authSession.notifiesDelegatesOfFailure = shouldNotify;
         identityCoordinator.delegate = self;
         [identityCoordinator initiateIdentityDataRetrieval];
     } else {
@@ -1577,15 +1587,21 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 - (void)retrievedIdentityData:(SFSDKAuthSession *)authSession {
     // NB: This method is assumed to run after identity data has been refreshed from the service, or otherwise
     // already exists.
-    NSAssert(authSession.identityCoordinator.idData != nil, @"Identity data should not be nil/empty at this point.");
+    NSAssert(authSession.identityCoordinator.idData != nil, @"Identity data should not be nil/empty at this point."); // BB TODO hits this if authenticated in one window and try to login in again. The other window shoud be refreshed but if that fails, we should avoid this, too. Also hit this if two windows are open and try to login from the first one (assuming because the session is wrong)
     SFIdentityCoordinator *identityCoordinator = authSession.identityCoordinator;
     NSNumber *biometricUnlockKey = [identityCoordinator.idData.customAttributes objectForKey:@"BIOMETRIC_UNLOCK"];
     BOOL biometricUnlockAvailable = (biometricUnlockKey == nil) ? YES : [biometricUnlockKey boolValue];
     __weak typeof(self) weakSelf = self;
+    
+    
+    
+    
+    
+    
     [self dismissAuthViewControllerIfPresent:^{
           __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (authSession.authInfo.authType != SFOAuthTypeRefresh) {
-           [SFSecurityLockout setPasscodeViewConfig:authSession.oauthRequest.appLockViewControllerConfig];
+        if (authSession.authInfo.authType != SFOAuthTypeRefresh) { // BB look at this for possible place to clear all auth screens
+           [SFSecurityLockout setPasscodeViewConfig:authSession.oauthRequest.appLockViewControllerConfig]; // BB TODO passcode view config should be at app level?
            [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
                [strongSelf finalizeAuthCompletion:authSession];
            }];
@@ -1601,7 +1617,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
        } else {
            [strongSelf finalizeAuthCompletion:authSession];
        }
-    }];
+    } sceneId:authSession.oauthRequest.sceneId];
     
    
 }
@@ -1674,6 +1690,17 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     if (authSession.authSuccessCallback) {
         authSession.authSuccessCallback(authSession.authInfo,userAccount);
     }
+    
+    // BB TODO doesn't account for token refresh case
+   for (SFSDKAuthSession *otherSession in self.authSessions) {
+       if (authSession.oauthRequest.sceneId != otherSession.oauthRequest.sceneId) {
+           [self dismissAuthViewControllerIfPresent:^{
+               otherSession.authSuccessCallback(authSession.authInfo, userAccount);
+           } sceneId:otherSession.oauthRequest.sceneId];
+       }
+   }
+    
+    
     //notify for all login flows except during an SP apps login request.
     if (shouldNotify) {
         [self notifyLoginCompletion:userAccount authInfo:authInfo];
@@ -1693,6 +1720,11 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
          [[NSNotificationCenter defaultCenter] postNotificationName:kSFNotificationUserDidLogIn
                                                              object:self
                                                            userInfo:userInfo];
+         
+         
+         
+         
+         
      }  else if (self.authSession.authInfo.authType == SFOAuthTypeRefresh) {
          [[NSNotificationCenter defaultCenter] postNotificationName:kSFNotificationUserDidRefreshToken
                                                              object:self
@@ -1770,7 +1802,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
                 if (completion) {
                     completion(error,nil);
                 }
-            }];
+            } sceneId:nil];
         }];
     }
 }
@@ -1864,30 +1896,35 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     [_accountsLock unlock];
 }
 
-- (void)presentLoginView:(SFSDKAuthViewHolder *)viewHandler {
+- (void)presentLoginView:(SFSDKAuthViewHolder *)viewHandler sceneId:(NSString *)sceneId {
    
-    [[SFSDKWindowManager sharedManager].authWindow presentWindow];
+    
+    SFSDKWindowContainer *authWindow = [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId];
+    [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId] presentWindow];
     void (^presentViewBlock)(void) = ^void() {
         if (!viewHandler.isAdvancedAuthFlow) {
             UIViewController *controllerToPresent = [[SFSDKNavigationController  alloc]  initWithRootViewController:viewHandler.loginController];
             controllerToPresent.modalPresentationStyle = UIModalPresentationFullScreen;
-            [[SFSDKWindowManager sharedManager].authWindow.viewController presentViewController:controllerToPresent animated:NO completion:^{
+            if ([[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController == nil) {
+                NSLog(@"BB Not Here");
+            }
+            [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController presentViewController:controllerToPresent animated:NO completion:^{
                 NSAssert((nil != [viewHandler.loginController.oauthView superview]), @"No superview for oauth web view invoke [super viewDidLayoutSubviews] in the SFLoginViewController subclass");
             }];
         }
         else {
             if (@available(iOS 13.0, *)) {
                 SFSDKAuthRootController* authRootController = [[SFSDKAuthRootController alloc] init];
-                [SFSDKWindowManager sharedManager].authWindow.viewController = authRootController;
+                [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController = authRootController;
                 authRootController.modalPresentationStyle = UIModalPresentationFullScreen;
-                viewHandler.session.presentationContextProvider = (id<ASWebAuthenticationPresentationContextProviding>) [SFSDKWindowManager sharedManager].authWindow.viewController;
+                viewHandler.session.presentationContextProvider = (id<ASWebAuthenticationPresentationContextProviding>) [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController;
             }
            [viewHandler.session start];
         }
     };
   
-    //dismiss if already presented and then present
-    UIViewController* presentedViewController = [SFSDKWindowManager sharedManager].authWindow.viewController.presentedViewController;
+//    //dismiss if already presented and then present
+    UIViewController* presentedViewController = [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController.presentedViewController;
     if ([self isAlreadyPresentingLoginController:presentedViewController]) {
         [presentedViewController dismissViewControllerAnimated:NO completion:^{
             presentViewBlock();

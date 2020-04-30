@@ -36,14 +36,20 @@ NS_SWIFT_NAME(AuthHelper)
  @param completionBlock Block that executes immediately if the user is already logged in, or if the app config's `shouldAuthenticate` is set to false.
                         Otherwise, this block executes after the user logs in successfully, if login is required.
  */
-+ (void)loginIfRequired:(void (^)(void))completionBlock;
++ (void)loginIfRequired:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
 
-+ (void)handleLogout:(void (^)(void))completionBlock;
++ (void)handleLogout:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
+//+ (void)handleLogout:(void (^)(void))completionBlock;
 
-+ (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock;
++ (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
+//+ (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock;
 
-+ (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock;
++ (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
+//+ (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock;
 
+//+ (void)registerBlockForSwitchUserNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
 + (void)registerBlockForSwitchUserNotifications:(void (^)(void))completionBlock;
+
++ (void)registerBlockForLoginNotification:(void (^)(void))completionBlock;
 
 @end

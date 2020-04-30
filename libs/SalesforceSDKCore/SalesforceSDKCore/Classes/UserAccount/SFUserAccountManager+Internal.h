@@ -81,6 +81,8 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property (nonatomic, strong, nullable) SFSDKAuthSession *authSession;
 
+@property (nonatomic, strong, nullable) NSMutableArray<SFSDKAuthSession *> *authSessions;
+
 /**
  Indicates if the app is configured to require browser based authentication.
  */

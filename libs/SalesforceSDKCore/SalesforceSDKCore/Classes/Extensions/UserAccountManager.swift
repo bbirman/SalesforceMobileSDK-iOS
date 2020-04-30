@@ -41,13 +41,13 @@ extension UserAccountManager {
     
     ///  Kick off the login process for credentials that's previously configured.
     /// - Parameter completionBlock: completion block to invoke with a success tuple (UserAccount, AuthInfo) or   UserAccountManagerError for failure wrapped in a Result type.
-    public func login(_ completionBlock: @escaping (Result<(UserAccount, AuthInfo), UserAccountManagerError>) -> Void) -> Bool {
-        return __login(completion: { (authInfo, userAccount) in
-             completionBlock(Result.success((userAccount,authInfo)))
-        }) { (authInfo, error) in
-            completionBlock(Result.failure(.loginFailed(underlyingError: error, authInfo: authInfo)))
-        }
-    }
+//    public func login(_ completionBlock: @escaping (Result<(UserAccount, AuthInfo), UserAccountManagerError>) -> Void) -> Bool {
+//        return __login(completion: { (authInfo, userAccount) in
+//             completionBlock(Result.success((userAccount,authInfo)))
+//        }) { (authInfo, error) in
+//            completionBlock(Result.failure(.loginFailed(underlyingError: error, authInfo: authInfo)))
+//        }
+//    }
 
     /// Kick off the login process for jwt token with credentials previously configured.
     /// - Parameters:

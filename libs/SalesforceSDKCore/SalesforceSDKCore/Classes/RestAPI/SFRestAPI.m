@@ -248,7 +248,7 @@ static dispatch_once_t pred;
             attributes[@"errorDescription"] = error.localizedDescription;
             [SFSDKEventBuilderHelper createAndStoreEvent:@"userLogout" userAccount:nil className:NSStringFromClass([strongSelf class]) attributes:attributes];
             [[SFUserAccountManager sharedInstance] logout];
-        }];
+        } sceneId:nil];
     } else {
         [self enqueueRequest:request delegate:delegate shouldRetry:shouldRetry];
     }

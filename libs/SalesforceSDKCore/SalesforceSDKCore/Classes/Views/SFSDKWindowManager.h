@@ -123,6 +123,8 @@
  */
 - (void)removeDelegate:(id<SFSDKWindowManagerDelegate>_Nonnull)delegate;
 
+- (nonnull SFSDKWindowContainer *)authWindowForScene:(nonnull NSString *)sceneId;
+
 + (instancetype _Nonnull)sharedManager;
 
 @end

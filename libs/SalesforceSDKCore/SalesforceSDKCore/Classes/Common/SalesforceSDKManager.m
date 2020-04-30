@@ -87,7 +87,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.frame = [UIScreen mainScreen].bounds;
+    self.view.frame = [UIScreen mainScreen].bounds; //TODO does this work with screens?
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.view.backgroundColor = [UIColor salesforceSystemBackgroundColor];
 }
@@ -350,7 +350,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     _isLaunching = YES;
     self.launchActions = SFSDKLaunchActionNone;
     if ([SFSDKWindowManager sharedManager].mainWindow == nil) {
-        [[SFSDKWindowManager sharedManager] setMainUIWindow:[SFApplicationHelper sharedApplication].windows[0]];
+        [[SFSDKWindowManager sharedManager] setMainUIWindow:[SFApplicationHelper sharedApplication].windows[0]]; // BB TODO
     }
     
     NSError *launchStateError = nil;
@@ -730,31 +730,31 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 - (void)handleAppWillResignActive:(NSNotification *)notification
 {
     [SFSDKCoreLogger d:[self class] format:@"App is resigning active state."];
-    
-    [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
-        if ([delegate respondsToSelector:@selector(sdkManagerWillResignActive)]) {
-            [delegate sdkManagerWillResignActive];
-        }
-    }];
-    
-    // Don't present snapshot during advanced authentication or Passcode Presentation
-    // ==============================================================================
-    // During advanced authentication, application is briefly backgrounded then foregrounded
-    // The ASWebAuthenticationSession's view controller is pushed into the key window
-    // If we make the snapshot window the active window now, that's where the ASWebAuthenticationSession's view controller will end up
-    // Then when the application is foregrounded and the snapshot window is dismissed, we will lose the ASWebAuthenticationSession
-    SFSDKWindowContainer* activeWindow = [SFSDKWindowManager sharedManager].activeWindow;
-    if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
-        return;
-    }
-  
-    // Set up snapshot security view, if it's configured.
-    @try {
-        [self presentSnapshot];
-    }
-    @catch (NSException *exception) {
-        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while setting up security snapshot view: '%@'. Continuing resign active.", [exception reason]];
-    }
+//
+//    [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
+//        if ([delegate respondsToSelector:@selector(sdkManagerWillResignActive)]) {
+//            [delegate sdkManagerWillResignActive];
+//        }
+//    }];
+//
+//    // Don't present snapshot during advanced authentication or Passcode Presentation
+//    // ==============================================================================
+//    // During advanced authentication, application is briefly backgrounded then foregrounded
+//    // The ASWebAuthenticationSession's view controller is pushed into the key window
+//    // If we make the snapshot window the active window now, that's where the ASWebAuthenticationSession's view controller will end up
+//    // Then when the application is foregrounded and the snapshot window is dismissed, we will lose the ASWebAuthenticationSession
+//    SFSDKWindowContainer* activeWindow = [SFSDKWindowManager sharedManager].activeWindow;
+//    if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
+//        return;
+//    }
+//
+//    // Set up snapshot security view, if it's configured.
+//    @try {
+//        [self presentSnapshot];
+//    }
+//    @catch (NSException *exception) {
+//        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while setting up security snapshot view: '%@'. Continuing resign active.", [exception reason]];
+//    }
 }
 
 - (void)handleAuthCompleted:(NSNotification *)notification
@@ -940,7 +940,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [SFSDKCoreLogger e:[self class] format:@"Authentication (%@) failed: %@.", (authInfo.authType == SFOAuthTypeUserAgent ? @"User Agent" : @"Refresh"), [authError localizedDescription]];
         [self sendLaunchError:authError];
     };
-    [[SFUserAccountManager sharedInstance] loginWithCompletion:successBlock failure:failureBlock];
+    [[SFUserAccountManager sharedInstance] loginWithCompletion:successBlock failure:failureBlock sceneId:nil];
   
 }
 

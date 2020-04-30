@@ -531,7 +531,8 @@ NS_SWIFT_NAME(UserAccountManager)
  in succession.
  */
 - (BOOL)loginWithCompletion:(nullable SFUserAccountManagerSuccessCallbackBlock)completionBlock
-                    failure:(nullable SFUserAccountManagerFailureCallbackBlock)failureBlock NS_REFINED_FOR_SWIFT;
+                    failure:(nullable SFUserAccountManagerFailureCallbackBlock)failureBlock
+                    sceneId:(nullable NSString *)sceneId NS_REFINED_FOR_SWIFT;
 
 /**
  Kick off the refresh process for the specified credentials.
@@ -588,6 +589,8 @@ Use this method to stop/clear any authentication which is has already been start
  presentation.
  */
 - (void)dismissAuthViewControllerIfPresent NS_SWIFT_UNAVAILABLE("");
+
+- (void)dismissAuthViewControllerIfPresent:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
 
 /**
  Handle an authentication response from the IDP application

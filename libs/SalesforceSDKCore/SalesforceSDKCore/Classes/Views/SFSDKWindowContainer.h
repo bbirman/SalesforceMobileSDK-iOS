@@ -65,6 +65,8 @@ typedef NS_ENUM(NSInteger, SFSDKWindowType) {
  */
 @property (nonatomic, assign) SFSDKWindowType windowType;
 
+@property (nonatomic, assign, readwrite) BOOL isActive;
+
 /** SFSDKWindowType windowName
  */
 @property (nonatomic, copy, readonly) NSString * windowName;

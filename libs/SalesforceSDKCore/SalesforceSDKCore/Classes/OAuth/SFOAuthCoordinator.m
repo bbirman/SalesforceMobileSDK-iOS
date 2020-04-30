@@ -119,7 +119,7 @@
     _authSession = nil;
 }
 
-- (void)authenticate {
+- (void)authenticate { // BB Screens go black in this method?
     NSAssert(nil != self.credentials, @"credentials cannot be nil");
     NSAssert(self.credentials.clientId.length > 0, @"credentials.clientId cannot be nil or empty");
     NSAssert(self.credentials.identifier.length > 0, @"credentials.identifier cannot be nil or empty");
@@ -271,11 +271,11 @@
     if (_view == nil) {
         WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
         config.processPool = SFSDKWebViewStateManager.sharedProcessPool;
-        _view = [[WKWebView alloc] initWithFrame:[[UIScreen mainScreen] bounds] configuration:config];
+        _view = [[WKWebView alloc] initWithFrame:[[UIScreen mainScreen] bounds] configuration:config]; //TODO eval use of main screen
         _view.navigationDelegate = self;
         _view.autoresizesSubviews = YES;
         _view.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-         _view.clipsToBounds = YES;
+        _view.clipsToBounds = YES;
         _view.translatesAutoresizingMaskIntoConstraints = NO;
         _view.customUserAgent = [SalesforceSDKManager sharedManager].userAgentString(@"");
         _view.UIDelegate = self;
@@ -730,7 +730,7 @@
     decisionHandler(WKNavigationResponsePolicyAllow);
 }
 
-- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation {
+- (void)webView:(WKWebView *)webView didStartProvisionalNavigation:(WKNavigation *)navigation { // Screen goes black before this
     NSURL *url = [webView URL];
     [SFSDKCoreLogger i:[self class] format:@"%@ host=%@ : path=%@", NSStringFromSelector(_cmd), url.host, url.path];
     if ([self.delegate respondsToSelector:@selector(oauthCoordinator:didStartLoad:)]) {
@@ -749,7 +749,7 @@
     }
     if (!self.initialRequestLoaded) {
         self.initialRequestLoaded = YES;
-        [self.delegate oauthCoordinator:self didBeginAuthenticationWithView:self.view];
+        [self.delegate oauthCoordinator:self didBeginAuthenticationWithView:self.view]; //TODO should views be per scene as well?
     }
 }
 

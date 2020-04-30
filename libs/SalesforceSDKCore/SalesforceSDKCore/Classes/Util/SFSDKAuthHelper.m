@@ -32,10 +32,13 @@
 #import "SFSDKWindowManager.h"
 #import "SFDefaultUserManagementViewController.h"
 #import "SFSecurityLockout.h"
+#import <SalesforceSDKCommon/SFSDKSafeMutableDictionary.h>
+
+static SFSDKSafeMutableDictionary *sceneLogoutBlocks = nil;
 
 @implementation SFSDKAuthHelper
 
-+ (void)loginIfRequired:(void (^)(void))completionBlock {
++ (void)loginIfRequired:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     if (![SFUserAccountManager sharedInstance].currentUser && [SalesforceSDKManager sharedManager].appConfig.shouldAuthenticate) {
         SFUserAccountManagerSuccessCallbackBlock successBlock = ^(SFOAuthInfo *authInfo,SFUserAccount *userAccount) {
             if (completionBlock) {
@@ -45,13 +48,15 @@
         SFUserAccountManagerFailureCallbackBlock failureBlock = ^(SFOAuthInfo *authInfo, NSError *authError) {
             [SFSDKCoreLogger e:[self class] format:@"Authentication failed: %@.",[authError localizedDescription]];
         };
-        BOOL result = [[SFUserAccountManager sharedInstance] loginWithCompletion:successBlock failure:failureBlock];
+        // BB Here is where we hook into login, need to make this work accross multiple windows?
+        BOOL result = [[SFUserAccountManager sharedInstance] loginWithCompletion:successBlock failure:failureBlock sceneId:sceneId];
         if (!result) {
             [[SFUserAccountManager sharedInstance] stopCurrentAuthentication:^(BOOL result) {
-                [[SFUserAccountManager sharedInstance] loginWithCompletion:successBlock failure:failureBlock];
+                [[SFUserAccountManager sharedInstance] loginWithCompletion:successBlock failure:failureBlock sceneId:sceneId];
             }];
         }
     } else {
+        // BB TODO scene id
         [self passcodeValidation:completionBlock];
     }
 }
@@ -72,7 +77,7 @@
     [SFSecurityLockout lock];
 }
 
-+ (void)handleLogout:(void (^)(void))completionBlock {
++ (void)handleLogout:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     // Multi-user pattern:
     // - If there are two or more existing accounts after logout, let the user choose the account
     //   to switch to.
@@ -84,9 +89,9 @@
     NSArray *allAccounts = [SFUserAccountManager sharedInstance].allUserAccounts;
     if ([allAccounts count] > 1) {
         SFDefaultUserManagementViewController *userSwitchVc = [[SFDefaultUserManagementViewController alloc] initWithCompletionBlock:^(SFUserManagementAction action) {
-            [[SFSDKWindowManager sharedManager].mainWindow.window.rootViewController dismissViewControllerAnimated:YES completion:NULL];
+            [[SFSDKWindowManager sharedManager].mainWindow.window.rootViewController dismissViewControllerAnimated:YES completion:NULL]; //BB TODO change from main window
         }];
-        [[SFSDKWindowManager sharedManager].mainWindow.window.rootViewController presentViewController:userSwitchVc animated:YES completion:NULL];
+        [[SFSDKWindowManager sharedManager].mainWindow.window.rootViewController presentViewController:userSwitchVc animated:YES completion:NULL]; //BB TODO change from main window
     } else {
         if ([allAccounts count] == 1) {
             [[SFUserAccountManager sharedInstance] switchToUser:([SFUserAccountManager sharedInstance].allUserAccounts)[0]];
@@ -94,25 +99,53 @@
                 completionBlock();
             }
         } else {
-            [self loginIfRequired:completionBlock];
+            [self loginIfRequired:completionBlock sceneId:sceneId];
         }
     }
+    
+    // TODO logout all windows
 }
 
-+ (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock {
-    [self registerBlockForLogoutNotifications:completionBlock];
++ (void)registerBlockForLoginNotification:(void (^)(void))completionBlock {
+    [[NSNotificationCenter defaultCenter] addObserverForName:kSFNotificationUserDidLogIn object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * note) {
+           if (completionBlock) {
+               completionBlock();
+           }
+       }];
+}
+
+
++ (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
+    [self registerBlockForLogoutNotifications:completionBlock sceneId:sceneId];
     [self registerBlockForSwitchUserNotifications:completionBlock];
 }
 
-+ (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock {
++ (void)setBlockForLogout:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
+    static dispatch_once_t pred;
+    dispatch_once(&pred, ^{
+        sceneLogoutBlocks = [[SFSDKSafeMutableDictionary alloc] init];
+    });
+    
+    sceneLogoutBlocks[sceneId] = completionBlock;
+
+}
+
++ (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     __weak typeof (self) weakSelf = self;
-    [[NSNotificationCenter defaultCenter] addObserverForName:kSFNotificationUserDidLogout  object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        [weakSelf handleLogout:completionBlock];
+    
+    [SFSDKAuthHelper setBlockForLogout:completionBlock sceneId:sceneId];
+    
+    [[NSNotificationCenter defaultCenter] addObserverForName:kSFNotificationUserDidLogout object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        for (NSString *scene in [sceneLogoutBlocks allKeys]) {
+            [weakSelf handleLogout:sceneLogoutBlocks[scene] sceneId:scene];
+        }
+        
+        //[weakSelf handleLogout:completionBlock sceneId:sceneId];
     }];
 }
 
 + (void)registerBlockForSwitchUserNotifications:(void (^)(void))completionBlock {
-    [[NSNotificationCenter defaultCenter] addObserverForName:kSFNotificationUserDidSwitch   object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * note) {
+    [[NSNotificationCenter defaultCenter] addObserverForName:kSFNotificationUserDidSwitch object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification * note) {
         if (completionBlock) {
             completionBlock();
         }
