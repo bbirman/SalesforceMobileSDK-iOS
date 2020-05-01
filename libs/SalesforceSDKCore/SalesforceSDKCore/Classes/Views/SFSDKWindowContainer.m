@@ -97,7 +97,7 @@
 }
 
 - (void)dismissWindowAnimated:(BOOL)animated withCompletion:(void (^ _Nullable)(void))completion {
-    if ([self isEnabled]) { // BB TODO change this to active?
+    if ([self isActive]) { // BB TODO change this to active?
         if ([self.windowDelegate respondsToSelector:@selector(dismissWindow:animated:withCompletion:)]) {
             [self.windowDelegate dismissWindow:self animated:animated withCompletion:completion];
         }

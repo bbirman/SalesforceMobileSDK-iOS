@@ -601,7 +601,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     // add check for scene id, for case of of this method being called when auth session not populated, or move check higher up?
     SFSDKWindowContainer *authWindow = [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId];
 
-    if (![[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].isEnabled) { //BB TODO
+    if (![[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].isActive) { //BB TODO
         if (completionBlock) completionBlock();
         return;
     }

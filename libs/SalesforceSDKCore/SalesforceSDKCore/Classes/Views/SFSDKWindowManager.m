@@ -166,7 +166,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
     SFSDKWindowContainer *window = nil;
     NSEnumerator *enumerator = self.namedWindows.objectEnumerator;
     while ((window = [enumerator nextObject]))  {
-        if(window.isEnabled && window.window==activeWindow) {
+        if(window.isActive && window.window==activeWindow) {
             found = YES;
             break;
         }
@@ -369,7 +369,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
         });
         return;
     }
-    if (!window.isEnabled) { //BB TODO active vs enabled?
+    if (!window.isActive) { //BB TODO active vs enabled?
         if (completion)
             completion();
     }
@@ -433,7 +433,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
         }
     }
     
-    if ([window isEnabled]) { // BB TODO formerly isEnabled
+    if ([window isActive]) { // BB TODO formerly isEnabled
         if (completion)
             completion();
         return;
