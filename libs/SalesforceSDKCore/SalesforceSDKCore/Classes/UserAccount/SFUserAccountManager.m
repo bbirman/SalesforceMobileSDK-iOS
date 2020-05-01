@@ -57,6 +57,7 @@
 #import "SFPasscodeManager.h"
 #import "SFNetwork.h"
 #import "SFSDKSalesforceAnalyticsManager.h"
+#import "SFApplicationHelper.h"
 
 // Notifications
 NSNotificationName SFUserAccountManagerDidChangeUserNotification       = @"SFUserAccountManagerDidChangeUserNotification";
@@ -197,13 +198,13 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         _authViewHandler = [[SFSDKAuthViewHandler alloc]
         initWithDisplayBlock:^(SFSDKAuthViewHolder *viewHandler) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
-            [strongSelf presentLoginView:viewHandler sceneId:self.authSession.oauthRequest.sceneId]; //Should this call self? Other way to get it?
+            [strongSelf presentLoginView:viewHandler sceneId:viewHandler.sceneId]; // BB TODO should presentLoginView just take viewHandler?
         } dismissBlock:^() {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             [strongSelf dismissAuthViewControllerIfPresent];
         }];
         
-        _authSessions = [NSMutableArray new];
+        _authSessions = [NSMutableArray new]; // BB TODO clean up old sessions, do we need this?
         
         [self populateErrorHandlers];
      }
@@ -572,7 +573,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     // NB: There's no real action that can be taken if this login state transition fails.  At any rate,
     // it's an unlikely scenario.
     [user transitionToLoginState:SFUserAccountLoginStateNotLoggedIn];
-    [self dismissAuthViewControllerIfPresent];
+    [self dismissAuthViewControllerIfPresent]; //BB TODO dismiss all auth windows if present?
 }
 
 - (void)logoutAllUsers {
@@ -588,7 +589,12 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 
 - (void)dismissAuthViewControllerIfPresent
 {
-    [self dismissAuthViewControllerIfPresent:nil sceneId:nil];
+    
+    NSArray *scenes = [SFApplicationHelper sharedApplication].connectedScenes.allObjects;
+    for (UIScene *scene in scenes) {
+        // BB TODO - only if foreground active?
+        [self dismissAuthViewControllerIfPresent:nil sceneId:scene.session.persistentIdentifier];
+    }
 }
 
 - (void)dismissAuthViewControllerIfPresent:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
@@ -734,6 +740,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     loginViewController.oauthView = view;
     SFSDKAuthViewHolder *viewHolder = [SFSDKAuthViewHolder new];
     viewHolder.loginController = loginViewController;
+    viewHolder.sceneId = coordinator.authSession.oauthRequest.sceneId;
     // Ensure this runs on the main thread.  Has to be sync, because the coordinator expects the auth view
     // to be added to a superview by the end of this method.
     if (![NSThread isMainThread]) {
@@ -1509,7 +1516,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         __strong typeof (weakSelf) strongSelf = weakSelf;
         NSString *alertMessage = [NSString stringWithFormat:[SFSDKResourceUtils localizedString:kAlertConnectionErrorFormatStringKey], [error localizedDescription]];
         NSString *okButton = [SFSDKResourceUtils localizedString:kAlertOkButtonKey];
-        [strongSelf showErrorAlertWithMessage:alertMessage buttonTitle:okButton andCompletion:^() {
+        [strongSelf showErrorAlertWithMessage:alertMessage buttonTitle:okButton sceneId:session.oauthRequest.sceneId andCompletion:^() {
             [session.oauthCoordinator stopAuthentication];
             [strongSelf notifyUserCancelledOrDismissedAuth:session.oauthCoordinator.credentials andAuthInfo:session.authInfo];
             NSString *host = [[SFSDKLoginHostStorage sharedInstance] loginHostAtIndex:0].host;
@@ -1524,7 +1531,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 
         NSString *message =[NSString stringWithFormat:[SFSDKResourceUtils localizedString:kAlertConnectionErrorFormatStringKey], [error localizedDescription]];
         NSString *retryButton = [SFSDKResourceUtils localizedString:kAlertOkButtonKey];
-        [strongSelf showErrorAlertWithMessage:message buttonTitle:retryButton   andCompletion:^() {
+        [strongSelf showErrorAlertWithMessage:message buttonTitle:retryButton sceneId:session.oauthRequest.sceneId andCompletion:^() {
             //TODO: RestartAuth
             [strongSelf restartAuthentication:session];
         }];
@@ -1537,7 +1544,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     };
 }
 
-- (void)showErrorAlertWithMessage:(NSString *)alertMessage buttonTitle:(NSString *)buttonTitle andCompletion:(void(^)(void))completionBlock {
+- (void)showErrorAlertWithMessage:(NSString *)alertMessage buttonTitle:(NSString *)buttonTitle sceneId:(NSString *)sceneId andCompletion:(void(^)(void))completionBlock {
     __weak typeof (self) weakSelf = self;
     SFSDKAlertMessage *message = [SFSDKAlertMessage messageWithBlock:^(SFSDKAlertMessageBuilder *builder) {
         builder.alertTitle = [SFSDKResourceUtils localizedString:kAlertErrorTitleKey];
@@ -1548,7 +1555,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         };
     }];
     dispatch_async(dispatch_get_main_queue(), ^{
-        weakSelf.alertDisplayBlock(message, SFSDKWindowManager.sharedManager.authWindow);
+        weakSelf.alertDisplayBlock(message, [SFSDKWindowManager.sharedManager authWindowForScene:sceneId]);
     });
 }
 
@@ -1593,11 +1600,6 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     BOOL biometricUnlockAvailable = (biometricUnlockKey == nil) ? YES : [biometricUnlockKey boolValue];
     __weak typeof(self) weakSelf = self;
     
-    
-    
-    
-    
-    
     [self dismissAuthViewControllerIfPresent:^{
           __strong typeof(weakSelf) strongSelf = weakSelf;
         if (authSession.authInfo.authType != SFOAuthTypeRefresh) { // BB look at this for possible place to clear all auth screens
@@ -1618,8 +1620,6 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
            [strongSelf finalizeAuthCompletion:authSession];
        }
     } sceneId:authSession.oauthRequest.sceneId];
-    
-   
 }
 
 - (void)handleFailure:(NSError *)error session:(SFSDKAuthSession *)authSession {
@@ -1640,7 +1640,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (void)resetAuthentication {
-    
+    // BB TODO instances of authsession
     [_accountsLock lock];
     if (self.authSession.authInfo.authType == SFOAuthTypeUserAgent) {
         [self.authSession.oauthCoordinator.view removeFromSuperview];

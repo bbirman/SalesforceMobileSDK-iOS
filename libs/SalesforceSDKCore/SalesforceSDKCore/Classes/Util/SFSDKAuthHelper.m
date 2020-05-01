@@ -32,9 +32,6 @@
 #import "SFSDKWindowManager.h"
 #import "SFDefaultUserManagementViewController.h"
 #import "SFSecurityLockout.h"
-#import <SalesforceSDKCommon/SFSDKSafeMutableDictionary.h>
-
-static SFSDKSafeMutableDictionary *sceneLogoutBlocks = nil;
 
 @implementation SFSDKAuthHelper
 
@@ -103,7 +100,7 @@ static SFSDKSafeMutableDictionary *sceneLogoutBlocks = nil;
         }
     }
     
-    // TODO logout all windows
+    // TODO scene state (background, foreground)
 }
 
 + (void)registerBlockForLoginNotification:(void (^)(void))completionBlock {
@@ -120,27 +117,10 @@ static SFSDKSafeMutableDictionary *sceneLogoutBlocks = nil;
     [self registerBlockForSwitchUserNotifications:completionBlock];
 }
 
-+ (void)setBlockForLogout:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
-    static dispatch_once_t pred;
-    dispatch_once(&pred, ^{
-        sceneLogoutBlocks = [[SFSDKSafeMutableDictionary alloc] init];
-    });
-    
-    sceneLogoutBlocks[sceneId] = completionBlock;
-
-}
-
 + (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     __weak typeof (self) weakSelf = self;
-    
-    [SFSDKAuthHelper setBlockForLogout:completionBlock sceneId:sceneId];
-    
     [[NSNotificationCenter defaultCenter] addObserverForName:kSFNotificationUserDidLogout object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        for (NSString *scene in [sceneLogoutBlocks allKeys]) {
-            [weakSelf handleLogout:sceneLogoutBlocks[scene] sceneId:scene];
-        }
-        
-        //[weakSelf handleLogout:completionBlock sceneId:sceneId];
+        [weakSelf handleLogout:completionBlock sceneId:sceneId];
     }];
 }
 

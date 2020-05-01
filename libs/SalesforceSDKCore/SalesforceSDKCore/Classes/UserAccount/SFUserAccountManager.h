@@ -590,7 +590,7 @@ Use this method to stop/clear any authentication which is has already been start
  */
 - (void)dismissAuthViewControllerIfPresent NS_SWIFT_UNAVAILABLE("");
 
-- (void)dismissAuthViewControllerIfPresent:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
+- (void)dismissAuthViewControllerIfPresent:(void (^)(void))completionBlock sceneId:(NSString *)sceneId NS_SWIFT_UNAVAILABLE("");
 
 /**
  Handle an authentication response from the IDP application

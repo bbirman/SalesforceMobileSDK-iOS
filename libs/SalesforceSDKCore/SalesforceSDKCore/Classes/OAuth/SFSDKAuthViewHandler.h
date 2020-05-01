@@ -53,6 +53,8 @@ NS_SWIFT_NAME(AuthViewHolder)
 
 @property (nonatomic,assign) BOOL isAdvancedAuthFlow;
 
+@property (nonatomic, strong) NSString *sceneId; // Putting this here so that we don't need to change the signature of SFSDKAuthViewDisplayBlock to also have an Id
+
 @end
 
 NS_SWIFT_NAME(AuthViewHandler)
