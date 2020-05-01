@@ -31,6 +31,7 @@
 #import "SFSDKRootController.h"
 #import "SFApplicationHelper.h"
 #import "SFSecurityLockout.h"
+
 /*
 Attempt to resolve issues related to  the multi-windowing implementation in the SDK. Multiple visible UI windows tend to have some really bad side effects with rotations (keyboard and views) and status bar. We previously resorted to using the hidden property, unfortunately using hidden property on the UIWindow leads to really bad flicker issues ( black screen ). Reverted back to using alpha with a slightly different strategy.
  
@@ -139,6 +140,7 @@ static NSString *const kSFMainWindowKey     = @"main";
 static NSString *const kSFLoginWindowKey    = @"auth";
 static NSString *const kSFSnaphotWindowKey  = @"snapshot";
 static NSString *const kSFPasscodeWindowKey = @"passcode";
+static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIdentifier";
 
 - (instancetype)init {
     
@@ -153,9 +155,14 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
     return self;
 }
 
+
 - (SFSDKWindowContainer *)activeWindow {
+    return [self activeWindowForScene:kSingleSceneIdentifier];
+}
+
+- (SFSDKWindowContainer *)activeWindowForScene:(NSString *)sceneId {
     BOOL found = NO;
-    UIWindow *activeWindow = [self findActiveWindow];
+    UIWindow *activeWindow = [self findActiveWindowForScene:sceneId];
     SFSDKWindowContainer *window = nil;
     NSEnumerator *enumerator = self.namedWindows.objectEnumerator;
     while ((window = [enumerator nextObject]))  {
@@ -169,7 +176,6 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
 
 - (SFSDKWindowContainer *)mainWindowForScene:(NSString *)sceneId {
     SFSDKWindowContainer *mainWindow = [self containerForWindowKey:kSFMainWindowKey sceneId:sceneId];
-    
 
     if (!mainWindow) {
         UIWindow *keyWindow = [self findKeyWindowForScene:sceneId];
@@ -179,10 +185,9 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
     return [[self.sceneWindows objectForKey:sceneId] objectForKey:kSFMainWindowKey];
 }
 
-
 - (void)setMainUIWindow:(UIWindow *) window {
     NSLog(@"BB MAIN UI WINDOW CALLED NO SCENE ID");
-    [self setMainUIWindow:window sceneId:@"com.mobilesdk.singleSceneIdentifier"];
+    [self setMainUIWindow:window sceneId:kSingleSceneIdentifier];
     
 }
 - (void)setMainUIWindow:(UIWindow *) window sceneId:(NSString *)sceneId {
@@ -191,8 +196,6 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
     container.windowDelegate = self;
     container.window.alpha = 1.0;
     [self setContainer:container windowKey:kSFMainWindowKey sceneId:sceneId];
-    
-    //[self.namedWindows setObject:container forKey:kSFMainWindowKey];
 }
 
 - (nullable SFSDKWindowContainer *)containerForWindowKey:(NSString *)window sceneId:(NSString *)scene {
@@ -213,7 +216,7 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
 }
 
 - (SFSDKWindowContainer *)authWindow {
-    return [self authWindowForScene:@"com.mobilesdk.singleSceneIdentifier"];
+    return [self authWindowForScene:kSingleSceneIdentifier];
 }
 
 - (SFSDKWindowContainer *)authWindowForScene:(NSString *)sceneId {
@@ -224,7 +227,8 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
     }
     [self setWindowScene:container sceneId:sceneId];
     //enforce WindowLevel // BB need to have alternate for main window?
-    container.windowLevel = self.mainWindow.window.windowLevel + SFWindowLevelAuthOffset;
+    //container.windowLevel = self.mainWindow.window.windowLevel + SFWindowLevelAuthOffset;
+    container.windowLevel = [self mainWindowForScene:sceneId].window.windowLevel + SFWindowLevelAuthOffset;
     return container;
 }
 
@@ -286,31 +290,21 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
 }
 
 - (void)setWindowScene:(SFSDKWindowContainer *)container {
-    [self setWindowScene:container sceneId:nil];
+    [self setWindowScene:container sceneId:kSingleSceneIdentifier];
 }
 
 - (void)setWindowScene:(SFSDKWindowContainer *)container sceneId:(NSString *)sceneId {
     if (@available(iOS 13.0, *)) {
-        
-        
-        
-        
         container.window.windowScene = (UIWindowScene *)[self windowSceneForId:sceneId];
-        
         //self.mainWindow.window.windowScene;
     }
 }
 
-
-// 
 - (UIView *)windowSceneForId:(NSString *)sceneId {
     for (UIScene *tempScene in [SFApplicationHelper sharedApplication].connectedScenes.allObjects) {
         if ([tempScene.session.persistentIdentifier isEqualToString:sceneId]) {
             return (UIView*)tempScene;
         }
-//        if (tempScene.activationState == UISceneActivationStateForegroundActive) {
-//            scene = (UIWindowScene *)tempScene;
-//        }
     }
     return nil;
 }
@@ -400,10 +394,11 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
 
 #pragma mark - private methods
 - (void)makeTransparentWithCompletion:(SFSDKWindowContainer *)window completion:(void (^)(void))completion {
-    SFSDKWindowContainer *fallbackWindow = self.mainWindow;
+    //SFSDKWindowContainer *fallbackWindow = self.mainWindow;
+    NSString *sceneId = window.window.windowScene.session.persistentIdentifier; // BB TODO fallback Id for not having windowScene
+    SFSDKWindowContainer *fallbackWindow = [self mainWindowForScene:sceneId];
    
     if (window.isSnapshotWindow) {
-        
         [window.window resignKeyWindow];
         if (_lastActiveWindow) {
             fallbackWindow = _lastActiveWindow;
@@ -414,10 +409,11 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
     window.isActive = NO;
     [window.window resignKeyWindow];
     if (!window.isMainWindow) {
-        [self.namedWindows removeObjectForKey:window.windowName];
+        //[self.namedWindows removeObjectForKey:window.windowName]; // BB TODO
+        [[self.sceneWindows objectForKey:sceneId] removeObjectForKey:window.windowName];
     }
     //fallback to a window
-    [fallbackWindow.window makeKeyAndVisible]; // BB TODO should fallback window be nil?
+    [fallbackWindow.window makeKeyAndVisible];
     
     [self enumerateDelegates:^(id<SFSDKWindowManagerDelegate> delegate) {
         if ([delegate respondsToSelector:@selector(windowManager:didDismissWindow:)]){
@@ -500,22 +496,16 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
     return [window isKindOfClass:[SFSDKUIWindow class]];
 }
 
-
-
-
 - (UIWindow *)findKeyWindowForScene:(NSString *)sceneId {
     UIWindow *mainWindow = [SFApplicationHelper sharedApplication].delegate.window;
+
     if (@available(iOS 13.0, *)) {
-//        //UIWindowScene *scene = (UIWindowScene *)[self currentScene];
-//        UIWindowScene *scene;//(UIWindowScene *) [SFApplicationHelper  sharedApplication].connectedScenes.allObjects.firstObject;
-//        for (UIScene *tempScene in [SFApplicationHelper  sharedApplication].connectedScenes.allObjects) {
-//            if (tempScene.activationState == UISceneActivationStateForegroundActive) {
-//                scene = (UIWindowScene *)tempScene;
-//            }
-//        }
-        
         UIWindowScene *scene = (UIWindowScene *)[self windowSceneForId:sceneId];
         
+        if ([scene.delegate respondsToSelector:@selector(window)]) {
+            mainWindow = [scene.delegate performSelector:@selector(window)];
+        }
+
         for (UIWindow *window in scene.windows) {
             if (window.isKeyWindow) {
                 mainWindow = window;
@@ -524,39 +514,21 @@ static NSString *const kSFPasscodeWindowKey = @"passcode";
         }
     }
     return mainWindow;
- 
 }
 
 - (UIWindow *)findKeyWindow {
-    UIWindow *mainWindow = [SFApplicationHelper sharedApplication].delegate.window;
-    if (@available(iOS 13.0, *)) {
-        //UIWindowScene *scene = (UIWindowScene *)[self currentScene];
-        UIWindowScene *scene;//(UIWindowScene *) [SFApplicationHelper  sharedApplication].connectedScenes.allObjects.firstObject;
-        for (UIScene *tempScene in [SFApplicationHelper  sharedApplication].connectedScenes.allObjects) {
-            if (tempScene.activationState == UISceneActivationStateForegroundActive) {
-                scene = (UIWindowScene *)tempScene;
-            }
-        }
-        
-        for (UIWindow *window in scene.windows) {
-            if (window.isKeyWindow) {
-                mainWindow = window;
-                break;
-            }
-        }
-    }
-    return mainWindow;
- 
+    return [self findKeyWindowForScene:kSingleSceneIdentifier];
 }
 
 - (UIWindow *)findActiveWindow {
     // BB change this since .keyWindow is deprecated
-    return [SFApplicationHelper sharedApplication].keyWindow;
+    //return [SFApplicationHelper sharedApplication].keyWindow;
+    return [self findKeyWindowForScene:kSingleSceneIdentifier];
 }
 
-//- (UIWindow *)findActiveWindowForScene:(UIWindowScene *)identifier {
-//
-//}
+- (UIWindow *)findActiveWindowForScene:(NSString *)sceneId {
+    return [self findKeyWindowForScene:sceneId];
+}
 
 + (instancetype)sharedManager {
     static dispatch_once_t token;
