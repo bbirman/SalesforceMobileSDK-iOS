@@ -36,6 +36,7 @@
  */
 @protocol SFSDKWindowManagerDelegate <NSObject>
 
+// BB TODO add delegare calls?
 @optional
 /**
  Called when the window will be made opaque
@@ -73,6 +74,7 @@
 @interface SFSDKUIWindow : UIWindow
 - (instancetype _Nonnull)initWithFrame:(CGRect)frame;
 - (instancetype _Nonnull)initWithFrame:(CGRect)frame andName:(NSString *_Nonnull)windowName;
+// BB TODO init with frame, name and scene?
 @property (nonatomic,strong) UIViewController * _Nullable stashedController;
 @property (nonatomic,readonly) NSString * _Nullable windowName;
 @end
@@ -98,6 +100,10 @@
 /** Returns the SFSDKWindowContainer window representing the active presented Window that has been set
  */
 - (SFSDKWindowContainer * _Nullable)activeWindow;
+
+- (nullable SFSDKWindowContainer *)activeWindowForScene:(nonnull NSString *)sceneId;
+
+- (nonnull SFSDKWindowContainer *)snapshotWindowForScene:(nonnull NSString *)sceneId;
 
 /** Used to setup the main application window.
  */

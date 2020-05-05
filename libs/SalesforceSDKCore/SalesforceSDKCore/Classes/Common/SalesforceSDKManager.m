@@ -220,6 +220,8 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppTerminate:) name:UIApplicationWillTerminateNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
+         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillDeactivate:) name:UISceneWillDeactivateNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidActivate:) name:UISceneDidActivateNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow
                                                 selector:@selector(handleAuthCompleted:)
                                                      name:kSFNotificationUserDidLogIn object:nil];
@@ -720,41 +722,86 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     }];
     
     @try {
-        [self dismissSnapshot];
+        [self dismissSnapshot:nil];
     }
     @catch (NSException *exception) {
         [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view: '%@'. Will continue to resume app.", [exception reason]];
     }
 }
 
+- (void)handleSceneDidActivate:(NSNotification *)notification {
+     if (@available(iOS 13.0, *)) {
+         UIScene *scene = (UIScene *)notification.object;
+         NSString *sceneId = scene.session.persistentIdentifier;
+         
+         [SFSDKCoreLogger d:[self class] format:@"Scene %@ is resuming active state.", sceneId];
+         
+         //Delegate calls like handleAppDidBecomeActive?
+         
+         @try {
+             [self dismissSnapshot:sceneId];
+         }
+         @catch (NSException *exception) {
+             [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view for scene %@: '%@'. Will continue to resume app.", sceneId, [exception reason]];
+         }
+     }
+}
+
+- (void)handleSceneWillDeactivate:(NSNotification *)notification {
+    if (@available(iOS 13.0, *)) {
+        UIScene *scene = (UIScene *)notification.object;
+        NSString *sceneId = scene.session.persistentIdentifier;
+    
+        [SFSDKCoreLogger d:[self class] format:@"Scene %@ is resigning active state.", sceneId];
+        
+        // Delegate calls like handleAppWillResignActive?
+        SFSDKWindowContainer *activeWindow = [[SFSDKWindowManager sharedManager] activeWindowForScene:sceneId];
+        if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
+            return;
+        }
+        
+        // Set up snapshot security view, if it's configured.
+        @try {
+            [self presentSnapshot:sceneId];
+        }
+        @catch (NSException *exception) {
+            [SFSDKCoreLogger w:[self class] format:@"Exception thrown while setting up security snapshot view for scene %@: '%@'. Continuing resign active.", sceneId, [exception reason]];
+        }
+    }
+}
+
 - (void)handleAppWillResignActive:(NSNotification *)notification
 {
+   
     [SFSDKCoreLogger d:[self class] format:@"App is resigning active state."];
-//
-//    [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
-//        if ([delegate respondsToSelector:@selector(sdkManagerWillResignActive)]) {
-//            [delegate sdkManagerWillResignActive];
-//        }
-//    }];
-//
-//    // Don't present snapshot during advanced authentication or Passcode Presentation
-//    // ==============================================================================
-//    // During advanced authentication, application is briefly backgrounded then foregrounded
-//    // The ASWebAuthenticationSession's view controller is pushed into the key window
-//    // If we make the snapshot window the active window now, that's where the ASWebAuthenticationSession's view controller will end up
-//    // Then when the application is foregrounded and the snapshot window is dismissed, we will lose the ASWebAuthenticationSession
-//    SFSDKWindowContainer* activeWindow = [SFSDKWindowManager sharedManager].activeWindow;
-//    if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
-//        return;
-//    }
-//
-//    // Set up snapshot security view, if it's configured.
-//    @try {
-//        [self presentSnapshot];
-//    }
-//    @catch (NSException *exception) {
-//        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while setting up security snapshot view: '%@'. Continuing resign active.", [exception reason]];
-//    }
+
+    [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
+        if ([delegate respondsToSelector:@selector(sdkManagerWillResignActive)]) {
+            [delegate sdkManagerWillResignActive];
+        }
+    }];
+
+    
+    // BB TODO Only run this if scene delegate doesn't exist? multiple windows from plist not enabled?
+    
+    // Don't present snapshot during advanced authentication or Passcode Presentation
+    // ==============================================================================
+    // During advanced authentication, application is briefly backgrounded then foregrounded
+    // The ASWebAuthenticationSession's view controller is pushed into the key window
+    // If we make the snapshot window the active window now, that's where the ASWebAuthenticationSession's view controller will end up
+    // Then when the application is foregrounded and the snapshot window is dismissed, we will lose the ASWebAuthenticationSession
+    SFSDKWindowContainer* activeWindow = [SFSDKWindowManager sharedManager].activeWindow;
+    if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
+        return;
+    }
+
+    // Set up snapshot security view, if it's configured.
+    @try {
+        [self presentSnapshot:nil];
+    }
+    @catch (NSException *exception) {
+        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while setting up security snapshot view: '%@'. Continuing resign active.", [exception reason]];
+    }
 }
 
 - (void)handleAuthCompleted:(NSNotification *)notification
@@ -818,12 +865,14 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     [SFInactivityTimerCenter saveActivityTimestamp];
 }
     
-- (BOOL)isSnapshotPresented
-{
-    return [[SFSDKWindowManager sharedManager].snapshotWindow isEnabled];
+- (BOOL)isSnapshotPresented:(NSString *)sceneId {
+    if (sceneId) {
+        return [[[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId] isActive];
+    }
+    return [[SFSDKWindowManager sharedManager].snapshotWindow isEnabled]; // BB TODO can we move this to isActive as well? Are there cases where it's key but isActive not set?
 }
 
-- (void)presentSnapshot
+- (void)presentSnapshot:(NSString *)sceneId
 {
     if (!self.useSnapshotView) {
         return;
@@ -845,35 +894,49 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     }
     _snapshotViewController.modalPresentationStyle = UIModalPresentationFullScreen;
     // Presentation
+    
+    SFSDKWindowContainer *snapshotWindow;
+    if (sceneId) {
+        snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
+    } else {
+        snapshotWindow = [SFSDKWindowManager sharedManager].snapshotWindow;
+    }
+    
+    
     __weak typeof (self) weakSelf = self;
-    [[SFSDKWindowManager sharedManager].snapshotWindow  presentWindowAnimated:NO withCompletion:^{
+    [snapshotWindow  presentWindowAnimated:NO withCompletion:^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf.snapshotPresentationAction && strongSelf.snapshotDismissalAction) {
             strongSelf.snapshotPresentationAction(strongSelf->_snapshotViewController);
-        }else {
-            [SFSDKWindowManager.sharedManager.snapshotWindow.viewController presentViewController:strongSelf->_snapshotViewController animated:NO completion:nil];
+        } else {
+            [snapshotWindow.viewController presentViewController:strongSelf->_snapshotViewController animated:NO completion:nil];
         }
     }];
     
 }
 
-- (void)dismissSnapshot
-{
-    if ([self isSnapshotPresented]) {
+- (void)dismissSnapshot:(NSString *)sceneId {
+    if ([self isSnapshotPresented:sceneId]) {
         if (self.snapshotPresentationAction && self.snapshotDismissalAction) {
             self.snapshotDismissalAction(_snapshotViewController);
             if ([SFSecurityLockout isPasscodeNeeded]) {
                 [SFSecurityLockout validateTimer];
             }
         } else {
-            [[SFSDKWindowManager sharedManager].snapshotWindow.viewController dismissViewControllerAnimated:NO completion:^{
-                [[SFSDKWindowManager sharedManager].snapshotWindow dismissWindowAnimated:NO  withCompletion:^{
+            SFSDKWindowContainer *snapshotWindow;
+            if (sceneId) {
+                snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
+            } else {
+                snapshotWindow = [SFSDKWindowManager sharedManager].snapshotWindow;
+            }
+            
+            [snapshotWindow.viewController dismissViewControllerAnimated:NO completion:^{
+                [snapshotWindow dismissWindowAnimated:NO  withCompletion:^{
                     if ([SFSecurityLockout isPasscodeNeeded]) {
                         [SFSecurityLockout validateTimer];
                     }
                 }];
             }];
-            
         }
     }
 }

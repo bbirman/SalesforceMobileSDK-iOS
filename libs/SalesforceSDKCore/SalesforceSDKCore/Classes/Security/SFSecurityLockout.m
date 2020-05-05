@@ -116,13 +116,13 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
         [SFSecurityLockout setPresentPasscodeViewControllerBlock:^(UIViewController *pvc) {
             pvc.modalPresentationStyle = UIModalPresentationFullScreen;
             [[SFSDKWindowManager sharedManager].passcodeWindow presentWindowAnimated:NO withCompletion:^{
-                [[SFSDKWindowManager sharedManager].passcodeWindow.viewController  presentViewController:pvc animated:NO completion:nil];
+                [[SFSDKWindowManager sharedManager].passcodeWindow.viewController presentViewController:pvc animated:NO completion:nil];
             }];
 
         }];
         
         [SFSecurityLockout setDismissPasscodeViewControllerBlock:^(UIViewController * pvc, void(^ completionBlock)(void) ) {
-                [[SFSDKWindowManager sharedManager].passcodeWindow.viewController  dismissViewControllerAnimated:NO completion:^{
+                [[SFSDKWindowManager sharedManager].passcodeWindow.viewController dismissViewControllerAnimated:NO completion:^{
                     [[SFSDKWindowManager sharedManager].passcodeWindow dismissWindowAnimated:NO
                                                                               withCompletion:^{
                                                    if (completionBlock)
@@ -670,6 +670,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
         return;
     }
     
+    // BB TODO
     if ([[SFSDKWindowManager sharedManager].snapshotWindow isEnabled]) {
         [[SFSDKWindowManager sharedManager].snapshotWindow dismissWindow];
     }

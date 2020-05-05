@@ -43,8 +43,8 @@
 
 - (void)passcodeValidatedToAuthValidation;
 - (void)authValidatedToPostAuth:(SFSDKLaunchAction)launchAction;
-- (void)presentSnapshot;
-- (BOOL)isSnapshotPresented;
-- (void)dismissSnapshot;
+- (void)presentSnapshot:(nullable NSString *)sceneId;
+- (BOOL)isSnapshotPresented:(nullable NSString *)sceneId;
+- (void)dismissSnapshot:(nullable NSString *)sceneId;
 
 @end

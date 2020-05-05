@@ -164,7 +164,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
     BOOL found = NO;
     UIWindow *activeWindow = [self findActiveWindowForScene:sceneId];
     SFSDKWindowContainer *window = nil;
-    NSEnumerator *enumerator = self.namedWindows.objectEnumerator;
+    NSEnumerator *enumerator = self.namedWindows.objectEnumerator; // BB TODO no namedWindows
     while ((window = [enumerator nextObject]))  {
         if(window.isActive && window.window==activeWindow) {
             found = YES;
@@ -233,17 +233,25 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)snapshotWindow {
-    SFSDKWindowContainer *container = [self.namedWindows objectForKey:kSFSnaphotWindowKey];
+    return [self snapshotWindowForScene:kSingleSceneIdentifier];
+}
+
+- (SFSDKWindowContainer *)snapshotWindowForScene:(NSString *)sceneId {
+    SFSDKWindowContainer *container = [self containerForWindowKey:kSFSnaphotWindowKey sceneId:sceneId];//[self.namedWindows objectForKey:kSFSnaphotWindowKey];
     if (!container) {
-        container = [self createSnapshotWindow];
+        container = [self createSnapshotWindowForScene:sceneId];
     }
-    [self setWindowScene:container];
+    [self setWindowScene:container sceneId:sceneId];
     //enforce WindowLevel
-    container.windowLevel = self.mainWindow.window.windowLevel + SFWindowLevelSnapshotOffset;
+    container.windowLevel = [self mainWindowForScene:sceneId].window.windowLevel + SFWindowLevelSnapshotOffset;
     return container;
 }
 
 - (SFSDKWindowContainer *)passcodeWindow {
+    return [self passcodeWindowForScene:kSingleSceneIdentifier];
+}
+
+- (SFSDKWindowContainer *)passcodeWindowForScene:(NSString *)sceneId {
     SFSDKWindowContainer *container = [self.namedWindows objectForKey:kSFPasscodeWindowKey];
     if (!container) {
         container = [self createPasscodeWindow];
@@ -254,6 +262,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
     return container;
 }
 
+// BB TODO scene for named windows
 - (SFSDKWindowContainer *)createNewNamedWindow:(NSString *)windowName {
     SFSDKWindowContainer * container = nil;
     if ( ![self isReservedName:windowName] ) {
@@ -452,13 +461,17 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)createSnapshotWindow {
+    return [self createSnapshotWindowForScene:kSingleSceneIdentifier];
+}
+
+- (SFSDKWindowContainer *)createSnapshotWindowForScene:(NSString *)sceneId {
     SFSDKWindowContainer *container = [[SFSDKWindowContainer alloc] initWithName:kSFSnaphotWindowKey];
     container.windowDelegate = self;
     container.windowType = SFSDKWindowTypeSnapshot;
-    [self.namedWindows setObject:container forKey:kSFSnaphotWindowKey];
+    //[self.namedWindows setObject:container forKey:kSFSnaphotWindowKey];
+    [self setContainer:container windowKey:kSFSnaphotWindowKey sceneId:sceneId];
     return container;
 }
-
 
 - (SFSDKWindowContainer *)createAuthWindowForScene:(NSString *)sceneId {
     SFSDKWindowContainer *container = [[SFSDKWindowContainer alloc] initWithName:kSFLoginWindowKey];
@@ -470,11 +483,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)createAuthWindow {
-    SFSDKWindowContainer *container = [[SFSDKWindowContainer alloc] initWithName:kSFLoginWindowKey];
-    container.windowDelegate = self;
-    container.windowType = SFSDKWindowTypeAuth;
-    [self.namedWindows setObject:container forKey:kSFLoginWindowKey];
-    return container;
+    return [self createAuthWindowForScene:kSingleSceneIdentifier];
 }
 
 - (SFSDKWindowContainer *)createPasscodeWindow {

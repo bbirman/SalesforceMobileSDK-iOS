@@ -826,6 +826,8 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     return dirExists;
 }
 
+
+// BB TODO could this tmp file name fall over if used from two different places?
 - (BOOL)saveSoupEntryExternally:(NSDictionary *)soupEntry
                     soupEntryId:(NSNumber *)soupEntryId
                   soupTableName:(NSString *)soupTableName {
