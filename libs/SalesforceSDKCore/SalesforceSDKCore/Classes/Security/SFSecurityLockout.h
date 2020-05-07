@@ -124,12 +124,14 @@ typedef UIViewController* _Nullable  (^SFPasscodeViewControllerCreationBlock)(SF
 /**
  Block typedef for displaying and dismissing the passcode view controller.
  */
-typedef void (^SFPasscodeViewControllerPresentationBlock)(UIViewController*);
+typedef void (^SFPasscodeViewControllerPresentationBlock)(UIViewController*, NSString*); // BB TODO semver
+
+//typedef void (^SFPasscodeViewControllerPresentationBlockForScene)(UIViewController*, NSString*);
 
 /**
  Block typedef for displaying and dismissing the passcode view controller.
  */
-typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nullable)(void));
+typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*, NSString*, void(^_Nullable)(void)); //BB TODO semver
 
 /**
  Delegate protocol for SFSecurityLockout events and callbacks.

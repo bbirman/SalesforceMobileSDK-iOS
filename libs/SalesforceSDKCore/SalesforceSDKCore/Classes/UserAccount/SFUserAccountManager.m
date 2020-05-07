@@ -395,7 +395,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         return;
     }
     BOOL result = NO;
-    if (self.authSession && self.authSession.isAuthenticating) {
+    if (self.authSession && self.authSession.isAuthenticating) { // BB TODO can this check array of sessions instead?
         [self resetAuthentication];
         result = YES;
     } else {
@@ -405,7 +405,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     if (completionBlock) {
         [self dismissAuthViewControllerIfPresent:^{
             completionBlock(result);
-        } sceneId:self.authSession.oauthRequest.sceneId]; // This is nil
+        } sceneId:self.authSession.oauthRequest.sceneId]; // BB TODO need way around self.authSession
     }
   
 }
@@ -903,7 +903,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (void)cancel:(NSDictionary *)spAppOptions {
-   // Uset Cancelled auth in the idp app mode
+   // User Cancelled auth in the idp app mode
     SFOAuthCredentials *spAppCredentials = [self spAppCredentials:spAppOptions];
     [SFSDKIDPAuthHelper invokeSPAppWithError:spAppCredentials error:nil reason:@"User cancelled Authentication"];
 }
@@ -1716,7 +1716,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
      
      NSDictionary *userInfo = @{kSFNotificationUserInfoAccountKey: userAccount,
                                 kSFNotificationUserInfoAuthTypeKey: authInfo};
-     if (self.authSession.authInfo.authType != SFOAuthTypeRefresh) {
+     if (self.authSession.authInfo.authType != SFOAuthTypeRefresh) { // BB TODO need way around self.authSession
          [[NSNotificationCenter defaultCenter] postNotificationName:kSFNotificationUserDidLogIn
                                                              object:self
                                                            userInfo:userInfo];
