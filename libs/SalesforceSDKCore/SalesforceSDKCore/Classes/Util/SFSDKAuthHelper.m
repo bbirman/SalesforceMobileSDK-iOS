@@ -32,14 +32,36 @@
 #import "SFSDKWindowManager.h"
 #import "SFDefaultUserManagementViewController.h"
 #import "SFSecurityLockout.h"
+#import "SFApplicationHelper.h"
+
+static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIdentifier"; // BB TODO this is a duplicate
 
 @implementation SFSDKAuthHelper
+
++ (void)loginIfRequired:(void (^)(void))completionBlock {
+    [SFSDKAuthHelper loginIfRequired:completionBlock sceneId:kSingleSceneIdentifier];
+}
 
 + (void)loginIfRequired:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     if (![SFUserAccountManager sharedInstance].currentUser && [SalesforceSDKManager sharedManager].appConfig.shouldAuthenticate) {
         SFUserAccountManagerSuccessCallbackBlock successBlock = ^(SFOAuthInfo *authInfo,SFUserAccount *userAccount) {
             if (completionBlock) {
                 completionBlock();
+                
+                NSArray *scenes = [SFApplicationHelper sharedApplication].connectedScenes.allObjects;
+                NSUInteger sceneIndex = [scenes indexOfObjectPassingTest:^BOOL(UIScene *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    return [obj.session.persistentIdentifier isEqualToString:sceneId];
+                }];
+                
+                if (sceneIndex != NSNotFound) {
+                     UIScene *scene = scenes[sceneIndex];
+                    
+                    //[self loginIfRequired:completionBlock sceneId:sceneId];
+                    if (scene.activationState == UISceneActivationStateBackground) {
+                        [[UIApplication sharedApplication] requestSceneSessionRefresh:scene.session];
+                    }
+                    
+                }
             }
         };
         SFUserAccountManagerFailureCallbackBlock failureBlock = ^(SFOAuthInfo *authInfo, NSError *authError) {
@@ -74,6 +96,10 @@
     [SFSecurityLockout lock];
 }
 
++ (void)handleLogout:(void (^)(void))completionBlock {
+    [SFSDKAuthHelper handleLogout:completionBlock sceneId:kSingleSceneIdentifier];
+}
+
 + (void)handleLogout:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     // Multi-user pattern:
     // - If there are two or more existing accounts after logout, let the user choose the account
@@ -96,7 +122,22 @@
                 completionBlock();
             }
         } else {
-            [self loginIfRequired:completionBlock sceneId:sceneId];
+            // BB TODO
+            NSArray *scenes = [SFApplicationHelper sharedApplication].connectedScenes.allObjects;
+            NSUInteger sceneIndex = [scenes indexOfObjectPassingTest:^BOOL(UIScene *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                return [obj.session.persistentIdentifier isEqualToString:sceneId];
+            }];
+            
+            if (sceneIndex != NSNotFound) {
+                 UIScene *scene = scenes[sceneIndex];
+                
+                [self loginIfRequired:completionBlock sceneId:sceneId];
+                if (scene.activationState != UISceneActivationStateForegroundActive && scene.activationState != UISceneActivationStateForegroundActive) {
+                    // BB TODO this is called but doesn't update background scenes to login screen
+                    [[UIApplication sharedApplication] requestSceneSessionRefresh:scene.session];
+                }
+                
+            }
         }
     }
     
@@ -111,10 +152,17 @@
        }];
 }
 
++ (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock {
+    [SFSDKAuthHelper registerBlockForCurrentUserChangeNotifications:completionBlock sceneId:kSingleSceneIdentifier];
+}
 
 + (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
     [self registerBlockForLogoutNotifications:completionBlock sceneId:sceneId];
     [self registerBlockForSwitchUserNotifications:completionBlock];
+}
+
++ (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock {
+    [SFSDKAuthHelper registerBlockForLogoutNotifications:completionBlock sceneId:kSingleSceneIdentifier];
 }
 
 + (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock sceneId:(NSString *)sceneId {
