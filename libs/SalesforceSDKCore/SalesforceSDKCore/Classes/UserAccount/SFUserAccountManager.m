@@ -857,7 +857,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     }
     self.authSession.oauthRequest.appDisplayName = self.appDisplayName;
     [SFSDKIDPAuthHelper invokeIDPApp:self.authSession completion:^(BOOL result) {
-       [SFSDKCoreLogger d:[self class] format:@"Launced IDP App"];
+       [SFSDKCoreLogger d:[self class] format:@"Launched IDP App"];
     }];
 }
 
@@ -1449,12 +1449,12 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     authSession.authFailureCallback = failureBlock;
     authSession.authSuccessCallback = completionBlock;
     authSession.oauthCoordinator.delegate = self;
-    self.authSession = authSession;
+    self.authSession = authSession; // BB TODO
     if (request.idpInitiatedAuth && request.userHint) {
         //no need to show login selection view
         self.authSession.oauthRequest.appDisplayName = self.appDisplayName;
         [SFSDKIDPAuthHelper invokeIDPApp:self.authSession completion:^(BOOL result) {
-           [SFSDKCoreLogger d:[self class] format:@"Launced IDP App"];
+           [SFSDKCoreLogger d:[self class] format:@"Launched IDP App"];
         }];
     } else {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1467,7 +1467,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
             }
             controller.appOptions = options;
             controller.selectionFlowDelegate = [SFUserAccountManager sharedInstance];
-            SFSDKWindowContainer *authWindow = [SFSDKWindowManager sharedManager].authWindow;
+            SFSDKWindowContainer *authWindow = [[SFSDKWindowManager sharedManager] authWindowForScene:request.sceneId];//[SFSDKWindowManager sharedManager].authWindow;
            
             SFSDKNavigationController *navcontroller = [[SFSDKNavigationController alloc] initWithRootViewController:controller];
             navcontroller.modalPresentationStyle = UIModalPresentationFullScreen;
