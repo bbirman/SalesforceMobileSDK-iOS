@@ -509,7 +509,7 @@ NS_SWIFT_NAME(UserAccountManager)
  invoked if the login flow completes, or if any errors are encountered during the flow.
  */
 - (void)switchToNewUserWithCompletion:(void (^)(NSError * _Nullable, SFUserAccount * _Nullable))completion NS_REFINED_FOR_SWIFT;
-
+- (void)switchToNewUser:(nullable NSString *)sceneId completion:(void (^)(NSError *error, SFUserAccount * currentAccount))completion;
 /**
  Switches away from the current user, to the given user account.
  @param userAccount The user to switch to.

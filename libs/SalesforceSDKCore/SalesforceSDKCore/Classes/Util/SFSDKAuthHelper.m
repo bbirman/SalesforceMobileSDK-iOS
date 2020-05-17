@@ -140,6 +140,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
             }
         }
     }
+    // TODO add check so views aren't refreshed when the logged out user isn't the current user
     
     // TODO scene state (background, foreground)
 }

@@ -36,6 +36,8 @@
  */
 @property (nonatomic, strong) SFUserAccount *actionAccount;
 
+@property (nonatomic, strong) NSString *sceneId;
+
 /**
  Completion block to execute, once a user management action has been selected.
  */

@@ -1783,6 +1783,10 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 
 #pragma mark Switching Users
 - (void)switchToNewUserWithCompletion:(void (^)(NSError *error, SFUserAccount * currentAccount))completion {
+    [self switchToNewUser:nil completion:completion];
+}
+
+- (void)switchToNewUser:(NSString *)sceneId completion:(void (^)(NSError *error, SFUserAccount * currentAccount))completion {
     SFUserAccount *prevUser = self.currentUser;
     if (!self.currentUser) {
         NSError *error = [[NSError alloc] initWithDomain:kSFSDKUserAccountManagerErrorDomain
@@ -1802,7 +1806,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
                 if (completion) {
                     completion(error,nil);
                 }
-            } sceneId:nil];
+            } sceneId:sceneId];
         }];
     }
 }
