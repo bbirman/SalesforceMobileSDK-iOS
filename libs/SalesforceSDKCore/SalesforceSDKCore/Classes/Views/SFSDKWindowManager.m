@@ -111,8 +111,7 @@ Attempt to resolve issues related to  the multi-windowing implementation in the 
 //        super.rootViewController = nil;
 //        [self stashRootViewController];
 //    }
-    
-    
+    NSLog(@"resign key window");
 }
 - (BOOL)isSnapshotWindow {
     return [self.windowName isEqualToString:[SFSDKWindowManager sharedManager].snapshotWindow.windowName];
@@ -157,7 +156,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 
 
 - (SFSDKWindowContainer *)activeWindow {
-    return [self activeWindowForScene:kSingleSceneIdentifier];
+    return [self activeWindowForScene:nil];
 }
 
 - (SFSDKWindowContainer *)activeWindowForScene:(NSString *)sceneId {
@@ -187,10 +186,11 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 
 - (void)setMainUIWindow:(UIWindow *) window {
     NSLog(@"BB MAIN UI WINDOW CALLED NO SCENE ID");
-    [self setMainUIWindow:window sceneId:kSingleSceneIdentifier];
+    [self setMainUIWindow:window sceneId:nil];
     
 }
 - (void)setMainUIWindow:(UIWindow *) window sceneId:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     SFSDKWindowContainer *container = [[SFSDKWindowContainer alloc] initWithWindow:window name:kSFMainWindowKey];
     container.windowType = SFSDKWindowTypeMain;
     container.windowDelegate = self;
@@ -204,6 +204,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (void)setContainer:(SFSDKWindowContainer *)window windowKey:(NSString *)windowKey sceneId:(NSString *)sceneKey {
+    sceneKey = [self nonnullSceneId:sceneKey];
    NSMapTable<NSString *,SFSDKWindowContainer *> *namedWindows = [self.sceneWindows objectForKey:sceneKey];
       if (!namedWindows) {
           namedWindows = [NSMapTable mapTableWithKeyOptions:NSMapTableStrongMemory
@@ -216,10 +217,11 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)authWindow {
-    return [self authWindowForScene:kSingleSceneIdentifier];
+    return [self authWindowForScene:nil];
 }
 
 - (SFSDKWindowContainer *)authWindowForScene:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     SFSDKWindowContainer *container = [self containerForWindowKey:kSFLoginWindowKey sceneId:sceneId];
 
     if (!container) {
@@ -233,10 +235,11 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)snapshotWindow {
-    return [self snapshotWindowForScene:kSingleSceneIdentifier];
+    return [self snapshotWindowForScene:nil];
 }
 
 - (SFSDKWindowContainer *)snapshotWindowForScene:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     SFSDKWindowContainer *container = [self containerForWindowKey:kSFSnaphotWindowKey sceneId:sceneId];//[self.namedWindows objectForKey:kSFSnaphotWindowKey];
     if (!container) {
         container = [self createSnapshotWindowForScene:sceneId];
@@ -248,15 +251,17 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)passcodeWindow {
-    return [self passcodeWindowForScene:kSingleSceneIdentifier];
+    return [self passcodeWindowForScene:nil];
 }
 
 - (SFSDKWindowContainer *)passcodeWindowForScene:(NSString *)sceneId {
-    SFSDKWindowContainer *container = [self.namedWindows objectForKey:kSFPasscodeWindowKey];
+    sceneId = [self nonnullSceneId:sceneId];
+    SFSDKWindowContainer *container = [self containerForWindowKey:kSFPasscodeWindowKey sceneId:sceneId];
+    //SFSDKWindowContainer *container = [self.namedWindows objectForKey:kSFPasscodeWindowKey];
     if (!container) {
-        container = [self createPasscodeWindow];
+        container = [self createPasscodeWindowForScene:sceneId];
     }
-    [self setWindowScene:container];
+    [self setWindowScene:container sceneId:sceneId];
     //enforce WindowLevel
     container.windowLevel = self.mainWindow.window.windowLevel + SFWindowLevelPasscodeOffset;
     return container;
@@ -299,10 +304,11 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (void)setWindowScene:(SFSDKWindowContainer *)container {
-    [self setWindowScene:container sceneId:kSingleSceneIdentifier];
+    [self setWindowScene:container sceneId:nil];
 }
 
 - (void)setWindowScene:(SFSDKWindowContainer *)container sceneId:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     if (@available(iOS 13.0, *)) {
         container.window.windowScene = (UIWindowScene *)[self windowSceneForId:sceneId];
         //self.mainWindow.window.windowScene;
@@ -316,6 +322,19 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
         }
     }
     return nil;
+}
+
+- (NSString *)nonnullSceneId:(nullable NSString *)sceneId {
+    if (!sceneId) {
+        NSArray *scenes = [UIApplication sharedApplication].connectedScenes.allObjects;
+        UIScene *scene = [scenes firstObject];
+        if (scene) {
+            return scene.session.persistentIdentifier;
+        } else {
+            return kSingleSceneIdentifier;
+        }
+    }
+    return sceneId;
 }
 
 - (void)addDelegate:(id<SFSDKWindowManagerDelegate>)delegate
@@ -436,7 +455,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 
 - (void)makeOpaqueWithCompletion:(SFSDKWindowContainer *)window completion:(void (^)(void))completion {
     if (window.isSnapshotWindow) {
-        SFSDKWindowContainer *activeWindow = [self activeWindow];
+        SFSDKWindowContainer *activeWindow = [self activeWindow]; //BB TODO scene ID?
         if (![activeWindow isSnapshotWindow]){
             _lastActiveWindow = activeWindow;
         }
@@ -461,7 +480,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)createSnapshotWindow {
-    return [self createSnapshotWindowForScene:kSingleSceneIdentifier];
+    return [self createSnapshotWindowForScene:nil];
 }
 
 - (SFSDKWindowContainer *)createSnapshotWindowForScene:(NSString *)sceneId {
@@ -483,14 +502,18 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)createAuthWindow {
-    return [self createAuthWindowForScene:kSingleSceneIdentifier];
+    return [self createAuthWindowForScene:nil];
 }
 
 - (SFSDKWindowContainer *)createPasscodeWindow {
+   return [self createPasscodeWindowForScene:nil];
+}
+
+- (SFSDKWindowContainer *)createPasscodeWindowForScene:(NSString *)sceneId {
     SFSDKWindowContainer *container = [[SFSDKWindowContainer alloc] initWithName:kSFPasscodeWindowKey];
     container.windowDelegate = self;
     container.windowType = SFSDKWindowTypePasscode;
-    [self.namedWindows setObject:container forKey:kSFPasscodeWindowKey];
+    [self setContainer:container windowKey:kSFPasscodeWindowKey sceneId:sceneId];
     return container;
 }
 
@@ -506,6 +529,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (UIWindow *)findKeyWindowForScene:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     UIWindow *mainWindow = [SFApplicationHelper sharedApplication].delegate.window;
 
     if (@available(iOS 13.0, *)) {
@@ -526,16 +550,17 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (UIWindow *)findKeyWindow {
-    return [self findKeyWindowForScene:kSingleSceneIdentifier];
+    return [self findKeyWindowForScene:nil];
 }
 
 - (UIWindow *)findActiveWindow {
     // BB change this since .keyWindow is deprecated
     //return [SFApplicationHelper sharedApplication].keyWindow;
-    return [self findKeyWindowForScene:kSingleSceneIdentifier];
+    return [self findKeyWindowForScene:nil];
 }
 
 - (UIWindow *)findActiveWindowForScene:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     return [self findKeyWindowForScene:sceneId];
 }
 

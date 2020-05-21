@@ -38,7 +38,9 @@ NS_SWIFT_NAME(AuthHelper)
  */
 + (void)loginIfRequired:(void (^)(void))completionBlock;
 
-+ (void)loginIfRequired:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
++ (void)loginIfRequired:(void (^)(void))completionBlock scene:(UIScene *)scene API_AVAILABLE(ios(13.0));
+              
++ (void)loginIfRequired:(void (^)(void))completionBlock scene:(UIScene *)scene;
 
 + (void)handleLogout:(void (^)(void))completionBlock sceneId:(NSString *)sceneId;
 

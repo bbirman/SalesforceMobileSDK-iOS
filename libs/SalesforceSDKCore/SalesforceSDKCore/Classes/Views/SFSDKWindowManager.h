@@ -101,9 +101,13 @@
  */
 - (SFSDKWindowContainer * _Nullable)activeWindow;
 
-- (nullable SFSDKWindowContainer *)activeWindowForScene:(nonnull NSString *)sceneId;
+- (nonnull SFSDKWindowContainer *)authWindowForScene:(nonnull NSString *)sceneId;
 
 - (nonnull SFSDKWindowContainer *)snapshotWindowForScene:(nonnull NSString *)sceneId;
+
+- (nonnull SFSDKWindowContainer *)passcodeWindowForScene:(nonnull NSString *)sceneId;
+
+- (nullable SFSDKWindowContainer *)activeWindowForScene:(nonnull NSString *)sceneId;
 
 /** Used to setup the main application window.
  */
@@ -119,7 +123,7 @@
 
 /** Used to retrieve a Window by a  specified name
  */
-- (SFSDKWindowContainer *_Nullable)windowWithName:(NSString *_Nonnull)name;
+- (SFSDKWindowContainer *_Nullable)windowWithName:(NSString *_Nonnull)name; //BB TODO windowWithName, sceneId?
 
 /** Add a Window Manager Delegate
  */
@@ -128,8 +132,6 @@
 /** Remove a Window Manager Delegate
  */
 - (void)removeDelegate:(id<SFSDKWindowManagerDelegate>_Nonnull)delegate;
-
-- (nonnull SFSDKWindowContainer *)authWindowForScene:(nonnull NSString *)sceneId;
 
 + (instancetype _Nonnull)sharedManager;
 

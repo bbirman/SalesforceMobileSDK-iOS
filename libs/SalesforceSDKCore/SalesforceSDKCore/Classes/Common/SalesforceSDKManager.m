@@ -222,6 +222,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
          [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillDeactivate:) name:UISceneWillDeactivateNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidActivate:) name:UISceneDidActivateNotification object:nil];
+         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillEnterForeground:) name:UISceneWillEnterForegroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow
                                                 selector:@selector(handleAuthCompleted:)
                                                      name:kSFNotificationUserDidLogIn object:nil];
@@ -236,7 +237,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleUserDidSwitch:)  name:kSFNotificationUserDidSwitch object:nil];
         
         [SFPasscodeManager sharedManager].preferredPasscodeProvider = kSFPasscodeProviderPBKDF2;
-        self.useSnapshotView = YES;
+        self.useSnapshotView = NO; //BB TODO put this back
         [self computeWebViewUserAgent]; // web view user agent is computed asynchronously so very first call to self.userAgentString(...) will be missing it
         self.userAgentString = [self defaultUserAgentString];
         self.URLCacheType = kSFURLCacheTypeEncrypted;
@@ -729,6 +730,11 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     }
 }
 
+- (void)handleSceneWillEnterForeground:(NSNotification *)notification {
+    [SFSecurityLockout validateTimer];
+    NSLog(@"Scene entered foreground");
+}
+
 - (void)handleSceneDidActivate:(NSNotification *)notification {
      if (@available(iOS 13.0, *)) {
          UIScene *scene = (UIScene *)notification.object;
@@ -867,7 +873,8 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     
 - (BOOL)isSnapshotPresented:(NSString *)sceneId {
     if (sceneId) {
-        return [[[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId] isActive];
+        SFSDKWindowContainer *window = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
+        return [window isActive];
     }
     return [[SFSDKWindowManager sharedManager].snapshotWindow isEnabled]; // BB TODO can we move this to isActive as well? Are there cases where it's key but isActive not set?
 }
@@ -917,7 +924,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 
 - (void)dismissSnapshot:(NSString *)sceneId {
     if ([self isSnapshotPresented:sceneId]) {
-        if (self.snapshotPresentationAction && self.snapshotDismissalAction) {
+        if (self.snapshotPresentationAction && self.snapshotDismissalAction) { // BB TODO
             self.snapshotDismissalAction(_snapshotViewController);
             if ([SFSecurityLockout isPasscodeNeeded]) {
                 [SFSecurityLockout validateTimer];

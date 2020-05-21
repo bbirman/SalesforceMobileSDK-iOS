@@ -121,15 +121,21 @@ typedef void (^SFLockScreenFailureCallbackBlock)(void);
  */
 typedef UIViewController* _Nullable  (^SFPasscodeViewControllerCreationBlock)(SFAppLockControllerMode mode,SFSDKAppLockViewConfig *viewConfig);
 
-/**
- Block typedef for displaying and dismissing the passcode view controller.
- */
-typedef void (^SFPasscodeViewControllerPresentationBlock)(UIViewController*);
+typedef UIViewController* _Nullable  (^SFPasscodeViewControllerSceneCreationBlock)(SFAppLockControllerMode mode,SFSDKAppLockViewConfig *viewConfig, NSString *sceneId);
 
 /**
  Block typedef for displaying and dismissing the passcode view controller.
  */
-typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nullable)(void));
+typedef void (^SFPasscodeViewControllerPresentationBlock)(UIViewController*); // BB TODO semver
+
+typedef void (^SFPasscodeViewControllerScenePresentationBlock)(UIViewController*, NSString*, void(^_Nullable)(void));
+
+/**
+ Block typedef for displaying and dismissing the passcode view controller.
+ */
+typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*, void(^_Nullable)(void));
+
+typedef void (^SFPasscodeViewControllerSceneDismissBlock)(NSDictionary<NSString *, UIViewController*> *, void(^_Nullable)(void)); //BB TODO semver
 
 /**
  Delegate protocol for SFSecurityLockout events and callbacks.
@@ -257,6 +263,8 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  */
 + (void)lock;
 
++ (void)lockScene:(NSString *)sceneId;
+
 /** Unlock the device (e.g a result of a successful passcode/biometric challenge)
  @param action Action that was taken during lockout.
  */
@@ -295,6 +303,8 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  */
 + (void)setLockScreenSuccessCallbackBlock:(SFLockScreenSuccessCallbackBlock _Nullable)block;
 
++ (void)setLockScreenSuccessCallbackBlock:(SFLockScreenSuccessCallbackBlock)block sceneId:(NSString *)sceneId;
+
 /**
  Returns the callback block to be executed on successful screen unlock.
  */
@@ -316,6 +326,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  @return The block used to create the passcode view controller
  */
 + (SFPasscodeViewControllerCreationBlock)passcodeViewControllerCreationBlock;
++ (SFPasscodeViewControllerSceneCreationBlock)passcodeViewControllerSceneCreationBlock;
 
 /**
  Sets the block that will create the passcode view controller.
@@ -323,10 +334,14 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  */
 + (void)setPasscodeViewControllerCreationBlock:(SFPasscodeViewControllerCreationBlock)vcBlock;
 
++ (void)setPasscodeViewControllerCreationSceneBlock:(SFPasscodeViewControllerSceneCreationBlock)vcBlock;
+
 /**
  @return The block used to present the passcode view controller.
  */
 + (SFPasscodeViewControllerPresentationBlock)presentPasscodeViewControllerBlock;
+
++ (SFPasscodeViewControllerScenePresentationBlock)presentPasscodeViewControllerSceneBlock;
 
 /**
  Sets the block that will present the passcode view controller.
@@ -334,17 +349,23 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  */
 + (void)setPresentPasscodeViewControllerBlock:(SFPasscodeViewControllerPresentationBlock)vcBlock;
 
++ (void)setPresentPasscodeViewControllerSceneBlock:(SFPasscodeViewControllerScenePresentationBlock)vcBlock;
+
 /**
  Set the block that will dismiss the passcode view controller.
  @param vcBlock The block defined to dismiss the passcode view controller.
  */
 + (void)setDismissPasscodeViewControllerBlock:(SFPasscodeViewControllerDismissBlock)vcBlock;
 
++ (void)setDismissPasscodeViewControllerSceneBlock:(SFPasscodeViewControllerSceneDismissBlock)vcBlock;
+
 /**
  Sets a retained instance of the current passcode view controller that's displayed.
  @param vc The passcode view controller.
  */
 + (void)setPasscodeViewController:(nullable UIViewController *)vc;
+
++ (void)setPasscodeViewController:(nullable UIViewController *)vc sceneId:(NSString *)sceneId;
 
 /**
  Presents the biometric enrollment view controller block.
@@ -358,6 +379,8 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  * is not currently displayed.
  */
 + (UIViewController *)passcodeViewController;
+
++ (UIViewController *)passcodeViewControllerForSceneId:(NSString *)sceneId;
 
 /**
  * Whether to force the passcode screen to be displayed, despite sanity conditions for whether passcodes

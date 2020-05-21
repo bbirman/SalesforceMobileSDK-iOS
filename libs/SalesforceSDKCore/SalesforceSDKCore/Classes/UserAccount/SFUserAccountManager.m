@@ -1604,9 +1604,12 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
           __strong typeof(weakSelf) strongSelf = weakSelf;
         if (authSession.authInfo.authType != SFOAuthTypeRefresh) { // BB look at this for possible place to clear all auth screens
            [SFSecurityLockout setPasscodeViewConfig:authSession.oauthRequest.appLockViewControllerConfig]; // BB TODO passcode view config should be at app level?
-           [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
-               [strongSelf finalizeAuthCompletion:authSession];
-           }];
+//           [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
+//               [strongSelf finalizeAuthCompletion:authSession];
+//           }];
+            [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
+                [strongSelf finalizeAuthCompletion:authSession];
+            } sceneId:authSession.oauthRequest.sceneId];
            [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
                strongSelf.authSession.notifiesDelegatesOfFailure = YES;
                [strongSelf handleFailure:authSession.authError session:strongSelf.authSession];
