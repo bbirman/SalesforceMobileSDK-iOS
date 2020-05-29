@@ -55,8 +55,10 @@
 
 - (UIWindow *)window {
     if (_window == nil) {
-        _window = [[SFSDKUIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds  andName:_windowName];
+        _window = [[SFSDKUIWindow alloc] initWithFrame:CGRectZero andName:_windowName]; // BB TODO CGRectZero?
+        ((SFSDKUIWindow *)_window).container = self;
         _window.windowLevel = self.windowLevel;
+        _window.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight; //BB does this do anything?
         if (!self.viewController ) {
             self.viewController = [[SFSDKRootController alloc] init];
         }
