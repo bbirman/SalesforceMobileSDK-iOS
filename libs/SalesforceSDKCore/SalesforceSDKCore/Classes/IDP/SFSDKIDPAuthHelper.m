@@ -117,7 +117,7 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
     NSURL *spAppUrl = [NSURL URLWithString:spAppUrlStr];
     NSURL *url = [self appURLWithError:error reason:reason app:spAppUrl.scheme];
     dispatch_async(dispatch_get_main_queue(), ^{
-        SFSDKWindowContainer *authWindow = [SFSDKWindowManager sharedManager].authWindow;
+        SFSDKWindowContainer *authWindow = [SFSDKWindowManager sharedManager].authWindow; // BB TODO need sceneId
         [authWindow.viewController.presentedViewController dismissViewControllerAnimated:YES  completion:^{
             [authWindow dismissWindow];
             [[SFSDKWindowManager sharedManager].mainWindow presentWindow];

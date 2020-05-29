@@ -89,7 +89,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     [super viewDidLoad];
     self.view.frame = [UIScreen mainScreen].bounds; //TODO does this work with screens?
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.view.backgroundColor = [UIColor salesforceSystemBackgroundColor];
+    self.view.backgroundColor = [UIColor redColor];  // BB TODO undo
 }
 
 - (BOOL)shouldAutorotate {
@@ -241,6 +241,8 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [self computeWebViewUserAgent]; // web view user agent is computed asynchronously so very first call to self.userAgentString(...) will be missing it
         self.userAgentString = [self defaultUserAgentString];
         self.URLCacheType = kSFURLCacheTypeEncrypted;
+        NSLog(@"BB snapshotviewcontrollers set");
+        _snapshotViewControllers = [NSMutableDictionary new];
         [self setupServiceConfiguration];
     }
     return self;
@@ -658,39 +660,39 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 
 - (void)handleAppForeground:(NSNotification *)notification
 {
-    [SFSDKCoreLogger d:[self class] format:@"App is entering the foreground."];
-    
-    [self enumerateDelegates:^(NSObject<SalesforceSDKManagerDelegate> *delegate) {
-        if ([delegate respondsToSelector:@selector(sdkManagerWillEnterForeground)]) {
-            [delegate sdkManagerWillEnterForeground];
-        }
-    }];
-    
-    if (_isLaunching) {
-        [SFSDKCoreLogger d:[self class] format:@"SDK is still launching.  No foreground action taken."];
-    } else {
-        self.inManagerForegroundProcess = YES;
-        if (self.isPasscodeDisplayed) {
-            // Passcode was already displayed prior to app foreground.  Leverage delegates to manage
-            // post-foreground process.
-            [SFSDKCoreLogger i:[self class] format:@"%@ Passcode screen already displayed. Post-app foreground will continue after passcode challenge completes.", NSStringFromSelector(_cmd)];
-        } else {
-            // Check to display pin code screen.
-            [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
-                // Note: Failed passcode verification automatically logs out users, which the logout
-                // delegate handler will catch and pass on.  We just log the error and reset launch
-                // state here.
-                [SFSDKCoreLogger e:[self class] format:@"Passcode validation failed.  Logging the user out."];
-            }];
-            
-            [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction lockoutAction) {
-                [SFSDKCoreLogger i:[self class] format:@"Passcode validation succeeded, or was not required, on app foreground.  Triggering postAppForeground handler."];
-                [self sendPostAppForegroundIfRequired];
-            }];
-            
-            [SFSecurityLockout validateTimer];
-        }
-    }
+//    [SFSDKCoreLogger d:[self class] format:@"App is entering the foreground."];
+//
+//    [self enumerateDelegates:^(NSObject<SalesforceSDKManagerDelegate> *delegate) {
+//        if ([delegate respondsToSelector:@selector(sdkManagerWillEnterForeground)]) {
+//            [delegate sdkManagerWillEnterForeground];
+//        }
+//    }];
+//
+//    if (_isLaunching) {
+//        [SFSDKCoreLogger d:[self class] format:@"SDK is still launching.  No foreground action taken."];
+//    } else {
+//        self.inManagerForegroundProcess = YES;
+//        if (self.isPasscodeDisplayed) {
+//            // Passcode was already displayed prior to app foreground.  Leverage delegates to manage
+//            // post-foreground process.
+//            [SFSDKCoreLogger i:[self class] format:@"%@ Passcode screen already displayed. Post-app foreground will continue after passcode challenge completes.", NSStringFromSelector(_cmd)];
+//        } else {
+//            // Check to display pin code screen.
+//            [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
+//                // Note: Failed passcode verification automatically logs out users, which the logout
+//                // delegate handler will catch and pass on.  We just log the error and reset launch
+//                // state here.
+//                [SFSDKCoreLogger e:[self class] format:@"Passcode validation failed.  Logging the user out."];
+//            }];
+//
+//            [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction lockoutAction) {
+//                [SFSDKCoreLogger i:[self class] format:@"Passcode validation succeeded, or was not required, on app foreground.  Triggering postAppForeground handler."];
+//                [self sendPostAppForegroundIfRequired];
+//            }];
+//
+//            [SFSecurityLockout validateTimer];
+//        }
+//    }
 }
 
 - (void)handleAppBackground:(NSNotification *)notification
@@ -714,36 +716,56 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 
 - (void)handleAppDidBecomeActive:(NSNotification *)notification
 {
-    [SFSDKCoreLogger d:[self class] format:@"App is resuming active state."];
-    
-    [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
-        if ([delegate respondsToSelector:@selector(sdkManagerDidBecomeActive)]) {
-            [delegate sdkManagerDidBecomeActive];
-        }
-    }];
-    
-    @try {
-        [self dismissSnapshot:nil];
-    }
-    @catch (NSException *exception) {
-        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view: '%@'. Will continue to resume app.", [exception reason]];
-    }
+//    [SFSDKCoreLogger d:[self class] format:@"App is resuming active state."];
+//
+//    [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
+//        if ([delegate respondsToSelector:@selector(sdkManagerDidBecomeActive)]) {
+//            [delegate sdkManagerDidBecomeActive];
+//        }
+//    }];
+//
+//    @try {
+//        [self dismissSnapshot:nil];
+//    }
+//    @catch (NSException *exception) {
+//        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view: '%@'. Will continue to resume app.", [exception reason]];
+//    }
 }
 
 - (void)handleSceneWillEnterForeground:(NSNotification *)notification {
-    [SFSecurityLockout validateTimer];
-    NSLog(@"Scene entered foreground");
+//    NSLog(@"Scene entered foreground");
+//    NSString *sceneId = ((UIWindowScene *)notification.object).session.persistentIdentifier;
+//    if ([[SFSDKWindowManager sharedManager] passcodeWindowForScene:sceneId].isActive) {
+//        // Passcode was already displayed prior to app foreground.  Leverage delegates to manage
+//        // post-foreground process.
+//        [SFSDKCoreLogger i:[self class] format:@"%@ Passcode screen already displayed. Post-app foreground will continue after passcode challenge completes.", NSStringFromSelector(_cmd)];
+//    } else {
+//        // Check to display pin code screen.
+//        [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
+//            // Note: Failed passcode verification automatically logs out users, which the logout
+//            // delegate handler will catch and pass on.  We just log the error and reset launch
+//            // state here.
+//            [SFSDKCoreLogger e:[self class] format:@"Passcode validation failed.  Logging the user out."];
+//        }];
+//        
+//        [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction lockoutAction) {
+//            [SFSDKCoreLogger i:[self class] format:@"Passcode validation succeeded, or was not required, on app foreground.  Triggering postAppForeground handler."];
+//            [self sendPostAppForegroundIfRequired];
+//        }];
+//        
+//        [SFSecurityLockout validateTimer];
+//    }
 }
 
 - (void)handleSceneDidActivate:(NSNotification *)notification {
      if (@available(iOS 13.0, *)) {
          UIScene *scene = (UIScene *)notification.object;
          NSString *sceneId = scene.session.persistentIdentifier;
-         
+
          [SFSDKCoreLogger d:[self class] format:@"Scene %@ is resuming active state.", sceneId];
-         
+
          //Delegate calls like handleAppDidBecomeActive?
-         
+
          @try {
              [self dismissSnapshot:sceneId];
          }
@@ -757,17 +779,18 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     if (@available(iOS 13.0, *)) {
         UIScene *scene = (UIScene *)notification.object;
         NSString *sceneId = scene.session.persistentIdentifier;
-    
+
         [SFSDKCoreLogger d:[self class] format:@"Scene %@ is resigning active state.", sceneId];
-        
+
         // Delegate calls like handleAppWillResignActive?
-        SFSDKWindowContainer *activeWindow = [[SFSDKWindowManager sharedManager] activeWindowForScene:sceneId];
+        SFSDKWindowContainer *activeWindow = [[SFSDKWindowManager sharedManager] activeWindowForScene:sceneId]; // BB TODO why is active window nil? Need to track key windows per scene?
         if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
             return;
         }
-        
+
         // Set up snapshot security view, if it's configured.
         @try {
+            [SFSDKCoreLogger d:[self class] format:@"Scene %@ is trying to present snapshot.", sceneId];
             [self presentSnapshot:sceneId];
         }
         @catch (NSException *exception) {
@@ -776,9 +799,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     }
 }
 
-- (void)handleAppWillResignActive:(NSNotification *)notification
-{
-   
+- (void)handleAppWillResignActive:(NSNotification *)notification {
     [SFSDKCoreLogger d:[self class] format:@"App is resigning active state."];
 
     [self enumerateDelegates:^(id<SalesforceSDKManagerDelegate> delegate) {
@@ -803,7 +824,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 
     // Set up snapshot security view, if it's configured.
     @try {
-        [self presentSnapshot:nil];
+      //  [self presentSnapshot:nil];
     }
     @catch (NSException *exception) {
         [SFSDKCoreLogger w:[self class] format:@"Exception thrown while setting up security snapshot view: '%@'. Continuing resign active.", [exception reason]];
@@ -872,11 +893,8 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 }
     
 - (BOOL)isSnapshotPresented:(NSString *)sceneId {
-    if (sceneId) {
-        SFSDKWindowContainer *window = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
-        return [window isActive];
-    }
-    return [[SFSDKWindowManager sharedManager].snapshotWindow isEnabled]; // BB TODO can we move this to isActive as well? Are there cases where it's key but isActive not set?
+    return [[[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId] isActive]; //isActive?
+    // return [[SFSDKWindowManager sharedManager].snapshotWindow isEnabled]; // BB TODO can we move this to isActive as well? Are there cases where it's key but isActive not set?
 }
 
 - (void)presentSnapshot:(NSString *)sceneId
@@ -884,7 +902,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     if (!self.useSnapshotView) {
         return;
     }
-
+    
     // Try to retrieve a custom snapshot view controller
     UIViewController* customSnapshotViewController = nil;
     if (self.snapshotViewControllerCreationAction) {
@@ -893,52 +911,45 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     
     // Custom snapshot view controller provided
     if (customSnapshotViewController) {
-        _snapshotViewController = customSnapshotViewController;
+        // BB TODO
+        //_snapshotViewController = customSnapshotViewController;
     }
     // No custom snapshot view controller provided
     else {
-        _snapshotViewController =  [[SnapshotViewController alloc] initWithNibName:nil bundle:nil];
+        _snapshotViewControllers[sceneId] = [[SnapshotViewController alloc] initWithNibName:nil bundle:nil];
+        //_snapshotViewController =  [[SnapshotViewController alloc] initWithNibName:nil bundle:nil];
     }
-    _snapshotViewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    _snapshotViewControllers[sceneId].modalPresentationStyle = UIModalPresentationFullScreen;
+    NSLog(@"BB snapshotViewControllers size: %d", _snapshotViewControllers.count);
     // Presentation
     
-    SFSDKWindowContainer *snapshotWindow;
-    if (sceneId) {
-        snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
-    } else {
-        snapshotWindow = [SFSDKWindowManager sharedManager].snapshotWindow;
-    }
-    
+    SFSDKWindowContainer *snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
     
     __weak typeof (self) weakSelf = self;
-    [snapshotWindow  presentWindowAnimated:NO withCompletion:^{
+    [snapshotWindow presentWindowAnimated:NO withCompletion:^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if (strongSelf.snapshotPresentationAction && strongSelf.snapshotDismissalAction) {
-            strongSelf.snapshotPresentationAction(strongSelf->_snapshotViewController);
+            strongSelf.snapshotPresentationAction(strongSelf->_snapshotViewControllers[sceneId]);
         } else {
-            [snapshotWindow.viewController presentViewController:strongSelf->_snapshotViewController animated:NO completion:nil];
+            NSLog(@"BB scene: %@ . Snapshot viewcontroller to present: %@", sceneId, strongSelf->_snapshotViewControllers[sceneId]);
+            [snapshotWindow.viewController presentViewController:strongSelf->_snapshotViewControllers[sceneId] animated:NO completion:^{
+                NSLog(@"Snapshot present completed for scene: %@", sceneId);
+            }];
         }
     }];
-    
 }
 
 - (void)dismissSnapshot:(NSString *)sceneId {
     if ([self isSnapshotPresented:sceneId]) {
         if (self.snapshotPresentationAction && self.snapshotDismissalAction) { // BB TODO
-            self.snapshotDismissalAction(_snapshotViewController);
-            if ([SFSecurityLockout isPasscodeNeeded]) {
-                [SFSecurityLockout validateTimer];
-            }
+//            self.snapshotDismissalAction(_snapshotViewController);
+//            if ([SFSecurityLockout isPasscodeNeeded]) {
+//                [SFSecurityLockout validateTimer];
+//            }
         } else {
-            SFSDKWindowContainer *snapshotWindow;
-            if (sceneId) {
-                snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
-            } else {
-                snapshotWindow = [SFSDKWindowManager sharedManager].snapshotWindow;
-            }
-            
+            SFSDKWindowContainer *snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId];
             [snapshotWindow.viewController dismissViewControllerAnimated:NO completion:^{
-                [snapshotWindow dismissWindowAnimated:NO  withCompletion:^{
+                [snapshotWindow dismissWindowAnimated:NO withCompletion:^{
                     if ([SFSecurityLockout isPasscodeNeeded]) {
                         [SFSecurityLockout validateTimer];
                     }
@@ -1034,7 +1045,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     // but decides to "go back" to the existing user and that existing user is
     // the anonymous user - the auth flow never happens and the auth view controller
     // stays on the screen, masking the main UI.
-    [[SFUserAccountManager sharedInstance] dismissAuthViewControllerIfPresent];
+    [[SFUserAccountManager sharedInstance] dismissAuthViewControllerIfPresent]; // BB TODO
 
     [SFSecurityLockout setupTimer];
     [SFSecurityLockout startActivityMonitoring];
