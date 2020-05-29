@@ -75,15 +75,15 @@ Attempt to resolve issues related to  the multi-windowing implementation in the 
 }
 
 - (void)stashRootViewController {
-    if (self.rootViewController) {
-        _stashedController = self.rootViewController;
-        super.rootViewController = nil;
-    }
+//    if (self.rootViewController) {
+//        _stashedController = self.rootViewController;
+//        super.rootViewController = nil;
+//    }
 }
 
 - (void)unstashRootViewController {
-    if (_stashedController)
-        super.rootViewController = _stashedController;
+//    if (_stashedController)
+//        super.rootViewController = _stashedController;
 }
 
 - (void)setRootViewController:(UIViewController *)rootViewController {
@@ -92,29 +92,43 @@ Attempt to resolve issues related to  the multi-windowing implementation in the 
 }
 
 - (void)makeKeyAndVisible {
+    NSString *sceneId = self.windowScene.session.persistentIdentifier;
+    [[SFSDKWindowManager sharedManager].lastKeyWindows setObject:self forKey:sceneId];
+    
     [super makeKeyAndVisible];
 }
 
 - (void)becomeKeyWindow {
-    [self unstashRootViewController];
+    //[self unstashRootViewController];
     if (self.windowLevel <0)
         self.windowLevel = self.windowLevel * -1;
     self.alpha = 1.0;
+    self.container.isActive = YES;
 }
 
 - (void)resignKeyWindow {
-    // BB TODO
-//    if ([self isSnapshotWindow] || [SFApplicationHelper sharedApplication].applicationState == UIApplicationStateActive){
+//    // BB TODO
+
+//    BOOL isActive = [SFApplicationHelper sharedApplication].applicationState == UIApplicationStateActive;
+//    //if available
+//    isActive =  self.windowScene.activationState == UISceneActivationStateForegroundActive;
+//
+    
+    // BB TODO enabling this causes problems for snapshot in multi window, would need to set isActive to NO
+    // Purpose of isActive is that since there's only one key window for the app, we still want to know the most recent key window for the scene (aka what the user can see and still interact with). A window in a scene could resign key window to a window in another scene and therefore not have a new key window for that scene
+//    if ([self isSnapshotWindow]) {
 //        if (self.windowLevel>0)
 //            self.windowLevel = self.windowLevel * -1;
 //        self.alpha = 0.0;
 //        super.rootViewController = nil;
 //        [self stashRootViewController];
+//        self.container.isActive = NO;
 //    }
-    NSLog(@"resign key window");
+//    NSLog(@"resign key window");
+    
 }
 - (BOOL)isSnapshotWindow {
-    return [self.windowName isEqualToString:[SFSDKWindowManager sharedManager].snapshotWindow.windowName];
+    return [self.windowName isEqualToString:@"snapshot"]; //[SFSDKWindowManager sharedManager].snapshotWindow.windowName]; //BB change this?
 }
 
 @end
@@ -122,9 +136,11 @@ Attempt to resolve issues related to  the multi-windowing implementation in the 
 @interface SFSDKWindowManager()<SFSDKWindowContainerDelegate>
 
 @property (nonatomic, strong) NSHashTable *delegates;
-@property (nonatomic, strong, readonly) NSMapTable<NSString *, NSMapTable<NSString *,SFSDKWindowContainer *> *> *sceneWindows;
+//@property (nonatomic, strong, readonly) NSMapTable<NSString *, NSMapTable<NSString *,SFSDKWindowContainer *> *> *sceneWindows;
 @property (nonatomic, strong,readonly) NSMapTable<NSString *,SFSDKWindowContainer *> * _Nonnull namedWindows;
+
 @property (nonatomic,weak) SFSDKWindowContainer *lastActiveWindow;
+@property (nonatomic, weak) NSMapTable<NSString *, SFSDKWindowContainer *> *lastActiveWindows;
 
 - (void)makeTransparentWithCompletion:(SFSDKWindowContainer *)window completion:(void (^)(void))completion;
 - (void)makeOpaqueWithCompletion:(SFSDKWindowContainer *)window completion:(void (^)(void))completion;
@@ -150,6 +166,8 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
         _namedWindows = [NSMapTable mapTableWithKeyOptions:NSMapTableStrongMemory
                                               valueOptions:NSMapTableStrongMemory];
         _delegates = [NSHashTable weakObjectsHashTable];
+        _lastActiveWindows = [NSMapTable strongToWeakObjectsMapTable];
+        _lastKeyWindows = [NSMapTable strongToWeakObjectsMapTable];
     }
     return self;
 }
@@ -160,10 +178,11 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (SFSDKWindowContainer *)activeWindowForScene:(NSString *)sceneId {
+    sceneId = [self nonnullSceneId:sceneId];
     BOOL found = NO;
     UIWindow *activeWindow = [self findActiveWindowForScene:sceneId];
     SFSDKWindowContainer *window = nil;
-    NSEnumerator *enumerator = self.namedWindows.objectEnumerator; // BB TODO no namedWindows
+    NSEnumerator *enumerator = [self.sceneWindows objectForKey:sceneId].objectEnumerator; // BB TODO no namedWindows
     while ((window = [enumerator nextObject]))  {
         if(window.isActive && window.window==activeWindow) {
             found = YES;
@@ -216,10 +235,42 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
       }
 }
 
+
+// Needs to work for iOS 12 not having a scene, and for iOS 13 defaulting to first scene
 - (SFSDKWindowContainer *)authWindow {
     return [self authWindowForScene:nil];
 }
 
+//- (SFSDKWindowContainer *)authWindowForScene:(nullable UIView *)scene {
+//    NSString *sceneId;
+//    if (@available(iOS 13, *)) {
+//        sceneId = ((UIScene *)scene).session.persistentIdentifier;
+//    } else {
+//        sceneId = kSingleSceneIdentifier;
+//    }
+//    
+//    SFSDKWindowContainer *container = [self containerForWindowKey:kSFLoginWindowKey sceneId:sceneId];
+//
+//    if (!container) {
+//        container = [self createAuthWindowForScene:sceneId];
+//    }
+//    [self setWindowScene:container scene:scene];
+//    container.windowLevel = [self mainWindowForScene:sceneId].window.windowLevel + SFWindowLevelAuthOffset;
+//    return container;
+//}
+//
+//// Needs to work for iOS 13 having scene. Should also work for not having scene?
+//- (SFSDKWindowContainer *)authWindowForScene:(UIScene *)scene {
+//    if (!scene) {
+//        scene = UIApplication.sharedApplication.connectedScenes.allObjects.firstObject;
+//    }
+//    return [self authWindowForScene:scene];
+//}
+
+//- (SFSDKWindowContainer *)authWindow {
+//    return [self authWindowForScene:nil];
+//}
+//
 - (SFSDKWindowContainer *)authWindowForScene:(NSString *)sceneId {
     sceneId = [self nonnullSceneId:sceneId];
     SFSDKWindowContainer *container = [self containerForWindowKey:kSFLoginWindowKey sceneId:sceneId];
@@ -263,7 +314,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
     }
     [self setWindowScene:container sceneId:sceneId];
     //enforce WindowLevel
-    container.windowLevel = self.mainWindow.window.windowLevel + SFWindowLevelPasscodeOffset;
+    container.windowLevel = self.mainWindow.window.windowLevel + SFWindowLevelPasscodeOffset; // BB TODO change main window reference
     return container;
 }
 
@@ -305,6 +356,15 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 
 - (void)setWindowScene:(SFSDKWindowContainer *)container {
     [self setWindowScene:container sceneId:nil];
+}
+
+
+- (void)setWindowScene:(SFSDKWindowContainer *)container scene:(UIView *)scene {
+    if (@available(iOS 13.0, *)) {
+        // TODO doc says changing is expensive, add check to only change if different
+        container.window.windowScene = scene;
+        //self.mainWindow.window.windowScene;
+    }
 }
 
 - (void)setWindowScene:(SFSDKWindowContainer *)container sceneId:(NSString *)sceneId {
@@ -423,14 +483,18 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 #pragma mark - private methods
 - (void)makeTransparentWithCompletion:(SFSDKWindowContainer *)window completion:(void (^)(void))completion {
     //SFSDKWindowContainer *fallbackWindow = self.mainWindow;
+    
     NSString *sceneId = window.window.windowScene.session.persistentIdentifier; // BB TODO fallback Id for not having windowScene
     SFSDKWindowContainer *fallbackWindow = [self mainWindowForScene:sceneId];
    
     if (window.isSnapshotWindow) {
+        NSLog(@"BB Snapshot window makeTransparentWithCompletion for scene: %@", sceneId);
+        window.isActive = NO;
         [window.window resignKeyWindow];
-        if (_lastActiveWindow) {
-            fallbackWindow = _lastActiveWindow;
-            _lastActiveWindow = nil;
+        if ([_lastActiveWindows objectForKey:sceneId]) {
+            fallbackWindow = [_lastActiveWindows objectForKey:sceneId];
+            [_lastActiveWindows removeObjectForKey:sceneId];
+            //_lastActiveWindows[sceneId] = nil;
         }
         
     }
@@ -441,6 +505,7 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
         [[self.sceneWindows objectForKey:sceneId] removeObjectForKey:window.windowName];
     }
     //fallback to a window
+    fallbackWindow.isActive = YES;
     [fallbackWindow.window makeKeyAndVisible];
     
     [self enumerateDelegates:^(id<SFSDKWindowManagerDelegate> delegate) {
@@ -454,20 +519,26 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 - (void)makeOpaqueWithCompletion:(SFSDKWindowContainer *)window completion:(void (^)(void))completion {
+    NSString *sceneId = window.window.windowScene.session.persistentIdentifier;
+    NSLog(@"BB Scene %@ makeOpaqueWithCompletion: ", sceneId);
     if (window.isSnapshotWindow) {
-        SFSDKWindowContainer *activeWindow = [self activeWindow]; //BB TODO scene ID?
+        SFSDKWindowContainer *activeWindow = [self activeWindowForScene:sceneId]; //BB TODO scene ID?
         if (![activeWindow isSnapshotWindow]){
-            _lastActiveWindow = activeWindow;
+            [_lastActiveWindows setObject:activeWindow forKey:sceneId];
         }
     }
     
     if ([window isActive]) { // BB TODO formerly isEnabled
+        NSLog(@"BB Scene %@ makeOpaqueWithCompletion is active, only running completion: ", sceneId);
         if (completion)
             completion();
         return;
     }
     
+    NSLog(@"BB Scene %@ makeOpaqueWithCompletion continuing to makeKeyAndVisible: ", sceneId);
+    NSLog(@"BB Scene %@ makeOpaqueWithCompletion window.window: %@ ", sceneId, window.window);
     [window.window makeKeyAndVisible];
+    NSLog(@"BB Scene %@ makeOpaqueWithCompletion window.window: %@ ", sceneId, window.window);
     window.isActive = YES;
     [self enumerateDelegates:^(id<SFSDKWindowManagerDelegate> delegate) {
         if ([delegate respondsToSelector:@selector(windowManager:didPresentWindow:)]){
@@ -518,7 +589,8 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 }
 
 -(UIWindow *)createDefaultUIWindowNamed:(NSString *)name {
-    UIWindow *window = [[SFSDKUIWindow alloc]  initWithFrame:UIScreen.mainScreen.bounds andName:name];
+    SFSDKUIWindow *window = [[SFSDKUIWindow alloc]  initWithFrame:UIScreen.mainScreen.bounds andName:name];
+    window.container = self;
     [window setAlpha:0.0];
     window.rootViewController = [[SFSDKRootController alloc] init];
     return  window;
@@ -549,6 +621,8 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
     return mainWindow;
 }
 
+
+
 - (UIWindow *)findKeyWindow {
     return [self findKeyWindowForScene:nil];
 }
@@ -556,12 +630,25 @@ static NSString * const kSingleSceneIdentifier = @"com.mobilesdk.singleSceneIden
 - (UIWindow *)findActiveWindow {
     // BB change this since .keyWindow is deprecated
     //return [SFApplicationHelper sharedApplication].keyWindow;
-    return [self findKeyWindowForScene:nil];
+    return [self findActiveWindowForScene:nil];
+    //return [self findKeyWindowForScene:nil];
 }
 
 - (UIWindow *)findActiveWindowForScene:(NSString *)sceneId {
     sceneId = [self nonnullSceneId:sceneId];
-    return [self findKeyWindowForScene:sceneId];
+    
+    UIWindow *window = [_lastKeyWindows objectForKey:sceneId];
+//    if (!window) {
+//        UIWindowScene *scene = (UIWindowScene *)[self windowSceneForId:sceneId];
+//               
+//           if ([scene.delegate respondsToSelector:@selector(window)]) {
+//               window = [scene.delegate performSelector:@selector(window)];
+//           }
+//    }
+    
+    return window;
+    //return [_lastKeyWindows objectForKey:sceneId];
+    //return [self findKeyWindowForScene:sceneId];
 }
 
 + (instancetype)sharedManager {

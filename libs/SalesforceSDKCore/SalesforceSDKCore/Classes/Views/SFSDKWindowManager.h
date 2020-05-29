@@ -76,10 +76,17 @@
 - (instancetype _Nonnull)initWithFrame:(CGRect)frame andName:(NSString *_Nonnull)windowName;
 // BB TODO init with frame, name and scene?
 @property (nonatomic,strong) UIViewController * _Nullable stashedController;
+@property (nonatomic,strong) SFSDKWindowContainer * _Nullable container;
 @property (nonatomic,readonly) NSString * _Nullable windowName;
 @end
 
 @interface SFSDKWindowManager : NSObject
+
+// BB TODO not public
+@property (nonatomic, strong, nonnull) NSMapTable<NSString *, SFSDKUIWindow *> *lastKeyWindows;
+@property (nonatomic, strong, readonly) NSMapTable<NSString *, NSMapTable<NSString *,SFSDKWindowContainer *> *> *sceneWindows;
+- (UIView *)windowSceneForId:(NSString *)sceneId;
+- (NSString *)nonnullSceneId:(nullable NSString *)sceneId;
 
 /** SDK uses this window to present the login flow.
  */
