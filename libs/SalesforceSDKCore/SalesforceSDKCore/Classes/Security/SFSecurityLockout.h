@@ -213,6 +213,8 @@ typedef void (^SFPasscodeViewControllerSceneDismissBlock)(NSDictionary<NSString 
  */
 + (void)setInactivityConfiguration:(NSUInteger)newPasscodeLength lockoutTime:(NSUInteger)newLockoutTime biometricAllowed:(BOOL)newBiometricAllowed;
 
++ (void)setInactivityConfiguration:(NSUInteger)newPasscodeLength lockoutTime:(NSUInteger)newLockoutTime biometricAllowed:(BOOL)newBiometricAllowed sceneId:(NSString *)sceneId;
+
 /**
  Resets the passcode state of the app, *if* there aren't other users with an overriding passcode
  policy.  I.e. passcode state can only be cleared if the current user is the only user who would
@@ -263,7 +265,7 @@ typedef void (^SFPasscodeViewControllerSceneDismissBlock)(NSDictionary<NSString 
  */
 + (void)lock;
 
-+ (void)lockScene:(NSString *)sceneId;
++ (void)lockScene:(UIScene *)scene;
 
 /** Unlock the device (e.g a result of a successful passcode/biometric challenge)
  @param action Action that was taken during lockout.

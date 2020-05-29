@@ -74,29 +74,35 @@
         }
     } else {
         // BB TODO scene id
-        [self passcodeValidation:scene completion:completionBlock];
+       [self passcodeValidation:scene completion:completionBlock];
     }
 }
 
 + (void) passcodeValidation:(UIScene *)scene completion:(void (^)(void))completionBlock  {
-    [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
+    if ([SFSecurityLockout isPasscodeNeeded]) {
+         [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
+                if (completionBlock) {
+                    completionBlock();
+                }
+            } sceneId:scene.session.persistentIdentifier];
+        //    [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
+        //        [SFSDKCoreLogger i:[self class] format:@"Passcode verified, or not configured.  Proceeding with authentication validation."];
+        //        if (completionBlock) {
+        //            completionBlock();
+        //        }
+        //    }];
+            [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
+                // Note: Failed passcode verification automatically logs out users, which the logout
+                // delegate handler will catch and pass on.  We just log the error and reset launch
+                // state here.
+                [SFSDKCoreLogger e:[self class] format:@"Passcode validation failed.  Logging the user out."];
+            }];
+            [SFSecurityLockout lockScene:scene];
+    } else {
         if (completionBlock) {
             completionBlock();
         }
-    } sceneId:scene.session.persistentIdentifier];
-//    [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
-//        [SFSDKCoreLogger i:[self class] format:@"Passcode verified, or not configured.  Proceeding with authentication validation."];
-//        if (completionBlock) {
-//            completionBlock();
-//        }
-//    }];
-    [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
-        // Note: Failed passcode verification automatically logs out users, which the logout
-        // delegate handler will catch and pass on.  We just log the error and reset launch
-        // state here.
-        [SFSDKCoreLogger e:[self class] format:@"Passcode validation failed.  Logging the user out."];
-    }];
-    [SFSecurityLockout lockScene:scene];
+    }
 }
 
 + (void) passcodeValidation:(void (^)(void))completionBlock  {

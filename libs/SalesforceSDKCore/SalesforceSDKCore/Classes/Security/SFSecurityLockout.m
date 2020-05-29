@@ -149,13 +149,13 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
         }];
         
         [SFSecurityLockout setDismissPasscodeViewControllerBlock:^(UIViewController * pvc, void(^ completionBlock)(void) ) {
-                [[SFSDKWindowManager sharedManager].passcodeWindow.viewController  dismissViewControllerAnimated:NO completion:^{
-                    [[SFSDKWindowManager sharedManager].passcodeWindow dismissWindowAnimated:NO
-                                                                              withCompletion:^{
-                                                   if (completionBlock)
-                                                       completionBlock();
-                                                    }];
-                }];
+            [[SFSDKWindowManager sharedManager].passcodeWindow.viewController  dismissViewControllerAnimated:NO completion:^{
+                [[SFSDKWindowManager sharedManager].passcodeWindow dismissWindowAnimated:NO
+                                                                          withCompletion:^{
+                    if (completionBlock)
+                        completionBlock();
+                    }];
+            }];
         }];
         
 //        [SFSecurityLockout setDismissPasscodeViewControllerSceneBlock:^(UIViewController *vc, NSString *sceneId void(^ completionBlock)(void)) {
@@ -326,7 +326,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     }
 }
 
-+ (void)setInactivityConfiguration:(NSUInteger)newPasscodeLength lockoutTime:(NSUInteger)newLockoutTime biometricAllowed:(BOOL)newBiometricAllowed
++ (void)setInactivityConfiguration:(NSUInteger)newPasscodeLength lockoutTime:(NSUInteger)newLockoutTime biometricAllowed:(BOOL)newBiometricAllowed sceneId:(nonnull NSString *)sceneId
 {
     
     if (![self needsPasscodeFlow:newLockoutTime]) {
@@ -369,9 +369,9 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     }
     
     if (shouldShowView) {
-       [SFSecurityLockout presentPasscodeController:mode];
+        [SFSecurityLockout presentPasscodeController:mode sceneId:sceneId];
     } else {
-      [SFSecurityLockout unlockSuccessPostProcessing:SFSecurityLockoutActionNone];
+        [SFSecurityLockout unlockSuccessPostProcessing:SFSecurityLockoutActionNone];
     }
 }
 
@@ -676,7 +676,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
         }
     }
     
-    if ([SFApplicationHelper sharedApplication].applicationState == UIApplicationStateActive || ![[SFSDKWindowManager sharedManager] snapshotWindowForScene:scene.session.persistentIdentifier].isEnabled) { // BB TODO isActive?
+    if ([SFApplicationHelper sharedApplication].applicationState == UIApplicationStateActive || ![[SFSDKWindowManager sharedManager] snapshotWindowForScene:scene.session.persistentIdentifier].isActive) { // BB TODO isEnablled vs isActive? // TODO scene level activation?
         if (![[SFPasscodeManager sharedManager] deviceHasBiometric]) {
             [self setBiometricState:SFBiometricUnlockUnavailable];
         }
@@ -688,8 +688,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     sForcePasscodeDisplay = NO;
 }
 
-+ (void)lock
-{
++ (void)lock {
 //    if (!sForcePasscodeDisplay) {
 //        // Only go through sanity checks for locking if we don't want to force the passcode screen.
 //        if (![SFSecurityLockout hasValidSession]) {
@@ -718,7 +717,6 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
 //    sForcePasscodeDisplay = NO;
     
     for (UIScene *scene in [SFApplicationHelper sharedApplication].connectedScenes) {
-        //NSString *sceneId = scene.session.persistent;
         [self lockScene:scene];
     }
 }
@@ -730,7 +728,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     return sPasscodeViewControllerCreationBlock;
 }
 
-+ (SFPasscodeViewControllerSceneCreationBlock)passcodeViewControllerCreationSceneBlock
++ (SFPasscodeViewControllerSceneCreationBlock)passcodeViewControllerSceneCreationBlock
 {
     return sPasscodeViewControllerCreationSceneBlock;
 }
@@ -794,13 +792,13 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
 }
 
 
-+ (void)extracted:(UIViewController *)passcodeViewController presentBlock:(SFPasscodeViewControllerScenePresentationBlock)presentBlock scene:(UIScene *)scene sceneId:(NSString *)sceneId {
-    presentBlock(passcodeViewController, sceneId, ^{
-        if (scene.activationState != UISceneActivationStateForegroundActive || scene.activationState != UISceneActivationStateForegroundInactive) {
-            [SFApplicationHelper.sharedApplication requestSceneSessionRefresh:scene.session];
-        }
-    });
-}
+//+ (void)extracted:(UIViewController *)passcodeViewController presentBlock:(SFPasscodeViewControllerScenePresentationBlock)presentBlock scene:(UIScene *)scene sceneId:(NSString *)sceneId {
+//    presentBlock(passcodeViewController, sceneId, ^{
+//        if (scene.activationState != UISceneActivationStateForegroundActive && scene.activationState != UISceneActivationStateForegroundInactive) {
+//            [SFApplicationHelper.sharedApplication requestSceneSessionRefresh:scene.session];
+//        }
+//    });
+//}
 
 + (void)presentPasscodeController:(SFAppLockControllerMode)modeValue scene:(UIScene *)scene {
     if (![NSThread isMainThread]) {
@@ -812,7 +810,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
 
     NSString *sceneId = scene.session.persistentIdentifier;
     SFPasscodeViewControllerScenePresentationBlock presentBlock = [SFSecurityLockout presentPasscodeViewControllerSceneBlock];
-    SFPasscodeViewControllerSceneCreationBlock passcodeVcCreationBlock = [SFSecurityLockout passcodeViewControllerCreationSceneBlock];
+    SFPasscodeViewControllerSceneCreationBlock passcodeVcCreationBlock = [SFSecurityLockout passcodeViewControllerSceneCreationBlock];
     
     if (presentBlock != nil) {
         if ([[[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId] isActive]) {
@@ -824,13 +822,19 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
         }
         
         // BB TODO refresh scenes?
-            UIViewController *passcodeViewController = passcodeVcCreationBlock(modeValue, self.passcodeViewConfig, sceneId);
-            [SFSecurityLockout setPasscodeViewController:passcodeViewController sceneId:sceneId];
-        [self extracted:passcodeViewController presentBlock:presentBlock scene:scene sceneId:sceneId];
+        UIViewController *passcodeViewController = passcodeVcCreationBlock(modeValue, self.passcodeViewConfig, sceneId);
+        [SFSecurityLockout setPasscodeViewController:passcodeViewController sceneId:sceneId];
+        presentBlock(passcodeViewController, sceneId, ^{
+            if (scene.activationState != UISceneActivationStateForegroundActive && scene.activationState != UISceneActivationStateForegroundInactive) {
+                // BB only refresh if snapshot isn't used?
+                [SFApplicationHelper.sharedApplication requestSceneSessionRefresh:scene.session];
+            }
+        });
+        //[self extracted:passcodeViewController presentBlock:presentBlock scene:scene sceneId:sceneId];
     }
 }
 
-+ (void)presentPasscodeController:(SFAppLockControllerMode)modeValue
++ (void)presentPasscodeController:(SFAppLockControllerMode)modeValue sceneId:(NSString *)sceneId
 {
     if (![NSThread isMainThread]) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -840,8 +844,6 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     }
     
     // BB TODO
-    
-    
     [self setIsLocked:YES];
     if (_showPasscode) {
         [self sendPasscodeFlowWillBeginNotification:modeValue];
@@ -850,41 +852,15 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
                 [delegate passcodeFlowWillBegin:modeValue];
             }
         }];
-        
-//        SFPasscodeViewControllerCreationBlock passcodeVcCreationBlock = [SFSecurityLockout passcodeViewControllerCreationBlock];
-//        UIViewController *passcodeViewController = passcodeVcCreationBlock(modeValue, self.passcodeViewConfig);
-//        [SFSecurityLockout setPasscodeViewController:passcodeViewController]; // BB TODO why does this need to be set?
        
-        if (@available(iOS 13.0, *)) {
-            SFPasscodeViewControllerScenePresentationBlock presentBlock = [SFSecurityLockout presentPasscodeViewControllerSceneBlock];
-            SFPasscodeViewControllerSceneCreationBlock passcodeVcCreationBlock = [SFSecurityLockout passcodeViewControllerCreationSceneBlock];
+//        if (@available(iOS 13.0, *)) {
+//            for (UIScene *scene in [SFApplicationHelper sharedApplication].connectedScenes) {
+                [self presentPasscodeController:modeValue scene:[[SFSDKWindowManager sharedManager] windowSceneForId:sceneId]];
             
-            if (presentBlock != nil) {
-                for (UIScene *scene in [SFApplicationHelper sharedApplication].connectedScenes) {
-                    NSString *sceneId = scene.session.persistentIdentifier;
-                    [self presentPasscodeController:modeValue scene:scene];
-//                    if ([[[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId] isActive]) {
-//                        [[[SFSDKWindowManager sharedManager] snapshotWindowForScene:sceneId] dismissWindow];
-//                    }
-//                    // Don't present the passcode screen if it's already present.
-//                    if ([SFSecurityLockout passcodeScreenIsPresent:sceneId]) {
-//                        return;
-//                    }
-//
-//                    // BB TODO refresh scenes?
-//                        UIViewController *passcodeViewController = passcodeVcCreationBlock(modeValue, self.passcodeViewConfig, sceneId);
-//                        [SFSecurityLockout setPasscodeViewController:passcodeViewController sceneId:sceneId];
-//                    presentBlock(passcodeViewController, sceneId, ^{
-//                        if (scene.activationState != UISceneActivationStateForegroundActive || scene.activationState != UISceneActivationStateForegroundInactive) {
-//                            [SFApplicationHelper.sharedApplication requestSceneSessionRefresh:scene.session];
-//                        }
-//                    });
-                }
-            }
-
-        } else {
-            // BB TODO
-        }
+//            }
+//        } else {
+//            // BB TODO
+//        }
     }
 }
 
@@ -1095,10 +1071,20 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
 //        blockCopy(action);
 //    }
     
-    for (SFLockScreenSuccessCallbackBlock block in successCallbacks.allValues) {
-        SFLockScreenSuccessCallbackBlock blockCopy = [block copy];
+    
+    for (NSString *sceneId in successCallbacks.allKeys) {
+        SFLockScreenSuccessCallbackBlock blockCopy = [successCallbacks[sceneId] copy];
+        [successCallbacks removeObjectForKey:sceneId];
         blockCopy(action);
     }
+    
+    
+//    for (SFLockScreenSuccessCallbackBlock block in successCallbacks.allValues) {
+//
+//        SFLockScreenSuccessCallbackBlock blockCopy = [block copy];
+//        blockCopy(action);
+//        // BB TODO need to remove when done, or make this per scene (?) so all blocks aren't triggered from one scene being activated
+//    }
     [self setupTimer];
 }
 
