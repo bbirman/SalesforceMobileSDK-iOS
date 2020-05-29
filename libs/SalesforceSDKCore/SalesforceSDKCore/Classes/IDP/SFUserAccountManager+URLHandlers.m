@@ -133,7 +133,8 @@
 }
 
 - (BOOL)handleIdpResponse:(SFSDKAuthResponseCommand *)response {
-    if (self.authSession) {
+    if (self.authSession) { // BB TODO have dictionary of scene session to auth session?
+        //self.authSession.oauthRequest.sceneId =
         [self.authSession.oauthCoordinator handleIDPAuthenticationResponse:[response requestURL]];
     } else {
         SFSDKAlertMessage *messageObject = [SFSDKAlertMessage messageWithBlock:^(SFSDKAlertMessageBuilder *builder) {

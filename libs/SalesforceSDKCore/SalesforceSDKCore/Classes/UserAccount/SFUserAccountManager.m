@@ -395,7 +395,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         return;
     }
     BOOL result = NO;
-    if (self.authSession && self.authSession.isAuthenticating) {
+    if (self.authSession && self.authSession.isAuthenticating) { // BB TODO can this check array of sessions instead?
         [self resetAuthentication];
         result = YES;
     } else {
@@ -405,7 +405,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     if (completionBlock) {
         [self dismissAuthViewControllerIfPresent:^{
             completionBlock(result);
-        } sceneId:self.authSession.oauthRequest.sceneId]; // This is nil
+        } sceneId:self.authSession.oauthRequest.sceneId]; // BB TODO need way around self.authSession
     }
   
 }
@@ -756,6 +756,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     SFSDKAuthViewHolder *viewHolder = [SFSDKAuthViewHolder new];
     viewHolder.isAdvancedAuthFlow = YES;
     viewHolder.session = session;
+    viewHolder.sceneId = coordinator.authSession.oauthRequest.sceneId;
     NSDictionary *userInfo = @{ kSFNotificationUserInfoCredentialsKey: coordinator.credentials,
                                 kSFNotificationUserInfoAuthTypeKey: coordinator.authInfo };
     [[NSNotificationCenter defaultCenter] postNotificationName:kSFNotificationUserWillShowAuthView object:self  userInfo:userInfo];
@@ -808,7 +809,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
             };
         }];
         dispatch_async(dispatch_get_main_queue(), ^{
-           self.alertDisplayBlock(message, [SFSDKWindowManager sharedManager].authWindow);
+           self.alertDisplayBlock(message, [SFSDKWindowManager sharedManager].authWindow); // BB TODO
         });
     }
 }
@@ -903,7 +904,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (void)cancel:(NSDictionary *)spAppOptions {
-   // Uset Cancelled auth in the idp app mode
+   // User Cancelled auth in the idp app mode
     SFOAuthCredentials *spAppCredentials = [self spAppCredentials:spAppOptions];
     [SFSDKIDPAuthHelper invokeSPAppWithError:spAppCredentials error:nil reason:@"User cancelled Authentication"];
 }
@@ -1607,9 +1608,12 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 //           [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
 //               [strongSelf finalizeAuthCompletion:authSession];
 //           }];
+            
+            NSString *sceneId = [[SFSDKWindowManager sharedManager] nonnullSceneId:authSession.oauthRequest.sceneId];
+            
             [SFSecurityLockout setLockScreenSuccessCallbackBlock:^(SFSecurityLockoutAction action) {
                 [strongSelf finalizeAuthCompletion:authSession];
-            } sceneId:authSession.oauthRequest.sceneId];
+            } sceneId:sceneId];
            [SFSecurityLockout setLockScreenFailureCallbackBlock:^{
                strongSelf.authSession.notifiesDelegatesOfFailure = YES;
                [strongSelf handleFailure:authSession.authError session:strongSelf.authSession];
@@ -1618,7 +1622,8 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
            // identity service.
            [SFSecurityLockout setInactivityConfiguration:identityCoordinator.idData.mobileAppPinLength
                                              lockoutTime:(identityCoordinator.idData.mobileAppScreenLockTimeout * 60)
-                                        biometricAllowed:biometricUnlockAvailable];
+                                        biometricAllowed:biometricUnlockAvailable
+                                                 sceneId:authSession.oauthRequest.sceneId];
        } else {
            [strongSelf finalizeAuthCompletion:authSession];
        }
@@ -1719,7 +1724,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
      
      NSDictionary *userInfo = @{kSFNotificationUserInfoAccountKey: userAccount,
                                 kSFNotificationUserInfoAuthTypeKey: authInfo};
-     if (self.authSession.authInfo.authType != SFOAuthTypeRefresh) {
+     if (self.authSession.authInfo.authType != SFOAuthTypeRefresh) { // BB TODO need way around self.authSession
          [[NSNotificationCenter defaultCenter] postNotificationName:kSFNotificationUserDidLogIn
                                                              object:self
                                                            userInfo:userInfo];
@@ -1904,13 +1909,11 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (void)presentLoginView:(SFSDKAuthViewHolder *)viewHandler sceneId:(NSString *)sceneId {
-   
-    
     SFSDKWindowContainer *authWindow = [[SFSDKWindowManager sharedManager] authWindowForScene:sceneId];
     [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId] presentWindow];
     void (^presentViewBlock)(void) = ^void() {
         if (!viewHandler.isAdvancedAuthFlow) {
-            UIViewController *controllerToPresent = [[SFSDKNavigationController  alloc]  initWithRootViewController:viewHandler.loginController];
+            UIViewController *controllerToPresent = [[SFSDKNavigationController alloc] initWithRootViewController:viewHandler.loginController];
             controllerToPresent.modalPresentationStyle = UIModalPresentationFullScreen;
             if ([[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController == nil) {
                 NSLog(@"BB Not Here");

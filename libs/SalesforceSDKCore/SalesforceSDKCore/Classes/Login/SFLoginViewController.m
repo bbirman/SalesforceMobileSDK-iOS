@@ -272,13 +272,15 @@
 }
 
 - (void)handleBackButtonAction {
+    NSString *sceneId = self.view.window.windowScene.session.persistentIdentifier;
     [[SFUserAccountManager sharedInstance] stopCurrentAuthentication:nil];
     if (![SFUserAccountManager sharedInstance].idpEnabled) {
-        [[SFSDKWindowManager sharedManager].authWindow.viewController.presentedViewController dismissViewControllerAnimated:NO completion:^{
-            [[SFSDKWindowManager sharedManager].authWindow dismissWindow];
+        
+        [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController.presentedViewController dismissViewControllerAnimated:NO completion:^{
+            [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId] dismissWindow];
         }];
     } else {
-        [[SFSDKWindowManager sharedManager].authWindow.viewController dismissViewControllerAnimated:NO completion:nil];
+        [[[SFSDKWindowManager sharedManager] authWindowForScene:sceneId].viewController dismissViewControllerAnimated:NO completion:nil];
     }
 }
 
