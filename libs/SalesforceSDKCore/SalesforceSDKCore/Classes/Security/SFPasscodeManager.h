@@ -23,9 +23,12 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "SalesforceSDKConstants.h"
 
 NS_ASSUME_NONNULL_BEGIN
+// BB TODO: Deprecate whole class
 
+// BB TODO: Get rid of notifications
 /**
  Notification that will be posted when passcode is reset. This notification will have userInfo
  populated with old passcode stored with `SFPasscodeResetOldPasscodeKey` key and new passcode
@@ -48,6 +51,8 @@ extern NSString *const SFPasscodeResetNewPasscodeKey;
 
 @class SFPasscodeManager;
 
+
+// BB TODO: deprecate
 /**
  Delegate protocol for SFPasscodeManager callbacks
  */
@@ -78,41 +83,41 @@ extern NSString *const SFPasscodeResetNewPasscodeKey;
 /**
  The encryption key associated with the app.
  */
-@property (nonatomic, readonly, nullable) NSString *encryptionKey;
+@property (nonatomic, readonly, nullable) NSString *encryptionKey; // BB TODO: Deprecated
 
 /**
  The preferred passcode provider for the app.  If another provider was previously configured,
  the passcode manager will automatically update to the preferred provider at the next passcode
  update or verification.
  */
-@property (nonatomic, copy) NSString *preferredPasscodeProvider;
+@property (nonatomic, copy) NSString *preferredPasscodeProvider SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  The lenght of the user's passcode.
  */
-@property (nonatomic) NSUInteger passcodeLength;
+@property (nonatomic) NSUInteger passcodeLength; // BB TODO: Internalize deprecate in 8.3, length on lockout will be source of truth
 
 /**
  Whether the device has the capability to use biometric unlock.
  */
-@property (nonatomic) BOOL deviceHasBiometric;
+@property (nonatomic) BOOL deviceHasBiometric; // Use from SFSecurityLockout (BiometricState)
 
 /**
  Adds a delegate to the list of passcode manager delegates.
  @param delegate Delegate to add to the list.
  */
-- (void)addDelegate:(id<SFPasscodeManagerDelegate>)delegate;
+- (void)addDelegate:(id<SFPasscodeManagerDelegate>)delegate; // BB TODO: Deprecate
 
 /**
  Removes a delegate from the delegate list.  No action is taken if the delegate does not exist.
  @param delegate Delegate to be removed.
  */
-- (void)removeDelegate:(id<SFPasscodeManagerDelegate>)delegate;
+- (void)removeDelegate:(id<SFPasscodeManagerDelegate>)delegate; // BB TODO: Deprecate
 
 /**
  @return Whether or not a passcode has been set.
  */
-- (BOOL)passcodeIsSet;
+- (BOOL)passcodeIsSet; // BB TODO: Deprecate, make isPasscodeEnabled, pass through to SFSecurityLockout
 
 /**
  Reset the passcode in the keychain.
@@ -124,7 +129,7 @@ extern NSString *const SFPasscodeResetNewPasscodeKey;
  @param passcode The passcode to verify.
  @return YES if the passcode verifies, NO otherwise.
  */
-- (BOOL)verifyPasscode:(NSString *)passcode;
+- (BOOL)verifyPasscode:(NSString *)passcode; // BB TODO: Internal
 
 /**
  Change the current passcode.  This method serves as an entry point for managing the change
@@ -133,13 +138,13 @@ extern NSString *const SFPasscodeResetNewPasscodeKey;
  @param newPasscode The new passcode to change to.  If nil or empty, this method will unset the
  existing passcode.
  */
-- (void)changePasscode:(nullable NSString *)newPasscode;
+- (void)changePasscode:(nullable NSString *)newPasscode; // BB TODO: Internal
 
 /**
  Set the passcode.
  @param newPasscode The passcode to set.
  */
-- (void)setPasscode:(NSString *)newPasscode;
+- (void)setPasscode:(NSString *)newPasscode; // BB TODO: Internal
 
 @end
 

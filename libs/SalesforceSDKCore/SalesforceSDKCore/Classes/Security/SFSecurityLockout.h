@@ -100,7 +100,7 @@ typedef NS_ENUM(NSUInteger, SFBiometricUnlockState) {
 
 /** Notification sent when the passcode or biometric screen will be displayed.
  */
-extern NSString * const kSFPasscodeFlowWillBegin;
+extern NSString * const kSFPasscodeFlowWillBegin; // BB TODO do we need this? Burn it
 
 /** Notification sent when the passcode or biometric flow has completed.
  */
@@ -134,7 +134,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
 /**
  Delegate protocol for SFSecurityLockout events and callbacks.
  */
-@protocol SFSecurityLockoutDelegate <NSObject>
+@protocol SFSecurityLockoutDelegate <NSObject> // BB TODO can we get rid of these and replace with notifications?
 
 @optional
 
@@ -182,13 +182,13 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  Get the current lockout time, in seconds
  @return The lockout time limit.
  */
-+ (NSUInteger)lockoutTime;
++ (NSUInteger)lockoutTime; // TODO Make readonly, add to internal header TBD when
 
 /**
  Gets the configured passcode length.
  @return The passcode length.
  */
-+ (NSUInteger)passcodeLength;
++ (NSUInteger)passcodeLength; // TODO Make readonly, add to internal header TBD when
 
 /**
  The current state of biometric unlock.
@@ -212,18 +212,18 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  policy.  I.e. passcode state can only be cleared if the current user is the only user who would
  be subject to that policy.
  */
-+ (void)clearPasscodeState;
++ (void)clearPasscodeState; // BB TODO remove because we have below method
 
 /**
  Resets the passcode state of the app, *if* there aren't other users with an overriding passcode
  policy.  I.e. passcode state can only be cleared if the  user is the only user who would
  be subject to that policy.
  */
-+ (void)clearPasscodeState:(SFUserAccount *)userLoggingOut;
++ (void)clearPasscodeState:(SFUserAccount *)userLoggingOut; // BB TODO make internal
 
 /** Initialize the timer
  */
-+ (void)setupTimer;
++ (void)setupTimer; // BB TODO make timer methods internal
 
 /** Unregister and invalidate the timer
  */
@@ -255,38 +255,38 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
 
 /** Lock the device immediately.
  */
-+ (void)lock;
++ (void)lock; // BB TODO make internal
 
 /** Unlock the device (e.g a result of a successful passcode/biometric challenge)
  @param action Action that was taken during lockout.
  */
-+ (void)unlock:(SFSecurityLockoutAction)action;
++ (void)unlock:(SFSecurityLockoutAction)action; // BB TODO make internal
 
 /** Wipe the device (e.g. because passcode/biometric challenge failed)
 */
-+ (void)wipeState;
++ (void)wipeState; // BB TODO make internal
 
 /** Toggle the locked state
  @param locked Locks the device if `YES`, otherwise unlocks the device.
  */
-+ (void)setIsLocked:(BOOL)locked;
++ (void)setIsLocked:(BOOL)locked; // BB TODO make internal
 
 /** Check if device is locked
  */
-+ (BOOL)locked;
++ (BOOL)locked; // BB TODO make internal
 
 /** Check if the passcode is valid
  */
-+ (BOOL)isPasscodeValid;
++ (BOOL)isPasscodeValid; // BB TODO make internal
 
 /** Check to see if the passcode screen is needed.
  */
-+ (BOOL)isPasscodeNeeded;
++ (BOOL)isPasscodeNeeded; // BB TODO make internal
 
 /** Show the passcode view. Used by unit tests.
  @param showPasscode If YES, passcode view can be displayed.
  */
-+ (void)setCanShowPasscode:(BOOL)showPasscode;
++ (void)setCanShowPasscode:(BOOL)showPasscode; // BB TODO make internal
 
 /**
  Sets the callback block to be called on any action that triggers screen lock, and unlocks
@@ -344,7 +344,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  Sets a retained instance of the current passcode view controller that's displayed.
  @param vc The passcode view controller.
  */
-+ (void)setPasscodeViewController:(nullable UIViewController *)vc;
++ (void)setPasscodeViewController:(nullable UIViewController *)vc; // BB TODO deprecate
 
 /**
  Presents the biometric enrollment view controller block.
@@ -357,7 +357,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  * Returns the currently displayed passcode view controller, or nil if the passcode view controller
  * is not currently displayed.
  */
-+ (UIViewController *)passcodeViewController;
++ (UIViewController *)passcodeViewController; // BB TODO go
 
 /**
  * Whether to force the passcode screen to be displayed, despite sanity conditions for whether passcodes
@@ -365,17 +365,17 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  * to its default value of NO.
  * @param forceDisplay Whether to force the passcode screen to be displayed.  Default value is NO.
  */
-+ (void)setForcePasscodeDisplay:(BOOL)forceDisplay;
++ (void)setForcePasscodeDisplay:(BOOL)forceDisplay; // BB TODO, make internal have tests use internal header
 
 /**
  * @return Whether or not the app is configured to force the display of the passcode screen.
  */
-+ (BOOL)forcePasscodeDisplay;
++ (BOOL)forcePasscodeDisplay; // BB TODO, make internal have tests use internal header
 
 /**
  * @return Whether or not to validate the passcode at app startup.
  */
-+ (BOOL)validatePasscodeAtStartup;
++ (BOOL)validatePasscodeAtStartup; // BB TODO get rid of it
 
 /**
  * Set the response of the user being prompted to use biometric unlock.
@@ -387,7 +387,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  * Set the passcode length upon upgrade if it was not previously set.
  * @param length Length of the user's passcode.
  */
-+ (void)setUpgradePasscodeLength:(NSUInteger)length;
++ (void)setUpgradePasscodeLength:(NSUInteger)length; //BB TODO get rid of it
 
 @end
 

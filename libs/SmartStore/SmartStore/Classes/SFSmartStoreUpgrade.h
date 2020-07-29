@@ -30,6 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Used internally for upgrading SmartStore.
  */
+// BB TODO: Deprecate whole class 
 @interface SFSmartStoreUpgrade : NSObject
 
 /**

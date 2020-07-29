@@ -69,10 +69,11 @@ static NSUInteger              securityLockoutTime;
 static UIViewController        *sPasscodeViewController        = nil;
 static SFLockScreenSuccessCallbackBlock sLockScreenSuccessCallbackBlock = NULL;
 static SFLockScreenFailureCallbackBlock sLockScreenFailureCallbackBlock = NULL;
+// BB DEPRECATE
 static SFPasscodeViewControllerCreationBlock sPasscodeViewControllerCreationBlock = NULL;
 static SFPasscodeViewControllerPresentationBlock sPresentPasscodeViewControllerBlock = NULL;
 static SFPasscodeViewControllerDismissBlock sDismissPasscodeViewControllerBlock = NULL;
-static NSHashTable<id<SFSecurityLockoutDelegate>> *sDelegates = nil;
+static NSHashTable<id<SFSecurityLockoutDelegate>> *sDelegates = nil; // BB Replace with notifications, NEW: Make sure existing notifications cover same cases as delegates
 static BOOL sForcePasscodeDisplay = NO;
 static BOOL sValidatePasscodeAtStartup = NO;
 static SFSDKAppLockViewConfig *_passcodeViewConfig = nil;
@@ -107,7 +108,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
         }
         
         sDelegates = [NSHashTable weakObjectsHashTable];
-    
+        
         [SFSecurityLockout setPasscodeViewControllerCreationBlock:^UIViewController *(SFAppLockControllerMode mode, SFSDKAppLockViewConfig *viewConfig) {
             SFSDKAppLockViewController *pvc = [[SFSDKAppLockViewController alloc] initWithMode:mode andViewConfig:viewConfig];
             return pvc;
@@ -133,7 +134,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     }
 }
 
-+ (void)upgradeSettings
++ (void)upgradeSettings // BB look into, pre 7.0, stop calling it
 {
     // Lockout time
     NSNumber *lockoutTime = [SFSecurityLockout readLockoutTimeFromKeychain];
@@ -181,6 +182,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     }
 }
 
+// BB These will go away with delegate
 + (void)addDelegate:(id<SFSecurityLockoutDelegate>)delegate
 {
     @synchronized (self) {
@@ -491,7 +493,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     _passcodeViewConfig = passcodeViewConfig;
     
     // This guarentees the user's passcode is the length specified in the connected app.
-    if (_passcodeViewConfig.forcePasscodeLength) {
+    if (_passcodeViewConfig.forcePasscodeLength) { // BB TODO Remove in 9.0
         // Set passcode length to the last minimum length we got from the connected app.
         NSNumber *oldPasscodeLength = [[SFPreferences globalPreferences] objectForKey:kPasscodeLengthKey];
         if (oldPasscodeLength) {
@@ -505,7 +507,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     if (_passcodeViewConfig == nil) {
         _passcodeViewConfig = [SFSDKAppLockViewConfig createDefaultConfig];
     } else {
-        NSUInteger storedLength = [SFSecurityLockout passcodeLength];
+        NSUInteger storedLength = [SFSecurityLockout passcodeLength]; // BB TODO goes away in 9.0 as a part of removing forcePasscodeLength
         if (storedLength) {
             _passcodeViewConfig.passcodeLength = storedLength;
         }
@@ -584,7 +586,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     }
 }
 
-+ (void)setForcePasscodeDisplay:(BOOL)forceDisplay
++ (void)setForcePasscodeDisplay:(BOOL)forceDisplay // BB TODO look into
 {
     sForcePasscodeDisplay = forceDisplay;
 }

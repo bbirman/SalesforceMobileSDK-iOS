@@ -241,7 +241,7 @@ NS_SWIFT_NAME(SalesforceManager)
          [SFPasscodeProviderManager addPasscodeProvider:myProvider];
          [SalesforceSDKManager setPreferredPasscodeProvider:myProviderName];
  */
-@property (nonatomic, nullable, copy) NSString *preferredPasscodeProvider NS_SWIFT_UNAVAILABLE("");
+@property (nonatomic, nullable, copy) NSString *preferredPasscodeProvider NS_SWIFT_UNAVAILABLE("") SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  Gets or sets a block that will return a user agent string, created with an optional qualifier.

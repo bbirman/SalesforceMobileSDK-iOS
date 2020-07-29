@@ -45,7 +45,7 @@ FOUNDATION_EXTERN SFPasscodeProviderId const kSFPasscodeProviderPBKDF2;
 /**
  * Protocol that a passcode provider class must implement.
  */
-@protocol SFPasscodeProvider <NSObject>
+@protocol SFPasscodeProvider <NSObject> // BB TODO deprecate / make this internal?
 
 /**
  * The canonical name of this passcode provider.

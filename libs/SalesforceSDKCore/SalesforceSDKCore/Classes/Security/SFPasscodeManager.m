@@ -33,6 +33,7 @@ static SFPasscodeManager *sharedInstance = nil;
 // Public constants
 //
 
+// BB TODO: Get rid of notifications
 // Notification that will be sent out when passcode is reset
 NSString *const SFPasscodeResetNotification = @"SFPasscodeResetNotification";
 

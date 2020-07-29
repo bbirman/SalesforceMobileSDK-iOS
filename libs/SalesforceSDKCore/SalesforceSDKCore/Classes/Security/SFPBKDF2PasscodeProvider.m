@@ -72,7 +72,7 @@ static NSString * const kPBKDFArchiveDataKey = @"pbkdfDataArchive";
 }
 
 - (BOOL)verifyPasscode:(NSString *)passcode
-{
+{   // BB TODO this is the place
     SFPBKDFData *passcodeData = [self passcodeData:kKeychainIdentifierPasscodeVerify];
     
     // Sanity check data.
