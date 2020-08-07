@@ -195,7 +195,9 @@ static dispatch_once_t pred;
     SFRestRequest *toCancel = (nil != req ? req : [self.activeRequests anyObject]);
     if (nil != toCancel) {
         found = YES;
+        SFSDK_USE_DEPRECATED_BEGIN
         [self notifyDelegateOfTimeout:toCancel.delegate request:toCancel];
+        SFSDK_USE_DEPRECATED_END
         [self notifyDelegateOfFailure:toCancel.requestDelegate request:toCancel data:nil rawResponse:nil error:nil];
     }
     return found;
@@ -236,7 +238,9 @@ static dispatch_once_t pred;
 
 - (void)send:(SFRestRequest *)request requestDelegate:(id<SFRestRequestDelegate>)requestDelegate delegate:(id<SFRestDelegate>)delegate shouldRetry:(BOOL)shouldRetry {
     if (nil != delegate) {
+        SFSDK_USE_DEPRECATED_BEGIN
         request.delegate = delegate;
+        SFSDK_USE_DEPRECATED_END
     }
     if (requestDelegate != nil) {
         request.requestDelegate = requestDelegate;
@@ -282,6 +286,8 @@ static dispatch_once_t pred;
     return self.oauthSessionRefresher;
 }
 
+
+SFSDK_USE_DEPRECATED_BEGIN
 - (void)enqueueRequest:(SFRestRequest *)request requestDelegate:(id<SFRestRequestDelegate>)requestDelegate delegate:(id<SFRestDelegate>)delegate shouldRetry:(BOOL)shouldRetry {
     __weak __typeof(self) weakSelf = self;
     NSURLRequest *finalRequest = [request prepareRequestForSend:self.user];
@@ -731,6 +737,7 @@ static dispatch_once_t pred;
     return params;
 }
 
+SFSDK_USE_DEPRECATED_END
 - (SFRestRequest *)addBodyForPostRequest:(NSDictionary *)params request:(SFRestRequest *)request {
     [request setCustomRequestBodyDictionary:params contentType:kSFDefaultContentType];
     return request;

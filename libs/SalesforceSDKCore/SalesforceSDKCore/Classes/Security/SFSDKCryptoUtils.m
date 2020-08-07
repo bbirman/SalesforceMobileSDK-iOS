@@ -115,6 +115,8 @@ static NSString * const kSFECPrivateKeyTagPrefix = @"com.salesforce.eckey.privat
     return data;
 }
 
+
+
 + (SFPBKDFData *)createPBKDF2DerivedKey:(NSString *)stringToHash
 {
     NSData *salt = [SFSDKCryptoUtils randomByteDataWithLength:kSFPBKDFDefaultSaltByteLength];
@@ -122,6 +124,14 @@ static NSString * const kSFECPrivateKeyTagPrefix = @"com.salesforce.eckey.privat
                                                salt:salt
                                    derivationRounds:kSFPBKDFDefaultNumberOfDerivationRounds
                                           keyLength:kSFPBKDFDefaultDerivedKeyByteLength];
+}
+
++ (nullable NSData *)pbkdf2DerivedKey:(NSString *)stringToHash {
+    NSData *salt = [SFSDKCryptoUtils randomByteDataWithLength:kSFPBKDFDefaultSaltByteLength];
+    return [SFSDKCryptoUtils pbkdf2DerivedKey:stringToHash
+                                         salt:salt
+                             derivationRounds:kSFPBKDFDefaultNumberOfDerivationRounds
+                                    keyLength:kSFPBKDFDefaultDerivedKeyByteLength];
 }
 
 + (SFPBKDFData *)createPBKDF2DerivedKey:(NSString *)stringToHash
@@ -140,6 +150,22 @@ static NSString * const kSFECPrivateKeyTagPrefix = @"com.salesforce.eckey.privat
         NSData *keyData = [NSData dataWithBytes:key length:derivedKeyLength];
         SFPBKDFData *returnPBKDFData = [[SFPBKDFData alloc] initWithKey:keyData salt:salt derivationRounds:numDerivationRounds derivedKeyLength:derivedKeyLength];
         return returnPBKDFData;
+    }
+}
+
++ (nullable NSData *)pbkdf2DerivedKey:(NSString *)stringToHash
+                                 salt:(NSData *)salt
+                     derivationRounds:(NSUInteger)numDerivationRounds
+                            keyLength:(NSUInteger)derivedKeyLength {
+    NSData *stringToHashAsData = [stringToHash dataUsingEncoding:NSUTF8StringEncoding];
+    unsigned char key[derivedKeyLength];
+    int result = CCKeyDerivationPBKDF(kCCPBKDF2, [stringToHashAsData bytes], [stringToHashAsData length], [salt bytes], [salt length], kCCPRFHmacAlgSHA256, (uint)numDerivationRounds, key, derivedKeyLength);
+       
+    if (result != 0) {
+        // Error
+        return nil;
+    } else {
+        return [NSData dataWithBytes:key length:derivedKeyLength];
     }
 }
 

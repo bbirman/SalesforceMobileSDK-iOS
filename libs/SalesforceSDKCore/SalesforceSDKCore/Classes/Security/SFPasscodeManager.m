@@ -24,11 +24,13 @@
 
 #import "SFPasscodeManager+Internal.h"
 #import "SFPasscodeProviderManager.h"
-#import <LocalAuthentication/LocalAuthentication.h>
 #import "SFKeychainItemWrapper.h"
+#import "SFSecurityLockout+Internal.h"
+#import "SFSecurityLockout.h"
 
+SFSDK_USE_DEPRECATED_BEGIN
 static SFPasscodeManager *sharedInstance = nil;
-
+SFSDK_USE_DEPRECATED_END
 //
 // Public constants
 //
@@ -43,7 +45,10 @@ NSString *const SFPasscodeResetOldPasscodeKey = @"SFPasscodeResetOldPasswordKey"
 // Key in userInfo published by `SFPasscodeResetNotification` to store the new hashed passcode that triggers the new passcode reset
 NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey";
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 @implementation SFPasscodeManager
+#pragma clang diagnostic pop
 
 @synthesize encryptionKey = _encryptionKey;
 @synthesize preferredPasscodeProvider = _preferredPasscodeProvider;
@@ -111,7 +116,7 @@ NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey"
 }
 
 #pragma mark - Passcode management
-
+SFSDK_USE_DEPRECATED_BEGIN
 - (void)setEncryptionKeyForPasscode:(NSString *)passcode
 {
     id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
@@ -143,13 +148,15 @@ NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey"
 
 - (void)resetPasscode
 {
-    [SFSDKCoreLogger i:[self class] format:@"Resetting passcode upon logout."];
-    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
-    if (currentProvider == nil) {
-        [SFSDKCoreLogger w:[self class] format:@"Current passcode provider is not set.  No reset action taken."];
-    } else {
-        [currentProvider resetPasscodeData];
-    }
+//    [SFSDKCoreLogger i:[self class] format:@"Resetting passcode upon logout."];
+//    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+//    if (currentProvider == nil) {
+//        [SFSDKCoreLogger w:[self class] format:@"Current passcode provider is not set.  No reset action taken."];
+//    } else {
+//        [currentProvider resetPasscodeData];
+//    }
+    [SFSecurityLockout resetPasscode];
+    
     [self setEncryptionKey:nil];
     self.passcodeLength = 0;
 }
@@ -167,6 +174,7 @@ NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey"
         return [currentProvider verifyPasscode:passcode];
     }
 }
+SFSDK_USE_DEPRECATED_END
 
 - (void)changePasscode:(NSString *)newPasscode
 {
@@ -174,11 +182,12 @@ NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey"
     NSString *oldEncryptionKey = [SFPasscodeManager sharedManager].encryptionKey;
     if (oldEncryptionKey == nil) oldEncryptionKey = @"";
     
-    if ([newPasscode length] == 0) {
-        [self resetPasscode];
-    } else {
-        [self setPasscode:newPasscode];
-    }
+//    if ([newPasscode length] == 0) {
+//        [self resetPasscode];
+//    } else {
+//        [self setPasscode:newPasscode];
+//    }
+    [SFSecurityLockout changePasscode:newPasscode];
     
     NSString *newEncryptionKey = self.encryptionKey;
     if (newEncryptionKey == nil) newEncryptionKey = @"";
@@ -199,30 +208,33 @@ NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey"
     }
 }
 
+
+
 - (void)setPasscode:(NSString *)newPasscode
 {
-    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
-    id<SFPasscodeProvider> preferredProvider = [SFPasscodeProviderManager passcodeProviderForProviderName:self.preferredPasscodeProvider];
-    if (currentProvider == nil) {
-        [SFSDKCoreLogger e:[self class] format:@"Current passcode provider is not set.  Cannot set new passcode."];
-        return;
-    }
-    
-    if (preferredProvider == nil) {
-        [SFSDKCoreLogger w:[self class] format:@"Could not load preferred passcode provider '%@'.  Defaulting to current provider ('%@') as the preferred provider.", preferredProvider.providerName, currentProvider.providerName];
-        preferredProvider = currentProvider;
-    }
-    
-    // If the current and preferred providers are not the same, we need to unconfigure the current, and
-    // configure the preferred as the new current.
-    if (![currentProvider isEqual:preferredProvider]) {
-        [currentProvider resetPasscodeData];
-        [SFPasscodeProviderManager setCurrentPasscodeProviderByName:preferredProvider.providerName];
-        currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
-    }
-    
-    [currentProvider setVerificationPasscode:newPasscode];
-    NSString *encryptionKey = [currentProvider generateEncryptionKey:newPasscode];
+//    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+//    id<SFPasscodeProvider> preferredProvider = [SFPasscodeProviderManager passcodeProviderForProviderName:self.preferredPasscodeProvider];
+//    if (currentProvider == nil) {
+//        [SFSDKCoreLogger e:[self class] format:@"Current passcode provider is not set.  Cannot set new passcode."];
+//        return;
+//    }
+//
+//    if (preferredProvider == nil) {
+//        [SFSDKCoreLogger w:[self class] format:@"Could not load preferred passcode provider '%@'.  Defaulting to current provider ('%@') as the preferred provider.", preferredProvider.providerName, currentProvider.providerName];
+//        preferredProvider = currentProvider;
+//    }
+//
+//    // If the current and preferred providers are not the same, we need to unconfigure the current, and
+//    // configure the preferred as the new current.
+//    if (![currentProvider isEqual:preferredProvider]) {
+//        [currentProvider resetPasscodeData];
+//        [SFPasscodeProviderManager setCurrentPasscodeProviderByName:preferredProvider.providerName];
+//        currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+//    }
+//
+//    [currentProvider setVerificationPasscode:newPasscode];
+    [SFSecurityLockout setPasscode:newPasscode];
+    NSString *encryptionKey = [[SFPasscodeProviderManager currentPasscodeProvider] generateEncryptionKey:newPasscode];
     [self setEncryptionKey:encryptionKey];
     self.passcodeLength = newPasscode.length;
 }
@@ -232,15 +244,8 @@ NSString *const SFPasscodeResetNewPasscodeKey = @"SFPasscodeResetNewPasswordKey"
     return self.passcodeLength;
 }
 
-- (BOOL)deviceHasBiometric
-{
-    LAContext *context = [[LAContext alloc] init];
-    NSError *biometricError;
-    BOOL deviceHasBiometric = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&biometricError];
-    if (!deviceHasBiometric) {
-        [SFSDKCoreLogger d:[self class] format:@"Device cannot use Touch Id or Face Id.  Error: %@", biometricError];
-    }
-    return deviceHasBiometric;
+- (BOOL)deviceHasBiometric {
+    return [SFSecurityLockout deviceHasBiometric];
 }
 
 @end

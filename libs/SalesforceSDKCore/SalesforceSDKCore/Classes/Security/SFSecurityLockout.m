@@ -47,6 +47,10 @@
 #import "SFSDKPasscodeCreateController.h"
 #import "SFSDKPasscodeVerifyController.h"
 #import "SFSDKBiometricViewController+Internal.h"
+#import "SalesforceSDKConstants.h"
+#import "SFSDKCryptoUtils.h"
+#import "SFPBKDFData.h"
+#import "SFPasscodeProviderManager.h"
 
 // Private constants
 
@@ -57,6 +61,8 @@ static NSString * const kKeychainIdntifierPasscodeLengthKey  = @"com.salesforce.
 static NSString * const kPasscodeScreenAlreadyPresentMessage = @"A passcode screen is already present.";
 static NSString * const kKeychainIdentifierLockoutTime       = @"com.salesforce.security.lockoutTime";
 static NSString * const kKeychainIdentifierIsLocked          = @"com.salesforce.security.isLocked";
+static NSString * const kKeychainIdentifierPasscodeVerify = @"com.salesforce.security.passcode.pbkdf2.verify";
+static NSString * const kPBKDFArchiveDataKey = @"pbkdfDataArchive";
 
 // Public constants
 
@@ -72,7 +78,7 @@ static SFLockScreenFailureCallbackBlock sLockScreenFailureCallbackBlock = NULL;
 static SFPasscodeViewControllerCreationBlock sPasscodeViewControllerCreationBlock = NULL;
 static SFPasscodeViewControllerPresentationBlock sPresentPasscodeViewControllerBlock = NULL;
 static SFPasscodeViewControllerDismissBlock sDismissPasscodeViewControllerBlock = NULL;
-static NSHashTable<id<SFSecurityLockoutDelegate>> *sDelegates = nil;
+static NSHashTable<id<SFSecurityLockoutDelegate>> *sDelegates = nil; // BB Replace with notifications, NEW: Make sure existing notifications cover same cases as delegates
 static BOOL sForcePasscodeDisplay = NO;
 static BOOL sValidatePasscodeAtStartup = NO;
 static SFSDKAppLockViewConfig *_passcodeViewConfig = nil;
@@ -107,7 +113,8 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
         }
         
         sDelegates = [NSHashTable weakObjectsHashTable];
-    
+        
+        SFSDK_USE_DEPRECATED_BEGIN
         [SFSecurityLockout setPasscodeViewControllerCreationBlock:^UIViewController *(SFAppLockControllerMode mode, SFSDKAppLockViewConfig *viewConfig) {
             SFSDKAppLockViewController *pvc = [[SFSDKAppLockViewController alloc] initWithMode:mode andViewConfig:viewConfig];
             return pvc;
@@ -130,10 +137,11 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
                                                     }];
                 }];
         }];
+        SFSDK_USE_DEPRECATED_END
     }
 }
 
-+ (void)upgradeSettings
++ (void)upgradeSettings // BB look into, pre 7.0, stop calling it
 {
     // Lockout time
     NSNumber *lockoutTime = [SFSecurityLockout readLockoutTimeFromKeychain];
@@ -181,6 +189,7 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     }
 }
 
+// BB These will go away with delegate
 + (void)addDelegate:(id<SFSecurityLockoutDelegate>)delegate
 {
     @synchronized (self) {
@@ -240,11 +249,13 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
         result |= SFPasscodePolicyTimeoutIsMoreRestrictive;
     }
     
+    SFSDK_USE_DEPRECATED_BEGIN
     if ([self passcodeLength] == kDefaultPasscodeLength) {
          result |= SFPasscodePolicySetupNewPasscode;
-    }else if (newPasscodeLength > [self passcodeLength]) {
+    } else if (newPasscodeLength > [self passcodeLength]) {
         result |= SFPasscodePolicyPasscodeLengthIsMoreRestrictive;
     }
+    SFSDK_USE_DEPRECATED_END
     
     return result;
 }
@@ -377,7 +388,8 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     [SFSecurityLockout setPasscodeLength:kDefaultPasscodeLength];
     [SFSecurityLockout setBiometricState:SFBiometricUnlockUnavailable];
     [SFInactivityTimerCenter removeTimer:kTimerSecurity];
-    [[SFPasscodeManager sharedManager] changePasscode:nil];
+    [SFSecurityLockout changePasscode:nil]; // BB TODO: is this okay?
+    //[[SFPasscodeManager sharedManager] changePasscode:nil];
 }
 
 + (NSUInteger)passcodeLength
@@ -393,9 +405,19 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
     [SFSecurityLockout writePasscodeLengthToKeychain:[NSNumber numberWithInteger:newPasscodeLength]];
 }
 
++ (BOOL)deviceHasBiometric {
+    LAContext *context = [[LAContext alloc] init];
+    NSError *biometricError;
+    BOOL deviceHasBiometric = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&biometricError];
+    if (!deviceHasBiometric) {
+        [SFSDKCoreLogger d:[self class] format:@"Device cannot use Touch Id or Face Id.  Error: %@", biometricError];
+    }
+    return deviceHasBiometric;
+}
+
 + (BOOL)biometricUnlockAllowed
 {
-    return [[SFPreferences globalPreferences] boolForKey:kBiometricUnlockAllowedKey] && [[SFPasscodeManager sharedManager] deviceHasBiometric];
+    return [[SFPreferences globalPreferences] boolForKey:kBiometricUnlockAllowedKey] && [SFSecurityLockout deviceHasBiometric];
 }
 
 + (void)setBiometricAllowed:(BOOL)enabled
@@ -490,8 +512,9 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
 + (void)setPasscodeViewConfig:(SFSDKAppLockViewConfig *)passcodeViewConfig {
     _passcodeViewConfig = passcodeViewConfig;
     
+    SFSDK_USE_DEPRECATED_BEGIN
     // This guarentees the user's passcode is the length specified in the connected app.
-    if (_passcodeViewConfig.forcePasscodeLength) {
+    if (_passcodeViewConfig.forcePasscodeLength) { // BB TODO Remove in 9.0
         // Set passcode length to the last minimum length we got from the connected app.
         NSNumber *oldPasscodeLength = [[SFPreferences globalPreferences] objectForKey:kPasscodeLengthKey];
         if (oldPasscodeLength) {
@@ -499,13 +522,14 @@ typedef NS_OPTIONS(NSUInteger, SFPasscodePolicy) {
             _passcodeViewConfig.passcodeLength = [SFSecurityLockout passcodeLength];
         }
     }
+    SFSDK_USE_DEPRECATED_END
 }
 
 + (SFSDKAppLockViewConfig *)passcodeViewConfig {
     if (_passcodeViewConfig == nil) {
         _passcodeViewConfig = [SFSDKAppLockViewConfig createDefaultConfig];
     } else {
-        NSUInteger storedLength = [SFSecurityLockout passcodeLength];
+        NSUInteger storedLength = [SFSecurityLockout passcodeLength]; // BB TODO goes away in 9.0 as a part of removing forcePasscodeLength
         if (storedLength) {
             _passcodeViewConfig.passcodeLength = storedLength;
         }
@@ -584,7 +608,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     }
 }
 
-+ (void)setForcePasscodeDisplay:(BOOL)forceDisplay
++ (void)setForcePasscodeDisplay:(BOOL)forceDisplay // BB TODO look into // BB Update: Kill even for tests
 {
     sForcePasscodeDisplay = forceDisplay;
 }
@@ -594,6 +618,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     return sForcePasscodeDisplay;
 }
 
+// BB TODO: option make this internal and make another wrapping method lockIfNeeded that would check the timer and also call this
 + (void)lock
 {
     if (!sForcePasscodeDisplay) {
@@ -612,7 +637,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     }
     
     if ([SFApplicationHelper sharedApplication].applicationState == UIApplicationStateActive || ![SFSDKWindowManager sharedManager].snapshotWindow.isEnabled) {
-        if (![[SFPasscodeManager sharedManager] deviceHasBiometric]) {
+        if (![SFSecurityLockout deviceHasBiometric]) {
             [self setBiometricState:SFBiometricUnlockUnavailable];
         }
         
@@ -622,8 +647,6 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     [SFSDKCoreLogger i:[self class] format:@"Device locked."];
     sForcePasscodeDisplay = NO;
 }
-
-
 
 + (SFPasscodeViewControllerCreationBlock)passcodeViewControllerCreationBlock
 {
@@ -737,6 +760,7 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     [[NSNotificationCenter defaultCenter] postNotification:n];
 }
 
+// TODO: Remove this and sValidatePasscodeAtStartup in 9.0
 + (BOOL)validatePasscodeAtStartup
 {
     return sValidatePasscodeAtStartup;
@@ -757,17 +781,26 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     return locked;
 }
 
++ (BOOL)isPasscodeSet {
+    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+    if (currentProvider == nil) {
+        [SFSDKCoreLogger w:[self class] format:@"Current passcode provider is not set.  Cannot determine passcode status."];
+        return NO;
+    }
+    return ([currentProvider hashedVerificationPasscode] != nil);
+}
+
 + (BOOL)isPasscodeValid
 {
 	if(securityLockoutTime == 0) return YES; // no passcode is required.
-    return([[SFPasscodeManager sharedManager] passcodeIsSet]);
+    return [SFSecurityLockout isPasscodeSet];
 }
 
 + (BOOL)isPasscodeNeeded
 {
     if(securityLockoutTime == 0) return NO; // no passcode is required.
 
-    BOOL result = [SFSecurityLockout inactivityExpired] || [SFSecurityLockout validatePasscodeAtStartup] || ![SFSecurityLockout isPasscodeValid];
+    BOOL result = [SFSecurityLockout inactivityExpired] || ![SFSecurityLockout isPasscodeValid];
     result = result || sForcePasscodeDisplay;
     return result;
 }
@@ -959,6 +992,104 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
         [keychainWrapper setValueData:data];
     else
         [keychainWrapper resetKeychainItem];  // Predominantly for unit tests
+}
+
+
+#pragma mark passcode management
+
++ (void)changePasscode:(NSString *)newPasscode {
+    if ([newPasscode length] == 0) {
+        //[self resetPasscode];
+    } else {
+        [SFSecurityLockout setPasscode:newPasscode];
+    }
+}
+
++ (void)resetPasscode {
+    [SFSDKCoreLogger i:[self class] format:@"Resetting passcode upon logout."];
+    SFSDK_USE_DEPRECATED_BEGIN
+    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+    SFSDK_USE_DEPRECATED_END
+    if (currentProvider == nil) {
+        [SFSDKCoreLogger w:[self class] format:@"Current passcode provider is not set.  No reset action taken."];
+    } else {
+        [currentProvider resetPasscodeData];
+    }
+}
+
++ (void)setPasscode:(NSString *)newPasscode {
+    SFSDK_USE_DEPRECATED_BEGIN
+    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+    id<SFPasscodeProvider> preferredProvider = [SFPasscodeProviderManager passcodeProviderForProviderName:[SFPasscodeManager sharedManager].preferredPasscodeProvider];
+    SFSDK_USE_DEPRECATED_END
+    if (currentProvider == nil) {
+        [SFSDKCoreLogger e:[self class] format:@"Current passcode provider is not set.  Cannot set new passcode."];
+        return;
+    }
+    
+    if (preferredProvider == nil) {
+        [SFSDKCoreLogger w:[self class] format:@"Could not load preferred passcode provider '%@'.  Defaulting to current provider ('%@') as the preferred provider.", preferredProvider.providerName, currentProvider.providerName];
+        preferredProvider = currentProvider;
+    }
+    
+    // If the current and preferred providers are not the same, we need to unconfigure the current, and
+    // configure the preferred as the new current.
+    if (![currentProvider isEqual:preferredProvider]) {
+        SFSDK_USE_DEPRECATED_BEGIN
+        [currentProvider resetPasscodeData];
+        [SFPasscodeProviderManager setCurrentPasscodeProviderByName:preferredProvider.providerName];
+        currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+        SFSDK_USE_DEPRECATED_END
+    }
+    
+    [currentProvider setVerificationPasscode:newPasscode];
+}
+
++ (BOOL)verifyPasscode:(NSString *)passcode {
+    SFPBKDFData *passcodeData = [SFSecurityLockout passcodeData:kKeychainIdentifierPasscodeVerify];
+    
+    // Sanity check data.
+    if (passcodeData == nil) {
+        [SFSDKCoreLogger e:[self class] format:@"No passcode data found.  Cannot verify passcode."];
+        return NO;
+    } else if (passcodeData.derivedKey == nil) {
+        [SFSDKCoreLogger e:[self class] format:@"Passcode key has not been set.  Cannot verify passcode."];
+        return NO;
+    } else if (passcodeData.salt == nil) {
+        [SFSDKCoreLogger e:[self class] format:@"Passcode salt has not been set.  Cannot verify passcode."];
+        return NO;
+    } else if (passcodeData.numDerivationRounds == 0) {
+        [SFSDKCoreLogger e:[self class] format:@"Number of derivation rounds has not been set.  Cannot verify passcode."];
+        return NO;
+    }
+    
+    // Generate verification key from input passcode.
+    SFPBKDFData *verifyData = [SFSDKCryptoUtils createPBKDF2DerivedKey:passcode
+                                                                  salt:passcodeData.salt
+                                                      derivationRounds:passcodeData.numDerivationRounds
+                                                             keyLength:[passcodeData.derivedKey length]];
+    return [passcodeData.derivedKey isEqualToData:verifyData.derivedKey];
+}
+
++ (SFPBKDFData *)passcodeData:(NSString *)keychainIdentifier {
+    SFKeychainItemWrapper *keychainWrapper = [SFKeychainItemWrapper itemWithIdentifier:keychainIdentifier account:nil];
+    NSData *keychainPasscodeData = [keychainWrapper valueData];
+    if (keychainPasscodeData == nil) {
+        return nil;
+    }
+    
+    SFPBKDFData *pbkdfData = nil;
+    NSError* error = nil;
+    NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:keychainPasscodeData error:&error];
+    unarchiver.requiresSecureCoding = NO;
+    if (error) {
+        [SFSDKCoreLogger e:[self class] format:@"Failed to init unarchiver for passcode data: %@.", error];
+    } else {
+        pbkdfData = [unarchiver decodeObjectForKey:kPBKDFArchiveDataKey];
+        [unarchiver finishDecoding];
+    }
+    
+    return pbkdfData;
 }
 
 @end

@@ -36,6 +36,7 @@
 #import "SFSDKWindowManager.h"
 #import "SFSecurityLockout.h"
 #import "SFSDKViewUtils.h"
+#import "SFSecurityLockout+Internal.h"
 
 @interface SFSDKAppLockViewController () <SFSDKPasscodeCreateDelegate,SFSDKBiometricViewDelegate,SFSDKPasscodeVerifyDelegate>
 
@@ -88,8 +89,10 @@
 
 - (void)passcodeCreated:(NSString *)passcode updateMode:(BOOL)isUpdateMode
 {
+    SFSDK_USE_DEPRECATED_BEGIN
     [[SFPasscodeManager sharedManager] changePasscode:passcode];
-    [SFSecurityLockout setUpgradePasscodeLength:[passcode length]];
+    [SFSecurityLockout setUpgradePasscodeLength:[passcode length]]; // BB TODO: What does this do?
+    
     if ([SFSecurityLockout biometricState] == SFBiometricUnlockAvailable) {
         [self promptBiometricEnrollment];
     } else {
@@ -97,6 +100,7 @@
         [self.navigationController popViewControllerAnimated:NO];
         [SFSecurityLockout unlock:action];
     }
+    SFSDK_USE_DEPRECATED_END
 }
 
 #pragma mark - SFSDKPasscodeVerifyDelegate
@@ -113,7 +117,8 @@
 
 - (void)passcodeFailed
 {
-    [[SFPasscodeManager sharedManager] resetPasscode];
+    [SFSecurityLockout resetPasscode]; // BB TODO is it okay to call on lockout?
+//    [[SFPasscodeManager sharedManager] resetPasscode];
     [SFSecurityLockout wipeState];
 }
 
@@ -123,9 +128,11 @@
 {
     [SFSecurityLockout userAllowedBiometricUnlock:YES];
     
+    SFSDK_USE_DEPRECATED_BEGIN
     if ([SFSecurityLockout locked]) {
         [self.navigationController popViewControllerAnimated:NO];
         [SFSecurityLockout unlock:SFSecurityLockoutActionBiometricVerified];
+        SFSDK_USE_DEPRECATED_END
     } else {
         [self dismissStandaloneBiometricSetup];
     }
@@ -141,9 +148,11 @@
     } else {
         [SFSecurityLockout userAllowedBiometricUnlock:NO];
        
+        SFSDK_USE_DEPRECATED_BEGIN
         if ([SFSecurityLockout locked]) {
             [self.navigationController popViewControllerAnimated:NO];
             [SFSecurityLockout unlock:SFSecurityLockoutActionPasscodeCreated];
+            SFSDK_USE_DEPRECATED_END
         } else {
             [self dismissStandaloneBiometricSetup];
         }
@@ -152,7 +161,9 @@
 
 - (void)dismissStandaloneBiometricSetup
 {
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout setupTimer];
+    SFSDK_USE_DEPRECATED_END
     [[[SFSDKWindowManager sharedManager] passcodeWindow].viewController dismissViewControllerAnimated:NO completion:^{
         [[SFSDKWindowManager sharedManager].passcodeWindow dismissWindowAnimated:NO withCompletion:^{}];
     }];

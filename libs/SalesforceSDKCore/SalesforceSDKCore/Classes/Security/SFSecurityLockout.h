@@ -100,7 +100,7 @@ typedef NS_ENUM(NSUInteger, SFBiometricUnlockState) {
 
 /** Notification sent when the passcode or biometric screen will be displayed.
  */
-extern NSString * const kSFPasscodeFlowWillBegin;
+extern NSString * const kSFPasscodeFlowWillBegin; // BB TODO do we need this? Burn it
 
 /** Notification sent when the passcode or biometric flow has completed.
  */
@@ -134,7 +134,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
 /**
  Delegate protocol for SFSecurityLockout events and callbacks.
  */
-@protocol SFSecurityLockoutDelegate <NSObject>
+@protocol SFSecurityLockoutDelegate <NSObject> // BB TODO can we get rid of these and replace with notifications? SApp is using this
 
 @optional
 
@@ -167,6 +167,16 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
 @property (nonatomic,strong,class) SFSDKAppLockViewConfig *passcodeViewConfig;
 
 /**
+Whether the device has the capability to use biometric unlock.
+*/
+@property (nonatomic, class, readonly) BOOL deviceHasBiometric;
+
+/**
+Whether passcode is enabled.
+*/
+@property (nonatomic, class, readonly) BOOL isPasscodeSet;
+
+/**
  Adds a delegate to the list of SFSecurityLockout delegates.
  @param delegate The delegate to add to the list.
  */
@@ -182,13 +192,13 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  Get the current lockout time, in seconds
  @return The lockout time limit.
  */
-+ (NSUInteger)lockoutTime;
++ (NSUInteger)lockoutTime SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized."); // BB TODO: Make readonly, add to internal header TBD when
 
 /**
  Gets the configured passcode length.
  @return The passcode length.
  */
-+ (NSUInteger)passcodeLength;
++ (NSUInteger)passcodeLength SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized."); // BB TODO: Make readonly, add to internal header TBD when
 
 /**
  The current state of biometric unlock.
@@ -212,31 +222,31 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  policy.  I.e. passcode state can only be cleared if the current user is the only user who would
  be subject to that policy.
  */
-+ (void)clearPasscodeState;
++ (void)clearPasscodeState SFSDK_DEPRECATED(8.3, 9.9, "Will be removed.");
 
 /**
  Resets the passcode state of the app, *if* there aren't other users with an overriding passcode
  policy.  I.e. passcode state can only be cleared if the  user is the only user who would
  be subject to that policy.
  */
-+ (void)clearPasscodeState:(SFUserAccount *)userLoggingOut;
++ (void)clearPasscodeState:(SFUserAccount *)userLoggingOut SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Initialize the timer
  */
-+ (void)setupTimer;
++ (void)setupTimer SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Unregister and invalidate the timer
  */
-+ (void)removeTimer;
++ (void)removeTimer SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Validate the timer upon app entering the foreground
  */
-+ (void)validateTimer;
++ (void)validateTimer SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Check if passcode is enabled.
  @return `YES` if passcode is enabled and required.
  */
-+ (BOOL)isLockoutEnabled;
++ (BOOL)isLockoutEnabled; // BB SApp uses this
 
 /** Indicates if the inactivity period has expired.
  @return `YES` if the inactivity timeout has expired, otherwise `NO`.
@@ -260,33 +270,33 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
 /** Unlock the device (e.g a result of a successful passcode/biometric challenge)
  @param action Action that was taken during lockout.
  */
-+ (void)unlock:(SFSecurityLockoutAction)action;
++ (void)unlock:(SFSecurityLockoutAction)action SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Wipe the device (e.g. because passcode/biometric challenge failed)
 */
-+ (void)wipeState;
++ (void)wipeState SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Toggle the locked state
  @param locked Locks the device if `YES`, otherwise unlocks the device.
  */
-+ (void)setIsLocked:(BOOL)locked;
++ (void)setIsLocked:(BOOL)locked SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Check if device is locked
  */
-+ (BOOL)locked;
++ (BOOL)locked SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Check if the passcode is valid
  */
-+ (BOOL)isPasscodeValid;
++ (BOOL)isPasscodeValid SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 /** Check to see if the passcode screen is needed.
  */
-+ (BOOL)isPasscodeNeeded;
++ (BOOL)isPasscodeNeeded; // BB TODO make internal // BB Update: Used by SApp // BB Update 2: Rename to shouldLock
 
 /** Show the passcode view. Used by unit tests.
  @param showPasscode If YES, passcode view can be displayed.
  */
-+ (void)setCanShowPasscode:(BOOL)showPasscode;
++ (void)setCanShowPasscode:(BOOL)showPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be removed."); // BB TODO: make internal, BB Update: not used by unit tests?
 
 /**
  Sets the callback block to be called on any action that triggers screen lock, and unlocks
@@ -315,49 +325,49 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
 /**
  @return The block used to create the passcode view controller
  */
-+ (SFPasscodeViewControllerCreationBlock)passcodeViewControllerCreationBlock;
++ (SFPasscodeViewControllerCreationBlock)passcodeViewControllerCreationBlock SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  Sets the block that will create the passcode view controller.
  @param vcBlock The passcode view controller creation block to use.
  */
-+ (void)setPasscodeViewControllerCreationBlock:(SFPasscodeViewControllerCreationBlock)vcBlock;
++ (void)setPasscodeViewControllerCreationBlock:(SFPasscodeViewControllerCreationBlock)vcBlock SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  @return The block used to present the passcode view controller.
  */
-+ (SFPasscodeViewControllerPresentationBlock)presentPasscodeViewControllerBlock;
++ (SFPasscodeViewControllerPresentationBlock)presentPasscodeViewControllerBlock SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  Sets the block that will present the passcode view controller.
  @param vcBlock The block to use to present the passcode view controller.
  */
-+ (void)setPresentPasscodeViewControllerBlock:(SFPasscodeViewControllerPresentationBlock)vcBlock;
++ (void)setPresentPasscodeViewControllerBlock:(SFPasscodeViewControllerPresentationBlock)vcBlock SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  Set the block that will dismiss the passcode view controller.
  @param vcBlock The block defined to dismiss the passcode view controller.
  */
-+ (void)setDismissPasscodeViewControllerBlock:(SFPasscodeViewControllerDismissBlock)vcBlock;
++ (void)setDismissPasscodeViewControllerBlock:(SFPasscodeViewControllerDismissBlock)vcBlock SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  Sets a retained instance of the current passcode view controller that's displayed.
  @param vc The passcode view controller.
  */
-+ (void)setPasscodeViewController:(nullable UIViewController *)vc;
++ (void)setPasscodeViewController:(nullable UIViewController *)vc SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  Presents the biometric enrollment view controller block.
  This can be used to prompt the user to enable biometric unlock if it was denied upon inital login or upgrade.
  @param viewConfig SFSDKPasscodeViewConfig used to create the view controller.  Supply nil to use the current SFSDKPasscodeViewConfig.
  */
-+ (void)presentBiometricEnrollment:(nullable SFSDKAppLockViewConfig*)viewConfig;
++ (void)presentBiometricEnrollment:(nullable SFSDKAppLockViewConfig *)viewConfig;
 
 /**
  * Returns the currently displayed passcode view controller, or nil if the passcode view controller
  * is not currently displayed.
  */
-+ (UIViewController *)passcodeViewController;
++ (UIViewController *)passcodeViewController SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.");
 
 /**
  * Whether to force the passcode screen to be displayed, despite sanity conditions for whether passcodes
@@ -365,21 +375,21 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  * to its default value of NO.
  * @param forceDisplay Whether to force the passcode screen to be displayed.  Default value is NO.
  */
-+ (void)setForcePasscodeDisplay:(BOOL)forceDisplay;
++ (void)setForcePasscodeDisplay:(BOOL)forceDisplay SFSDK_DEPRECATED(8.3, 9.0, "Will be removed."); // BB TODO: make internal have tests use internal header. BB Update: Not used in unit tests?
 
 /**
  * @return Whether or not the app is configured to force the display of the passcode screen.
  */
-+ (BOOL)forcePasscodeDisplay;
++ (BOOL)forcePasscodeDisplay SFSDK_DEPRECATED(8.3, 9.0, "Will be removed."); // BB TODO, make internal have tests use internal header
 
 /**
  * @return Whether or not to validate the passcode at app startup.
  */
-+ (BOOL)validatePasscodeAtStartup;
++ (BOOL)validatePasscodeAtStartup SFSDK_DEPRECATED(8.3, 9.0, "Will be removed");
 
 /**
  * Set the response of the user being prompted to use biometric unlock.
- * @param userAllowedBiometric YES if the user accpeted, NO otherwise.
+ * @param userAllowedBiometric YES if the user accepted, NO otherwise.
  */
 + (void)userAllowedBiometricUnlock:(BOOL)userAllowedBiometric;
 
@@ -387,7 +397,7 @@ typedef void (^SFPasscodeViewControllerDismissBlock)(UIViewController*,void(^_Nu
  * Set the passcode length upon upgrade if it was not previously set.
  * @param length Length of the user's passcode.
  */
-+ (void)setUpgradePasscodeLength:(NSUInteger)length;
++ (void)setUpgradePasscodeLength:(NSUInteger)length SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
 
 @end
 

@@ -37,7 +37,10 @@ static NSString * const kSFCurrentPasscodeProviderUserDefaultsKey = @"com.salesf
 
 static NSMutableDictionary *PasscodeProviderMap;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-implementations"
 @implementation SFPasscodeProviderManager
+#pragma clang diagnostic pop
 
 + (void)initialize
 {
@@ -55,6 +58,7 @@ static NSMutableDictionary *PasscodeProviderMap;
     NSUserDefaults *defs = [NSUserDefaults msdkUserDefaults];
     NSString *currentProviderName = [defs objectForKey:kSFCurrentPasscodeProviderUserDefaultsKey];
     
+    // BB TODO: Remove default to help migration?
     // If never set, presume the version is SHA256.
     if (currentProviderName == nil) {
         currentProviderName = kSFPasscodeProviderSHA256;

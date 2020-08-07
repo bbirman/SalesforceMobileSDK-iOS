@@ -51,8 +51,10 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
         self.networkServiceType = request.networkServiceType;
         self.serviceHostType = request.serviceHostType;
         self.requestBodyAsDictionary = request.requestBodyAsDictionary;
+        SFSDK_USE_DEPRECATED_BEGIN
         self.shouldRefreshOn403 = request.shouldRefreshOn403;
         self.delegate = request.delegate;
+        SFSDK_USE_DEPRECATED_END
         self.requestDelegate = request.requestDelegate;
     }
     return self;

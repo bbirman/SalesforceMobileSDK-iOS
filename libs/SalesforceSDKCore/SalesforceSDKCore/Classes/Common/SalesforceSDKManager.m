@@ -236,7 +236,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleUserWillSwitch:)  name:kSFNotificationUserWillSwitch object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleUserDidSwitch:)  name:kSFNotificationUserDidSwitch object:nil];
         
-        [SFPasscodeManager sharedManager].preferredPasscodeProvider = kSFPasscodeProviderPBKDF2;
+        //[SFPasscodeManager sharedManager].preferredPasscodeProvider = kSFPasscodeProviderPBKDF2;
         self.useSnapshotView = YES;
         [self computeWebViewUserAgent]; // web view user agent is computed asynchronously so very first call to self.userAgentString(...) will be missing it
         self.userAgentString = [self defaultUserAgentString];
@@ -688,8 +688,9 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
                 [SFSDKCoreLogger i:[self class] format:@"Passcode validation succeeded, or was not required, on app foreground.  Triggering postAppForeground handler."];
                 [self sendPostAppForegroundIfRequired];
             }];
-            
+            SFSDK_USE_DEPRECATED_BEGIN
             [SFSecurityLockout validateTimer];
+            SFSDK_USE_DEPRECATED_END
         }
     }
 }
@@ -764,14 +765,18 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 - (void)handleAuthCompleted:(NSNotification *)notification
 {
     // Will set up the passcode timer for auth that occurs out of band from SDK Manager launch.
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout setupTimer];
+    SFSDK_USE_DEPRECATED_END
     [SFSecurityLockout startActivityMonitoring];
 }
 
 - (void)handleIDPInitiatedAuthCompleted:(NSNotification *)notification
 {
     // Will set up the passcode timer for auth that occurs out of band from SDK Manager launch.
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout setupTimer];
+    SFSDK_USE_DEPRECATED_END
     [SFSecurityLockout startActivityMonitoring];
     NSDictionary *userInfo = notification.userInfo;
     SFUserAccount *userAccount = userInfo[kSFNotificationUserInfoAccountKey];
@@ -786,7 +791,9 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     SFUserAccount *userAccount = userInfo[kSFNotificationUserInfoAccountKey];
     // this is the only user context in the idp app.
     if ([userAccount isEqual:[SFUserAccountManager sharedInstance].currentUser]) {
+        SFSDK_USE_DEPRECATED_BEGIN
         [SFSecurityLockout setupTimer];
+        SFSDK_USE_DEPRECATED_END
         [SFSecurityLockout startActivityMonitoring];
         [[SFUserAccountManager sharedInstance] switchToUser:userAccount];
         [self sendPostLaunch];
@@ -802,7 +809,9 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     // Close the passcode screen and reset passcode monitoring.
     [SFSecurityLockout cancelPasscodeScreen];
     [SFSecurityLockout stopActivityMonitoring];
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout removeTimer];
+    SFSDK_USE_DEPRECATED_END
     [self sendPostLogout];
 }
 
@@ -810,19 +819,25 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
 {
     [SFSecurityLockout cancelPasscodeScreen];
     [SFSecurityLockout stopActivityMonitoring];
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout removeTimer];
+    SFSDK_USE_DEPRECATED_END
 }
 
 - (void)handleUserDidSwitch:(SFUserAccount *)fromUser toUser:(SFUserAccount *)toUser
 {
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout setupTimer];
+    SFSDK_USE_DEPRECATED_END
     [SFSecurityLockout startActivityMonitoring];
     [self sendUserAccountSwitch:fromUser toUser:toUser];
 }
 
 - (void)savePasscodeActivityInfo
 {
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout removeTimer];
+    SFSDK_USE_DEPRECATED_END
     [SFInactivityTimerCenter saveActivityTimestamp];
 }
     
@@ -871,13 +886,17 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         if (self.snapshotPresentationAction && self.snapshotDismissalAction) {
             self.snapshotDismissalAction(_snapshotViewController);
             if ([SFSecurityLockout isPasscodeNeeded]) {
+                SFSDK_USE_DEPRECATED_BEGIN
                 [SFSecurityLockout validateTimer];
+                SFSDK_USE_DEPRECATED_END
             }
         } else {
             [[SFSDKWindowManager sharedManager].snapshotWindow.viewController dismissViewControllerAnimated:NO completion:^{
                 [[SFSDKWindowManager sharedManager].snapshotWindow dismissWindowAnimated:NO  withCompletion:^{
                     if ([SFSecurityLockout isPasscodeNeeded]) {
+                        SFSDK_USE_DEPRECATED_BEGIN
                         [SFSecurityLockout validateTimer];
+                        SFSDK_USE_DEPRECATED_END
                     }
                 }];
             }];
@@ -939,7 +958,9 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     
     SFUserAccountManagerSuccessCallbackBlock successBlock = ^(SFOAuthInfo *authInfo,SFUserAccount *userAccount) {
         [SFSDKCoreLogger i:[self class] format:@"Authentication (%@) succeeded.  Launch completed.", authInfo.authTypeDescription];
+        SFSDK_USE_DEPRECATED_BEGIN
         [SFSecurityLockout setupTimer];
+        SFSDK_USE_DEPRECATED_END
         [SFSecurityLockout startActivityMonitoring];
         [self authValidatedToPostAuth:SFSDKLaunchActionAuthenticated];
     };
@@ -974,7 +995,9 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
     // stays on the screen, masking the main UI.
     [[SFUserAccountManager sharedInstance] dismissAuthViewControllerIfPresent];
 
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout setupTimer];
+    SFSDK_USE_DEPRECATED_END
     [SFSecurityLockout startActivityMonitoring];
     [self authValidatedToPostAuth:noAuthLaunchAction];
 }

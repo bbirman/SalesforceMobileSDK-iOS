@@ -9,6 +9,7 @@ static NSString * _Nullable const kSecurityIsLockedLegacyKey = @"security.islock
 static NSString * const kBiometricUnlockAllowedKey           = @"security.biometric.allowed"; // Enabled in the Org
 static NSString * const kBiometricStateKey                   = @"secuirty.biometric.state";
 
+SFSDK_DEPRECATED(8.3, 9.0, "Will be internal.") // BB TODO: is this worth deprecating?
 @interface SFSecurityLockout ()
 
 /**
@@ -122,6 +123,15 @@ static NSString * const kBiometricStateKey                   = @"secuirty.biomet
  @param block The block of code to execute for each delegate.
  */
 + (void)enumerateDelegates:(void(^)(id <SFSecurityLockoutDelegate> delegate))block;
+
+// BB TODO: Bring comments over
++ (BOOL)verifyPasscode:(NSString *)passcode;
+
++ (void)setPasscode:(NSString *)newPasscode;
+
++ (void)changePasscode:(nullable NSString *)newPasscode;
+
++ (void)resetPasscode;
 
 @end
 

@@ -257,7 +257,9 @@ static char SuccessBlockKey;
             successBlock(object, rawResponse);    
         }
     } else {
+        SFSDK_USE_DEPRECATED_BEGIN
         SFRestFailBlock failBlock = (SFRestFailBlock)objc_getAssociatedObject(request, &FailBlockKey);
+        SFSDK_USE_DEPRECATED_END
         if (failBlock) {
             failBlock(object, rawResponse);
         }

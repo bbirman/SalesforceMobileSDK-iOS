@@ -31,6 +31,7 @@
 #import "SFSDKPasscodeTextField.h"
 #import "SFSDKResourceUtils.h"
 #import "SFPasscodeManager+Internal.h"
+#import "SFSecurityLockout+Internal.h"
 #import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
 
 // Private view layout constants
@@ -283,15 +284,18 @@ NSUInteger const kSFMaxNumberofAttempts = 10;
 
 - (void)verifyPasscode
 {
-    if ([[SFPasscodeManager sharedManager] verifyPasscode:self.passcodeTextView.passcodeInput]) {
+    if ([SFSecurityLockout verifyPasscode:self.passcodeTextView.passcodeInput]) { // BB TODO: is this okay?
+//    if ([[SFPasscodeManager sharedManager] verifyPasscode:self.passcodeTextView.passcodeInput]) {
         if ([self.passcodeTextView isFirstResponder]) {
             [self.passcodeTextView resignFirstResponder];
         }
         
         // Set passcode length if it is unknown.
         // This can happen when upgrading to new UX that requires actual length.
+        SFSDK_USE_DEPRECATED_BEGIN
         if ([SFSecurityLockout passcodeLength] == 0) {
             [SFSecurityLockout setUpgradePasscodeLength:[self.passcodeTextView.passcodeInput length]];
+            SFSDK_USE_DEPRECATED_END
         }
         [self validatePasscodeConfirmed:self.passcodeTextView.passcodeInput];
     } else {

@@ -69,7 +69,7 @@
     }
     return self;
 }
-
+SFSDK_USE_DEPRECATED_BEGIN
 - (void)request:(SFRestRequest *)request didLoadResponse:(id)dataResponse rawResponse:(NSURLResponse *)rawResponse {
     sf_os_signpost_interval_end(self.logger, self.signpostId, "Send", "Ended - didLoadResponse:rawResponse %ld %{public}@", (long)request.method, request.path);
     if ([self.delegate respondsToSelector:@selector(request:didLoadResponse:rawResponse:)]) {
@@ -117,7 +117,7 @@
     }
     request.instrDelegateInternal = nil;
 }
-
+SFSDK_USE_DEPRECATED_END
 - (void)request:(SFRestRequest *)request didSucceed:(id)dataResponse rawResponse:(NSURLResponse *)rawResponse {
     sf_os_signpost_interval_end(self.logger, self.signpostId, "Send", "requestDidSucceed %ld %{public}@", (long)request.method, request.path);
     if ([self.requestDelegate respondsToSelector:@selector(request:didSucceed:rawResponse:)]) {
