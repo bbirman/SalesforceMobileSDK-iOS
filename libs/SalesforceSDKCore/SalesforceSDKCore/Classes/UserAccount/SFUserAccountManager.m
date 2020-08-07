@@ -535,7 +535,9 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     [self deleteAccountForUser:user error:nil];
     id<SFSDKOAuthProtocol> authClient = self.authClient();
     [authClient revokeRefreshToken:user.credentials];
+    SFSDK_USE_DEPRECATED_BEGIN
     [SFSecurityLockout clearPasscodeState:user];
+    SFSDK_USE_DEPRECATED_END
     BOOL isCurrentUser = [user isEqual:self.currentUser];
     if (isCurrentUser) {
         [self setCurrentUserInternal:nil];
@@ -1417,7 +1419,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (BOOL)deviceHasBiometric {
-    return [[SFPasscodeManager sharedManager] deviceHasBiometric];
+    return [SFSecurityLockout deviceHasBiometric];
 }
 
 - (SFBiometricUnlockState)biometricUnlockState {
