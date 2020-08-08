@@ -63,6 +63,8 @@ static NSString * const kKeychainIdentifierLockoutTime       = @"com.salesforce.
 static NSString * const kKeychainIdentifierIsLocked          = @"com.salesforce.security.isLocked";
 static NSString * const kKeychainIdentifierPasscodeVerify = @"com.salesforce.security.passcode.pbkdf2.verify";
 static NSString * const kPBKDFArchiveDataKey = @"pbkdfDataArchive";
+static NSString * const kSFCurrentPasscodeProviderUserDefaultsKey = @"com.salesforce.mobilesdk.currentPasscodeProvider";
+static NSString * const kKeychainIdentifierPasscodeEncrypt = @"com.salesforce.security.passcode.pbkdf2.encrypt";
 
 // Public constants
 
@@ -1007,42 +1009,82 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
 
 + (void)resetPasscode {
     [SFSDKCoreLogger i:[self class] format:@"Resetting passcode upon logout."];
-    SFSDK_USE_DEPRECATED_BEGIN
-    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
-    SFSDK_USE_DEPRECATED_END
-    if (currentProvider == nil) {
-        [SFSDKCoreLogger w:[self class] format:@"Current passcode provider is not set.  No reset action taken."];
-    } else {
-        [currentProvider resetPasscodeData];
-    }
+//    SFSDK_USE_DEPRECATED_BEGIN
+//    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+//    SFSDK_USE_DEPRECATED_END
+//    if (currentProvider == nil) {
+//        [SFSDKCoreLogger w:[self class] format:@"Current passcode provider is not set.  No reset action taken."];
+//    } else {
+//        [currentProvider resetPasscodeData];
+//    }
+
+    // Future
+    SFKeychainItemWrapper *keychainWrapper = [SFKeychainItemWrapper itemWithIdentifier:kKeychainIdentifierPasscodeVerify account:nil];
+    [keychainWrapper resetKeychainItem];
 }
 
 + (void)setPasscode:(NSString *)newPasscode {
-    SFSDK_USE_DEPRECATED_BEGIN
-    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
-    id<SFPasscodeProvider> preferredProvider = [SFPasscodeProviderManager passcodeProviderForProviderName:[SFPasscodeManager sharedManager].preferredPasscodeProvider];
-    SFSDK_USE_DEPRECATED_END
-    if (currentProvider == nil) {
-        [SFSDKCoreLogger e:[self class] format:@"Current passcode provider is not set.  Cannot set new passcode."];
+//    SFSDK_USE_DEPRECATED_BEGIN
+//    id<SFPasscodeProvider> currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+//    id<SFPasscodeProvider> preferredProvider = [SFPasscodeProviderManager passcodeProviderForProviderName:[SFPasscodeManager sharedManager].preferredPasscodeProvider];
+//    SFSDK_USE_DEPRECATED_END
+//    if (currentProvider == nil) {
+//        [SFSDKCoreLogger e:[self class] format:@"Current passcode provider is not set.  Cannot set new passcode."];
+//        return;
+//    }
+//
+//    if (preferredProvider == nil) {
+//        [SFSDKCoreLogger w:[self class] format:@"Could not load preferred passcode provider '%@'.  Defaulting to current provider ('%@') as the preferred provider.", preferredProvider.providerName, currentProvider.providerName];
+//        preferredProvider = currentProvider;
+//    }
+//
+//    // If the current and preferred providers are not the same, we need to unconfigure the current, and
+//    // configure the preferred as the new current.
+//    if (![currentProvider isEqual:preferredProvider]) {
+//        SFSDK_USE_DEPRECATED_BEGIN
+//        [currentProvider resetPasscodeData];
+//        [SFPasscodeProviderManager setCurrentPasscodeProviderByName:preferredProvider.providerName];
+//        currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
+//        SFSDK_USE_DEPRECATED_END
+//    }
+//
+//    [currentProvider setVerificationPasscode:newPasscode];
+
+    // Future
+    SFPasscodeProviderId currentProviderName = [SFSecurityLockout currentPasscodeProviderName];
+    if (currentProviderName) {
+        if (![currentProviderName isEqualToString:kSFPasscodeProviderPBKDF2]) {
+            [SFSecurityLockout resetPasscode]; // Don't need this on setting new passcode? Maybe for overwriting?
+        }
+        [SFSecurityLockout removeCurrentProvider];
+    }
+    
+    [SFSecurityLockout setVerificationPasscode:newPasscode];
+}
+
++ (void)setVerificationPasscode:(NSString *)newPasscode {
+    if (newPasscode == nil) {
+        [SFSecurityLockout resetPasscode];
         return;
     }
     
-    if (preferredProvider == nil) {
-        [SFSDKCoreLogger w:[self class] format:@"Could not load preferred passcode provider '%@'.  Defaulting to current provider ('%@') as the preferred provider.", preferredProvider.providerName, currentProvider.providerName];
-        preferredProvider = currentProvider;
-    }
-    
-    // If the current and preferred providers are not the same, we need to unconfigure the current, and
-    // configure the preferred as the new current.
-    if (![currentProvider isEqual:preferredProvider]) {
-        SFSDK_USE_DEPRECATED_BEGIN
-        [currentProvider resetPasscodeData];
-        [SFPasscodeProviderManager setCurrentPasscodeProviderByName:preferredProvider.providerName];
-        currentProvider = [SFPasscodeProviderManager currentPasscodeProvider];
-        SFSDK_USE_DEPRECATED_END
-    }
-    
-    [currentProvider setVerificationPasscode:newPasscode];
+    NSData *salt = [SFSDKCryptoUtils randomByteDataWithLength:kSFPBKDFDefaultSaltByteLength];
+    SFPBKDFData *pbkdfData = [SFSDKCryptoUtils createPBKDF2DerivedKey:newPasscode
+                                                                 salt:salt
+                                                     derivationRounds:kSFPBKDFDefaultNumberOfDerivationRounds
+                                                            keyLength:kSFPBKDFDefaultDerivedKeyByteLength];
+    [SFSecurityLockout setPasscodeData:pbkdfData keychainId:kKeychainIdentifierPasscodeVerify];
+}
+
++ (void)removeCurrentProvider {
+    NSUserDefaults *defs = [NSUserDefaults msdkUserDefaults];
+    [defs removeObjectForKey:kSFCurrentPasscodeProviderUserDefaultsKey];
+}
+
++ (SFPasscodeProviderId)currentPasscodeProviderName {
+    NSUserDefaults *defs = [NSUserDefaults msdkUserDefaults];
+    NSString *currentProviderName = [defs objectForKey:kSFCurrentPasscodeProviderUserDefaultsKey];
+    return currentProviderName;
 }
 
 + (BOOL)verifyPasscode:(NSString *)passcode {
@@ -1090,6 +1132,16 @@ static NSString *const kSecurityLockoutSessionId = @"securityLockoutSession";
     }
     
     return pbkdfData;
+}
+
++ (void)setPasscodeData:(SFPBKDFData *)passcodeData keychainId:(NSString *)keychainIdentifier
+{
+    NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initRequiringSecureCoding:NO];
+    [archiver encodeObject:passcodeData forKey:kPBKDFArchiveDataKey];
+    [archiver finishEncoding];
+    
+    SFKeychainItemWrapper *keychainWrapper = [SFKeychainItemWrapper itemWithIdentifier:keychainIdentifier account:nil];
+    [keychainWrapper setValueData:archiver.encodedData];
 }
 
 @end
