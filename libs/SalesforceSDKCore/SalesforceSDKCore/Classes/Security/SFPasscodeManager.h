@@ -120,14 +120,14 @@ SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.")
 /**
  Reset the passcode in the keychain.
  */
-- (void)resetPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
+- (void)resetPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be internal.");
 
 /**
  Verify the passcode.
  @param passcode The passcode to verify.
  @return YES if the passcode verifies, NO otherwise.
  */
-- (BOOL)verifyPasscode:(NSString *)passcode SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
+- (BOOL)verifyPasscode:(NSString *)passcode SFSDK_DEPRECATED(8.3, 9.0, "Will be internal.");
 
 /**
  Change the current passcode.  This method serves as an entry point for managing the change
@@ -136,13 +136,13 @@ SFSDK_DEPRECATED(8.3, 9.0, "Will be removed.")
  @param newPasscode The new passcode to change to.  If nil or empty, this method will unset the
  existing passcode.
  */
-- (void)changePasscode:(nullable NSString *)newPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
+- (void)changePasscode:(nullable NSString *)newPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be internal.");
 
 /**
  Set the passcode.
  @param newPasscode The passcode to set.
  */
-- (void)setPasscode:(NSString *)newPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be removed and internalized.");
+- (void)setPasscode:(NSString *)newPasscode SFSDK_DEPRECATED(8.3, 9.0, "Will be internal.");
 
 @end
 
