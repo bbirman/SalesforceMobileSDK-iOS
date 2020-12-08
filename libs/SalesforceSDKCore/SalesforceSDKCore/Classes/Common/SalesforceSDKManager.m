@@ -954,6 +954,10 @@ SFSDK_USE_DEPRECATED_END
         [UIPasteboard generalPasteboard].URLs = @[ ];
         [UIPasteboard generalPasteboard].images = @[ ];
         [UIPasteboard generalPasteboard].colors = @[ ];
+        [SalesforceSDKManager sdkPasteboard].strings = @[ ];
+        [SalesforceSDKManager sdkPasteboard].URLs = @[ ];
+        [SalesforceSDKManager sdkPasteboard].images = @[ ];
+        [SalesforceSDKManager sdkPasteboard].colors = @[ ];
     }
 }
 
