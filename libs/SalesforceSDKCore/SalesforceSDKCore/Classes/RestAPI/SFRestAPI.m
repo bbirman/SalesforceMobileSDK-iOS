@@ -232,13 +232,13 @@ static dispatch_once_t pred;
     // Adds this request to the list of active requests if it's not already on the list.
     [self.activeRequests addObject:request];
     __weak __typeof(self) weakSelf = self;
-    if (self.user.credentials.accessToken == nil && self.user.credentials.refreshToken == nil && self.requiresAuthentication) {
+    if (self.requiresAuthentication) {
         [SFSDKCoreLogger i:[self class] format:@"No auth credentials found. Authenticating before sending request: %@", request.description];
-        [[SFUserAccountManager sharedInstance] loginWithCompletion:^(SFOAuthInfo *authInfo, SFUserAccount *userAccount) {
+        [[SFUserAccountManager sharedInstance] loginWithSuccessBlock:^(SFOAuthInfo *authInfo, SFUserAccount *userAccount) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             strongSelf.user = userAccount;
             [strongSelf enqueueRequest:request requestDelegate:requestDelegate shouldRetry:shouldRetry];
-        } failure:^(SFOAuthInfo *authInfo, NSError *error) {
+        } failureBlock:^(SFOAuthInfo *authInfo, NSError *error) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
             [SFSDKCoreLogger e:[strongSelf class] format:@"Authentication failed in SFRestAPI: %@. Logging out.", error];
             NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];

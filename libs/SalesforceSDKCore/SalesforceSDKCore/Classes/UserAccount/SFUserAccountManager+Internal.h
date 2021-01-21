@@ -109,6 +109,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong, nullable) SFSDKAuthErrorManager *errorManager;
 
 @property (nonatomic, strong, nonnull) SFSDKSafeMutableDictionary<NSString *, SFSDKAuthSession *> *authSessions;
+//@property (nonatomic, strong, nonnull) NSMapTable<UIScene *, SFSDKAuthSession *> *authSessions;
+
 
 /**
  Indicates if the app is configured to require browser based authentication.
@@ -192,6 +194,8 @@ Set this block to handle presentation of the Authentication View Controller.
 - (BOOL)authenticateWithRequest:(SFSDKAuthRequest *)request completion:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failure:(SFUserAccountManagerFailureCallbackBlock)failureBlock;
 
 - (SFSDKAuthRequest *)defaultAuthRequest;
+
+- (void)loginWithSuccessBlock:(SFUserAccountManagerSuccessCallbackBlock)completionBlock failureBlock:(SFUserAccountManagerFailureCallbackBlock)failureBlock;
 
 - (BOOL)loginWithCompletion:(nullable SFUserAccountManagerSuccessCallbackBlock)completionBlock
                     failure:(nullable SFUserAccountManagerFailureCallbackBlock)failureBlock

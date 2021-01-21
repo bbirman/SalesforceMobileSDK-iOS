@@ -137,18 +137,19 @@
     if (!sceneId) {
         sceneId = [[SFSDKWindowManager sharedManager] defaultScene].session.persistentIdentifier;
     }
-    if (self.authSessions[sceneId]) {
-        [self.authSessions[sceneId].oauthCoordinator handleIDPAuthenticationResponse:[response requestURL]];
-    } else {
-        SFSDKAlertMessage *messageObject = [SFSDKAlertMessage messageWithBlock:^(SFSDKAlertMessageBuilder *builder) {
-            builder.actionOneTitle = [SFSDKResourceUtils localizedString:@"authAlertCancelButton"];
-            builder.alertTitle = @"Authentication Failed";
-            builder.alertMessage = @"Authentication session for sp app was evicted. Try again.";
-        
-         dispatch_async(dispatch_get_main_queue(), ^{
-             self.alertDisplayBlock(messageObject, [[SFSDKWindowManager sharedManager] authWindow:self.authSessions[sceneId].oauthRequest.scene]);
-         });
-    }
+//    if (self.authSessions[sceneId]) {
+//        [self.authSessions[sceneId].oauthCoordinator handleIDPAuthenticationResponse:[response requestURL]];
+//    } else {
+//        SFSDKAlertMessage *messageObject = [SFSDKAlertMessage messageWithBlock:^(SFSDKAlertMessageBuilder *builder) {
+//            builder.actionOneTitle = [SFSDKResourceUtils localizedString:@"authAlertCancelButton"];
+//            builder.alertTitle = @"Authentication Failed";
+//            builder.alertMessage = @"Authentication session for sp app was evicted. Try again." ;
+//         }];
+//        
+//         dispatch_async(dispatch_get_main_queue(), ^{
+//             self.alertDisplayBlock(messageObject, [[SFSDKWindowManager sharedManager] authWindow:self.authSessions[sceneId].oauthRequest.scene]);
+//         });
+//    }
     return YES;
 }
 
