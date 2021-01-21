@@ -263,6 +263,7 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppTerminate:) name:UIApplicationWillTerminateNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillDeactivate:) name:UISceneWillDeactivateNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidActivate:) name:UISceneDidActivateNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillConnect:) name:UISceneWillConnectNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidDisconnect:) name:UISceneDidDisconnectNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow
                                                 selector:@selector(handleAuthCompleted:)
@@ -583,6 +584,17 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
      @catch (NSException *exception) {
          [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view for scene %@: '%@'. Will continue to resume scene.", sceneId, [exception reason]];
      }
+}
+
+- (void)handleSceneWillConnect:(NSNotification *)notification {
+    UIScene *scene = (UIScene *)notification.object;
+    if (scene.activationState == UISceneActivationStateBackground) {
+        SFSDKWindowContainer *activeWindow = [[SFSDKWindowManager sharedManager] activeWindow:scene];
+        if ([activeWindow isAuthWindow] || [activeWindow isPasscodeWindow]) {
+            return;
+        }
+        [self presentSnapshot:scene];
+    }
 }
 
 - (void)handleSceneWillDeactivate:(NSNotification *)notification {
