@@ -33,11 +33,6 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface SFSmartStoreUpgrade : NSObject
 
-/**
- Updates any existing stores from their legacy location to their new user-specific location.
- */
-+ (void)updateStoreLocations;
-
 + (void)updateEncryptionSalt;
 
 @end
