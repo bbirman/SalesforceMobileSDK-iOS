@@ -27,18 +27,21 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class SFEncryptionKey;
-
+// Does this need to be public?
 @interface SFOAuthKeychainCredentials : SFOAuthCredentials
 
+// BB TODO: What are they used for? still needed? //
 - (NSData *)keyMacForService:(NSString *)service;
 - (NSData *)keyVendorIdForService:(NSString *)service;
 - (NSData *)keyBaseAppIdForService:(NSString*)service;
-- (SFEncryptionKey *)keyStoreKeyForService:(NSString *)service;
+///
+
+- (SFEncryptionKey *)keyStoreKeyForService:(NSString *)service SFSDK_DEPRECATED(9.2, 11.0, ""); // BB TODO
 - (NSData *)keyWithSeed:(NSString *)seed service:(NSString *)service;
-- (nullable NSString *)refreshTokenWithSFEncryptionKey:(SFEncryptionKey *)encryptionKey;
-- (void)setRefreshToken:(nullable NSString *)token withSFEncryptionKey:(SFEncryptionKey *)key;
-- (nullable NSString *)accessTokenWithSFEncryptionKey:(SFEncryptionKey *)encryptionKey;
-- (void)setAccessToken:(nullable NSString *)token withSFEncryptionKey:(SFEncryptionKey *)key;
+- (nullable NSString *)refreshTokenWithSFEncryptionKey:(SFEncryptionKey *)encryptionKey SFSDK_DEPRECATED(9.2, 11.0, ""); // BB TODO
+- (void)setRefreshToken:(nullable NSString *)token withSFEncryptionKey:(SFEncryptionKey *)key SFSDK_DEPRECATED(9.2, 11.0, ""); // BB TODO
+- (nullable NSString *)accessTokenWithSFEncryptionKey:(SFEncryptionKey *)encryptionKey SFSDK_DEPRECATED(9.2, 11.0, ""); // BB TODO
+- (void)setAccessToken:(nullable NSString *)token withSFEncryptionKey:(SFEncryptionKey *)key SFSDK_DEPRECATED(9.2, 11.0, ""); // BB TODO
 
 @end
 

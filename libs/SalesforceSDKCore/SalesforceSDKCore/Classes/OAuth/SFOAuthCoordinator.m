@@ -177,7 +177,7 @@
                     // Ignore any errors why retrieving authconfig. Default to WKWebView
                     // Errors should have already been logged.
                     if (authConfig.useNativeBrowserForAuth) {
-                         [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
+                        [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
                         strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
                         [strongSelf notifyDelegateOfBeginAuthentication];
                         [strongSelf beginNativeBrowserFlow];

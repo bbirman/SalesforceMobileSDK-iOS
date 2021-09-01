@@ -57,6 +57,7 @@
 static NSMutableDictionary *_allSharedStores;
 static NSMutableDictionary *_allGlobalSharedStores;
 static SFSmartStoreEncryptionKeyBlock _encryptionKeyBlock = NULL;
+static SFSmartStoreEncryptionKeyGenerator _encryptionKeyGenerator = NULL;
 static SFSmartStoreEncryptionSaltBlock _encryptionSaltBlock = NULL;
 static BOOL _storeUpgradeHasRun = NO;
 static BOOL _jsonSerializationCheckEnabled = NO;
@@ -720,6 +721,14 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     return soupNames;
 }
 
++ (NSString *)encryptionKey {
+    if (_encryptionKeyGenerator) {
+        NSData *encryptionKey = _encryptionKeyGenerator();
+        return [encryptionKey base64EncodedStringWithOptions: 0];
+    }
+    return nil;
+}
+
 + (NSString *)encKey
 {
     if (_encryptionKeyBlock) {
@@ -754,6 +763,16 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
 + (void)setEncryptionKeyBlock:(SFSmartStoreEncryptionKeyBlock)newEncryptionKeyBlock {
     if (newEncryptionKeyBlock != _encryptionKeyBlock) {
         _encryptionKeyBlock = newEncryptionKeyBlock;
+    }
+}
+
++ (SFSmartStoreEncryptionKeyGenerator)encryptionKeyGenerator {
+    return _encryptionKeyGenerator;
+}
+
++ (void)setEncryptionKeyGenerator:(SFSmartStoreEncryptionKeyGenerator)newEncryptionKeyBlock {
+    if (newEncryptionKeyBlock != _encryptionKeyGenerator) {
+        _encryptionKeyGenerator = newEncryptionKeyBlock;
     }
 }
 
@@ -935,8 +954,13 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     NSString *filePath = [self externalStorageSoupFilePath:soupEntryId
                                              soupTableName:soupTableName];
     
-    SFSmartStoreEncryptionKeyBlock keyBlock = [SFSmartStore encryptionKeyBlock];
-    SFEncryptionKey* encKey;
+//    SFSmartStoreEncryptionKeyBlock keyBlock = [SFSmartStore encryptionKeyBlock];
+//    SFEncryptionKey* encKey;
+//    if (keyBlock) {
+//        encKey = keyBlock();
+//    }
+    SFSmartStoreEncryptionKeyGenerator keyBlock = [SFSmartStore encryptionKeyGenerator];
+    NSData *encKey;
     if (keyBlock) {
         encKey = keyBlock();
     }
@@ -952,7 +976,7 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
         NSDictionary* entry = [SFJsonUtils objectFromJSONString:entryAsString];
         
         if(!entry) {
-            if (encKey.initializationVector) {
+           // if (encKey.initializationVector) {
                 entryAsString = [self readFromEncryptedFile:filePath encKey:encKey useNilIV:YES];
                 if ([entryAsString length] > 0) {
                     [self writeToEncryptedFile:filePath
@@ -961,20 +985,20 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
                 } else {
                     [SFSDKSmartStoreLogger e:[self class] format:@"Attempt to migrate an encrypted externally saved soup '%@' with a null IV  failed.", soupTableName];
                 }
-            } else {
-                NSError* error = [SFJsonUtils lastError];
-                NSString *errorMessage = [NSString stringWithFormat:@"Loading external soup from file failed! encrypted: %@, soupEntryId: %@, soupTableName: %@, filePath: '%@', error: %@.",
-                                          encKey ? @"YES" : @"NO",
-                                          soupEntryId,
-                                          soupTableName,
-                                          filePath,
-                                          error];
-                [SFSDKSmartStoreLogger e:[self class] format:errorMessage];
-                @throw [NSException exceptionWithName:kSFSmartStoreErrorLoadExternalSoup
-                                               reason:errorMessage
-                                             userInfo:nil];
-                
-            }
+//            } else {
+//                NSError* error = [SFJsonUtils lastError];
+//                NSString *errorMessage = [NSString stringWithFormat:@"Loading external soup from file failed! encrypted: %@, soupEntryId: %@, soupTableName: %@, filePath: '%@', error: %@.",
+//                                          encKey ? @"YES" : @"NO",
+//                                          soupEntryId,
+//                                          soupTableName,
+//                                          filePath,
+//                                          error];
+//                [SFSDKSmartStoreLogger e:[self class] format:errorMessage];
+//                @throw [NSException exceptionWithName:kSFSmartStoreErrorLoadExternalSoup
+//                                               reason:errorMessage
+//                                             userInfo:nil];
+//
+//            }
         }
     }
 

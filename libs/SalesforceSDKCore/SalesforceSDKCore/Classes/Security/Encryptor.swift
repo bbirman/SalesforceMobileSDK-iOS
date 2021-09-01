@@ -51,6 +51,18 @@ public class Encryptor: NSObject {
         let symmetricKey = SymmetricKey(data: key)
         return try encrypt(data: data, using: symmetricKey)
     }
+    
+    /// Encrypts data with a given key
+    ///
+    /// - Parameters:
+    ///   - data: Data to encrypt
+    ///   - key: Data representation of symmetric key to encrypt with
+    /// - Returns: Encrypted data
+    @objc(encryptData:key:error:) @available(swift, obsoleted: 1.0) // Objective-c only wrapper
+    public static func encrypt(data: Data, key: Data) throws -> Data {
+        let symmetricKey = SymmetricKey(data: key)
+        return try encrypt(data: data, using: symmetricKey)
+    }
 
     /// Encrypts data with a given key
     ///
@@ -74,6 +86,18 @@ public class Encryptor: NSObject {
     /// - Returns: Decrypted data
     @objc @available(swift, obsoleted: 1.0) // Objective-c only wrapper
     public static func decrypt(data: Data, using key: Data) throws -> Data {
+        let symmetricKey = SymmetricKey(data: key)
+        return try decrypt(data: data, using: symmetricKey)
+    }
+    
+    /// Decrypts data with a given key
+    ///
+    /// - Parameters:
+    ///   - data: Data to decrypt
+    ///   - key: Data representation of symmetric key to decrypt with
+    /// - Returns: Decrypted data
+    @objc(decryptData:key:error:) @available(swift, obsoleted: 1.0) // Objective-c only wrapper
+    public static func decrypt(data: Data, key: Data) throws -> Data {
         let symmetricKey = SymmetricKey(data: key)
         return try decrypt(data: data, using: symmetricKey)
     }
@@ -158,7 +182,7 @@ public class KeyGenerator: NSObject {
     }
     
     static func symmetricKey(for label: String, keySize: SymmetricKeySize = .bits256) throws -> SymmetricKey {
-        let storedLabel = "\(KeyGenerator.keyStoreService).\(label)"
+        let storedLabel = "\(KeyGenerator.keyStoreService).\(label)" //com.salesforce.keystore.default
         if let encryptedKeyData = KeychainHelper.read(service: storedLabel, account: nil).data {
             let decryptedKeyData = try Encryptor.decrypt(data: encryptedKeyData, using: ecKeyPair(name: defaultKeyName).privateKey)
             return SymmetricKey(data: decryptedKeyData)

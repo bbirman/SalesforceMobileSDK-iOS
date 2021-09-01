@@ -35,10 +35,66 @@ class EncryptionTests: XCTestCase {
         _ = KeychainHelper.removeAll()
     }
     
+    func testVanillaStream() throws {
+        let stream = OutputStream(toMemory: ())
+        stream.open()
+        let string = "1"
+        let data1 = [UInt8](string.utf8)
+        let output = stream.write(data1, maxLength: 1)
+        print("BBOUTPUT \(output)")
+    }
+    
+    // TODO:
+    // - Test opening + closing
+    // - Test length of buffer is shorter than data to read out into it
+    
+    func testStream() throws {
+        let key = try KeyGenerator.symmetricKey(for: "bbtest1")
+        //let stream1 = OutputStream.toMemory()
+        let stream = EncryptStream.init(toMemory: ())
+        stream.setupKey(key: key)
+        stream.open()
+        let string = "abcdefghijklmnopqrstuvwxyz123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()"
+        let data = string.data(using: .utf8)
+
+        let data1 = [UInt8](string.utf8)
+        stream.write(data1, maxLength: data1.count)
+        //stream.write(UnsafePointer<UInt8>(data1.bytes), maxLength: data1.length)
+        
+       // stream.write(thingy, maxLength: data!.count)
+        stream.close()
+        
+        let encryptedInMemoryResult = stream.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey) as? Data
+
+        let decryptStream = DecryptStream.init(data: encryptedInMemoryResult!)
+        decryptStream.setupKey(key: key)
+        decryptStream.open()
+        var buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: string.count)
+        let result = decryptStream.read(buffer, maxLength: string.count)
+        
+        print("result: \(result)")
+        let decryptStreamData = Data(bytes: buffer, count: result)
+        let string1 = String(decoding: decryptStreamData, as: UTF8.self)
+        let result1 = decryptStream.read(buffer, maxLength: string.count)
+        
+        let decryptStreamData2 = Data(bytes: buffer, count: result1)
+        let string2 = String(decoding: decryptStreamData2, as: UTF8.self)
+        decryptStream.close()
+
+        
+        XCTAssertEqual(data, decryptStreamData + decryptStreamData2)
+    }
+    
+    func testSealedBox() throws {
+        // 12 byte nonce
+        // 16 byte tag
+    }
+    
+    
     func testEncryptDecrypt() throws {
         let key = try KeyGenerator.encryptionKey(for: "test1")
         XCTAssertNotNil(key)
-        let sensitiveInfo = "My sensitive info"
+        let sensitiveInfo = ""
         let sensitiveData = try XCTUnwrap(sensitiveInfo.data(using: .utf8))
         let encryptedData = try Encryptor.encrypt(data: sensitiveData, using: key)
         XCTAssertNotEqual(sensitiveData, encryptedData)

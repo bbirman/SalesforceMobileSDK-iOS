@@ -31,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Singleton class to manage operations on the keystore.
  */
+SFSDK_DEPRECATED(9.2, 11.0, "") // BB TODO Alternative message
 @interface SFKeyStoreManager : NSObject
 
 /**

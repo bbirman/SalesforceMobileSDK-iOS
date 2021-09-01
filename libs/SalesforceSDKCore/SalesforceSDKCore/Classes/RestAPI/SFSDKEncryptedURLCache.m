@@ -25,13 +25,15 @@
 #import "SFSDKEncryptedURLCache.h"
 #import "SFKeyStoreManager.h"
 #import "NSData+SFAdditions.h"
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 
 static NSString * const kURLSchemePrefix = @"sfsdkURLCache://";
 static NSString * const kURLCacheEncryptionKeyLabel = @"com.salesforce.URLCache.encryptionKey";
 
 @interface SFSDKEncryptedURLCache()
 
-@property SFEncryptionKey *encryptionKey;
+//@property SFEncryptionKey *encryptionKey;
+@property NSData *encryptionKey;
 
 @end
 
@@ -42,7 +44,7 @@ static NSString * const kURLCacheEncryptionKeyLabel = @"com.salesforce.URLCache.
                           directoryURL:(nullable NSURL *)directoryURL {
     self = [super initWithMemoryCapacity:memoryCapacity diskCapacity:diskCapacity directoryURL:directoryURL];
     if (self) {
-        _encryptionKey = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:kURLCacheEncryptionKeyLabel autoCreate:YES];
+        _encryptionKey = [SFSDKKeyGenerator encryptionKeyFor:kURLCacheEncryptionKeyLabel error:nil];
     }
     return self;
 }
@@ -50,7 +52,7 @@ static NSString * const kURLCacheEncryptionKeyLabel = @"com.salesforce.URLCache.
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _encryptionKey = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:kURLCacheEncryptionKeyLabel autoCreate:YES];
+        _encryptionKey = [SFSDKKeyGenerator encryptionKeyFor:kURLCacheEncryptionKeyLabel error:nil];
     }
     return self;
 }
@@ -66,7 +68,8 @@ static NSString * const kURLCacheEncryptionKeyLabel = @"com.salesforce.URLCache.
     // For response.data
     NSCachedURLResponse *cachedResponse = [super cachedResponseForRequest:requestWithSecureURL];
     if (cachedResponse) {
-        NSData *decryptedResponseData = [self.encryptionKey decryptData:cachedResponse.data];
+        NSData *decryptedResponseData = [SFSDKEncryptor decryptWithData:cachedResponse.data using:self.encryptionKey error:nil];
+       // NSData *decryptedResponseData = [self.encryptionKey decryptData:cachedResponse.data];
         if (decryptedResponseData) {
             NSCachedURLResponse *decryptedURLResponse = [[NSCachedURLResponse alloc] initWithResponse:cachedResponse.response data:decryptedResponseData userInfo:cachedResponse.userInfo storagePolicy:cachedResponse.storagePolicy];
             return decryptedURLResponse;
@@ -87,7 +90,8 @@ static NSString * const kURLCacheEncryptionKeyLabel = @"com.salesforce.URLCache.
     }
     
     // For cachedResponse.data
-    NSData *encryptedResponseData = [self.encryptionKey encryptData:cachedResponse.data];
+//    NSData *encryptedResponseData = [self.encryptionKey encryptData:cachedResponse.data];
+    NSData *encryptedResponseData = [SFSDKEncryptor encryptWithData:cachedResponse.data using:self.encryptionKey error:nil];
     if (!encryptedResponseData) {
         [SFSDKCoreLogger e:[self class] format:@"Unable to encrypt response to store"];
         return;

@@ -59,6 +59,7 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
     
     NSString *encryptedContent = notificationContent.userInfo[kRemoteNotificationKeyContent];
     NSError *decryptContentError = nil;
+    // BB TODO: Will this ever change?
     NSString *contentString = [self aesDecryptString:encryptedContent withKey:encryptionKey error:&decryptContentError];
     if (contentString == nil) {
         if (error) {

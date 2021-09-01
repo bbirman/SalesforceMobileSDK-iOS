@@ -210,6 +210,9 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         _authSessions = [SFSDKSafeMutableDictionary new];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sceneDidDisconnect:) name:UISceneDidDisconnectNotification object:nil];
         
+        // BB TODO: Upgrade all accounts
+        [_accountPersister updateEncryptionForAllAccounts];
+        
         [self populateErrorHandlers];
      }
 	return self;
