@@ -60,7 +60,7 @@ typedef NS_ENUM(NSUInteger, SFCryptoOperation) {
  @param key Key used for encyption/decryption. Pass nil to use the default key.
  @param mode Mode which determines whether to perform operation in memory at once or in chunks writing to the disk.
  */
-- (id)initWithOperation:(SFCryptoOperation)operation key:(nullable NSData *)key mode:(SFCryptoMode)mode;
+- (id)initWithOperation:(SFCryptoOperation)operation key:(nullable NSData *)key mode:(SFCryptoMode)mode; // BB TODO: Is this used?
 
 /**
  Designated initializer.
@@ -69,33 +69,33 @@ typedef NS_ENUM(NSUInteger, SFCryptoOperation) {
  @param iv Initialization vector. If set to nil, uses the default initialization vector.
  @param mode Mode which determines whether to perform operation in memory at once or in chunks writing to the disk.
  */
-- (nullable instancetype)initWithOperation:(SFCryptoOperation)operation key:(nullable NSData *)key iv:(nullable NSData*)iv mode:(SFCryptoMode)mode;
+- (nullable instancetype)initWithOperation:(SFCryptoOperation)operation key:(nullable NSData *)key iv:(nullable NSData*)iv mode:(SFCryptoMode)mode; // BB TODO: Is this used?
 
 /**
  Encrypts or decrypts the passed in data. The input data is assumed to be passed in as a chunk.
  This method requires a call to <code>- finalizeCipher</code>.
  @param inData Input data.
  */
-- (void)cryptData:(NSData *)inData;
+ - (void)cryptData:(NSData *)inData; // BB TODO: Deprecate because unused?
 
 /**
  Decrypts the passed in data initializer, performing the decryption in memory.
  @param data Encrypted input data.
  @return Decrypted data.
  */
-- (NSData *)decryptDataInMemory:(NSData *)data;
+- (NSData *)decryptDataInMemory:(NSData *)data; // BB TODO: Deprecate because unused?
 
 /**
  Encrypts the passed in data initializer, performing the encryption in memory.
  @param data Input data.
  @return Encrypted data.
  */
-- (NSData *)encryptDataInMemory:(NSData *)data;
+- (NSData *)encryptDataInMemory:(NSData *)data; // BB TODO: Deprecate because unused?
 
 /**
  Finalizes the encryption/decryption process.
  */
-- (BOOL)finalizeCipher;
+ - (BOOL)finalizeCipher; // BB TODO: Deprecate because unused?
 
 /**
  Decrypts a file.
@@ -103,14 +103,14 @@ typedef NS_ENUM(NSUInteger, SFCryptoOperation) {
  @param outputFile Name of the decrypted file.
  @result YES if the file was successfully decrypted; NO otherwise.
  */
--(BOOL) decrypt:(NSString *)inputFile to:(NSString *)outputFile;
+- (BOOL) decrypt:(NSString *)inputFile to:(NSString *)outputFile; // BB TODO: Deprecate because unused?
 
 /**
  Creates a secret key, based in part on the input key.
  @param key The base key which will seed the return key.
  @result The secret key, based on the input key.
  */
-+ (NSData *)secretWithKey:(NSString *)key;
++ (NSData *)secretWithKey:(NSString *)key; // BB TODO: Deprecate because unused?
 
 /**
  Returns a unique identifier associated with this app install.  The identifier will
@@ -118,13 +118,13 @@ typedef NS_ENUM(NSUInteger, SFCryptoOperation) {
  app is uninstalled, a new identifier will be created if it is ever reinstalled.
  @result A unique identifier for the app install on the particular device.
  */
-+ (NSString *)baseAppIdentifier;
++ (NSString *)baseAppIdentifier; // TODO: Used?
 
 /**
  Whether or not the base app identifier has been configured for this app install.
  @result YES if the base app ID has already been configured, NO otherwise.
  */
-+ (BOOL)baseAppIdentifierIsConfigured;
++ (BOOL)baseAppIdentifierIsConfigured; // TODO: Test with app groups enabled. If it works, get rid of everything, if not move it to lockout class and still get rid of this
 
 /**
  Whether or not the base app identifier was configured at some point during this launch of
@@ -136,7 +136,7 @@ typedef NS_ENUM(NSUInteger, SFCryptoOperation) {
 /**
  Returns whether we have an initialization vector used for encryption stored in the keychain.
  */
-+ (BOOL)hasInitializationVector;
++ (BOOL)hasInitializationVector; // BB TODO: Is this used?
 
 @end
 

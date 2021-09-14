@@ -60,6 +60,8 @@ typedef NS_ENUM(NSUInteger, SFSDKUserAccountManagerErrorCode) {
   */
 - (nonnull NSDictionary<SFUserAccountIdentity *,SFUserAccount *> *)fetchAllAccounts:(NSError * _Nonnull * _Nonnull)error;
 
+- (void) updateEncryptionForAllAccounts;
+
 /**
  Allows you to remove the given user account.
  @param user The user account to remove.

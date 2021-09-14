@@ -77,6 +77,7 @@ static NSString * const kWebViewUserAgentKey = @"web_view_user_agent";
 static NSString * const kDefaultCachePath = @"salesforce.mobilesdk.URLCache";
 static NSInteger const kDefaultCacheMemoryCapacity = 1024 * 1024 * 4; // 4MB
 static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
+static NSString * const kURLCacheGCMEncryptedKey = @"com.salesforce.URLCache.encryption.GCM";
 
 @implementation UIWindow (SalesforceSDKManager)
 
@@ -278,13 +279,13 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
                                                 selector:@selector(handleAuthCompleted:)
                                                      name:kSFNotificationUserDidLogIn object:nil];
         
-        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow  selector:@selector(handleIDPInitiatedAuthCompleted:)
+        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleIDPInitiatedAuthCompleted:)
                                                      name:kSFNotificationUserIDPInitDidLogIn object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow  selector:@selector(handleIDPUserAddCompleted:)
+        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleIDPUserAddCompleted:)
                                                      name:kSFNotificationUserWillSendIDPResponse object:nil];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleUserWillLogout:) name:kSFNotificationUserWillLogout object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleUserDidLogout:)  name:kSFNotificationUserDidLogout object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleUserDidLogout:) name:kSFNotificationUserDidLogout object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleUserWillSwitch:) name:kSFNotificationUserWillSwitch object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleUserDidSwitch:) name:kSFNotificationUserDidSwitch object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(passcodeFlowWillBegin:) name:kSFPasscodeFlowWillBegin object:nil];
@@ -297,7 +298,9 @@ static NSInteger const kDefaultCacheDiskCapacity = 1024 * 1024 * 20;  // 20MB
         self.useEphemeralSessionForAdvancedAuth = YES;
         [self setupServiceConfiguration];
         _snapshotViewControllers = [SFSDKSafeMutableDictionary new];
-        [SFDirectoryManager upgradeUserDirectories];
+        [SalesforceSDKUpgradeManager upgrade];
+        //[SFDirectoryManager upgradeUserDirectories];
+        // TODO: Upgrade user photos
     }
     return self;
 }
@@ -848,6 +851,17 @@ void dispatch_once_on_main_thread(dispatch_once_t *predicate, dispatch_block_t b
 }
 
 - (void)setURLCacheType:(SFURLCacheType)URLCacheType {
+    // TODO: Remove in Mobile SDK 11.0
+    // If there's an existing encrypted URL cache that doesn't use GCM, reset the cache
+    if (URLCacheType == kSFURLCacheTypeEncrypted && [[NSFileManager defaultManager] fileExistsAtPath:kDefaultCachePath]) {
+        NSUserDefaults *userDefaults = [NSUserDefaults msdkUserDefaults];
+        if (![userDefaults boolForKey:kURLCacheGCMEncryptedKey]) { // TODO: Or use key instead of plist?
+            [NSURLCache.sharedURLCache removeAllCachedResponses];
+            [userDefaults setBool:YES forKey:kURLCacheGCMEncryptedKey];
+            [userDefaults synchronize];
+        }
+    }
+    
     if (_URLCacheType != URLCacheType) {
         _URLCacheType = URLCacheType;
         [NSURLCache.sharedURLCache removeAllCachedResponses];

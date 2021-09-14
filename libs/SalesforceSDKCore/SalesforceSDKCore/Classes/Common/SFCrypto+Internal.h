@@ -35,7 +35,7 @@ extern NSString * const kKeychainIdentifierBaseAppId;
 @property (nonatomic, retain) NSOutputStream *outputStream;
 @property (nonatomic, copy) NSMutableData *dataBuffer;
 
-- (void)appendToBuffer:(NSData *)data;
+- (void)appendToBuffer:(NSData *)data; // BB TODO: Unused?
 + (BOOL)setBaseAppIdentifier:(NSString *)appId;
 
 @end

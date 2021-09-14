@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Workspace
    version = "1.0">
+   <FileRef
+      location = "group:/Users/brianna.birman/SalesforceMobileSDK-iOS-CryptoKit/libs/SalesforceSDKCore/SalesforceSDKCore/Classes/Common/SalesforceSDKUpgradeManager.swift">
+   </FileRef>
    <Group
       location = "group:configuration"
       name = "configuration">

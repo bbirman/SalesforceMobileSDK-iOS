@@ -30,6 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Data object representing the encryption key used for encrypting/decrypting the key store.
  */
+SFSDK_DEPRECATED(9.2, 11.0, "") // BB TODO Alternative message
 @interface SFKeyStoreKey : NSObject <NSCoding, NSCopying>
 
 /**

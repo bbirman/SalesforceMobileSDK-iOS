@@ -22,6 +22,8 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #import "SFUserAccount+Internal.h"
 #import "SFUserAccountManager+Internal.h"
 #import "SFDirectoryManager.h"
@@ -44,6 +46,7 @@ static const char * kSyncQueue = "com.salesforce.mobilesdk.sfuseraccount.syncque
  */
 static NSString * const kGlobalScopingKey = @"-global-";
 static NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.userAccount.photos.encryptionKey";
+static NSString * const kUserAccountPhotoEncryptedKey = @"com.salesforce.userAccount.photos.encryption.GCM";
 
 @interface SFUserAccount ()
 {
@@ -169,19 +172,24 @@ static NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.u
             NSString *photoPath = [strongSelf photoPathInternal:nil];
             NSFileManager *manager = [NSFileManager defaultManager];
             if ([manager fileExistsAtPath:photoPath]) {
-                UIImage *decryptedPhoto = [self decryptPhoto:photoPath];
+                // TODO: Remove in 11.0
+                BOOL gcmEncrypted = [[NSUserDefaults msdkUserDefaults] boolForKey:kUserAccountPhotoEncryptedKey];
+                UIImage *decryptedPhoto;
+                if (gcmEncrypted) {
+                    decryptedPhoto = [self decryptPhoto:photoPath];
+                } else {
+                    #pragma clang diagnostic push
+                    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                    SFEncryptionKey *encryptionKey = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:kUserAccountPhotoEncryptionKeyLabel autoCreate:NO];
+                    #pragma clang diagnostic pop
+                    NSData *data = [[NSData alloc] initWithContentsOfFile:photoPath];
+                    NSData *decryptedData = [encryptionKey decryptData:data];
+                    decryptedPhoto = [[UIImage alloc] initWithData:decryptedData];
+                    [self storeEncryptedPhoto:decryptedData path:photoPath error:nil];
+                }
+    
                 if (decryptedPhoto) {
                     strongSelf->_photo = decryptedPhoto;
-                } else {
-                    // TODO: Remove in 9.0
-                    // Check for upgrade scenario
-                    NSData *photoData = [[NSData alloc] initWithContentsOfFile:photoPath];
-                    UIImage *photo = [[UIImage alloc] initWithData:photoData];
-                    if (photo) {
-                        // In this case the photo on disk is pre 8.0 and hasn't been encrypted, use it and encrypt it
-                        strongSelf->_photo = photo;
-                        [self storeEncryptedPhoto:photoData path:photoPath error:nil];
-                    }
                 }
             }
         });
@@ -264,8 +272,8 @@ static NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.u
     SFUserAccountIdentity *accIdentity =  _accountIdentity;
     if (credentials != currentCredentials) {
         if (_observingCredentials) {
-            [currentCredentials removeObserver:self  forKeyPath:kCredentialsUserIdPropName];
-            [currentCredentials removeObserver:self  forKeyPath:kCredentialsOrgIdPropName];
+            [currentCredentials removeObserver:self forKeyPath:kCredentialsUserIdPropName];
+            [currentCredentials removeObserver:self forKeyPath:kCredentialsOrgIdPropName];
             _observingCredentials = NO;
         }
         if (credentials != nil) {
@@ -276,7 +284,7 @@ static NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.u
         _credentials = credentials;
         if (accIdentity) {
             accIdentity.userId = credentials.userId;
-            accIdentity.orgId =  credentials.organizationId;
+            accIdentity.orgId = credentials.organizationId;
         }
     }
 }
@@ -428,19 +436,23 @@ NSString *SFKeyForUserIdAndScope(NSString *userId,NSString *orgId,NSString *comm
         return NO;
     }
 
+    NSUserDefaults *userDefaults = [NSUserDefaults msdkUserDefaults];
+    [userDefaults setBool:YES forKey:kUserAccountPhotoEncryptedKey];
+    [userDefaults synchronize];
+    
     return YES;
 }
 
 - (UIImage *)decryptPhoto:(NSString *)photoPath {
     NSData *data = [[NSData alloc] initWithContentsOfFile:photoPath];
-    SFEncryptionKey *encryptionKey = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:kUserAccountPhotoEncryptionKeyLabel autoCreate:NO];
-    NSData *decryptedData = [encryptionKey decryptData:data];
+    NSData *encryptionKey = [SFSDKKeyGenerator encryptionKeyFor:kUserAccountPhotoEncryptionKeyLabel error:nil];
+    NSData *decryptedData = [SFSDKEncryptor decryptData:data key:encryptionKey error:nil];
     return [[UIImage alloc] initWithData:decryptedData];
 }
 
 - (NSData *)encryptPhoto:(NSData *)data {
-    SFEncryptionKey *encryptionKey = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:kUserAccountPhotoEncryptionKeyLabel autoCreate:YES];
-    return [encryptionKey encryptData:data];
+    NSData *encryptionKey = [SFSDKKeyGenerator encryptionKeyFor:kUserAccountPhotoEncryptionKeyLabel error:nil];
+    return [SFSDKEncryptor encryptData:data key:encryptionKey error:nil];
 }
 
 //#pragma mark - Credentials property changes

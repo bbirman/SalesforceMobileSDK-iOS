@@ -306,12 +306,10 @@ static NSString * const kTestRefreshToken = @"HowRefreshing";
     credentials.accessToken = accessToken;
     credentials.refreshToken = refreshToken;
     
-    NSString *accessTokenVerify = [credentials accessTokenWithSFEncryptionKey:[credentials keyStoreKeyForService:kSFOAuthServiceAccess]];
+    NSString *accessTokenVerify = [credentials accessTokenWithSFEncryptionKey:[credentials keyStoreKeyForService:kSFOAuthServiceLegacyAccess]];
     XCTAssertEqualObjects(accessToken, accessTokenVerify, @"Access token should decrypt to the same value.");
-    NSString *refreshTokenVerify = [credentials refreshTokenWithSFEncryptionKey:[credentials keyStoreKeyForService:kSFOAuthServiceRefresh]];
+    NSString *refreshTokenVerify = [credentials refreshTokenWithSFEncryptionKey:[credentials keyStoreKeyForService:kSFOAuthServiceRefresh]]; // TODO
     XCTAssertEqualObjects(refreshToken, refreshTokenVerify, @"Refresh token should decrypt to the same value.");
-    SFOAuthCredsEncryptionType encType = [[NSUserDefaults standardUserDefaults] integerForKey:kSFOAuthEncryptionTypeKey];
-    XCTAssertEqual(encType, kSFOAuthCredsEncryptionTypeKeyStore, @"Encryption type should be key store.");
     
     [credentials revoke];
 }

@@ -24,6 +24,7 @@
 
 #import <XCTest/XCTest.h>
 #import <SalesforceSDKCore/SalesforceSDKCore.h>
+#import <SalesforceSDKCommon/SalesforceSDKCommon.h>
 #import "SFOAuthCredentials+Internal.h"
 
 @interface SFUserAccount (Testing)
@@ -42,30 +43,37 @@ static NSString * const kOrgIdFormatString = @"00D000000000062EA%lu";
 
 @implementation SFUserAccountPhotoTests
 
-- (void)testPhotoEncryption {
+- (void)testPhotoEncryptionUpgrade {
     SFUserAccount *user = [self createNewUserWithIndex:0];
     NSError *error = nil;
     NSString *userPhotoPath = [user photoPathInternal:&error];
     
-    // Write unencrypted file to disk for upgrade scenario
+    [self addTeardownBlock:^{
+        [[NSUserDefaults msdkUserDefaults] removeObjectForKey:@"com.salesforce.userAccount.photos.encryption.GCM"];
+    }];
+    
+    // Write AES-CBC encrypted file to disk for upgrade scenario
     // Recreating UIImage from named resource because otherwise resource includes additional metadata that breaks comparison of
     // images as NSData
     UIImage *originalPhoto = [[UIImage alloc] initWithCGImage:[SFSDKResourceUtils imageNamed:@"salesforce-logo"].CGImage];
     NSData *originalPhotoData = UIImagePNGRepresentation(originalPhoto);
-    [originalPhotoData writeToFile:userPhotoPath options:NSDataWritingAtomic error:&error];
+    SFEncryptionKey *key = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:@"com.salesforce.userAccount.photos.encryptionKey" autoCreate:YES];
+    NSData *originalEncryptedPhotoData = [key encryptData:originalPhotoData];
+    [originalEncryptedPhotoData writeToFile:userPhotoPath options:NSDataWritingAtomic error:&error];
     XCTAssertNil(error);
     
-    // Access photo which should pick up from disk and encrypt it
+    // Access photo which should pick up from disk and reencrypt it
     UIImage *userPhoto = user.photo;
     XCTAssertNotNil(userPhoto);
     NSData *userPhotoData = UIImagePNGRepresentation(userPhoto);
     XCTAssertNotNil(userPhotoData);
     XCTAssertTrue([userPhotoData isEqualToData:originalPhotoData]);
     
-    // Check that data on disk is different since it should be encrypted now
+    // Check that data on disk is different since it should be encrypted differently now
     NSData *encryptedPhotoData = [[NSData alloc] initWithContentsOfFile:userPhotoPath];
     XCTAssertNotNil(encryptedPhotoData);
     XCTAssertFalse([encryptedPhotoData isEqualToData:originalPhotoData]);
+    XCTAssertFalse([encryptedPhotoData isEqualToData:originalEncryptedPhotoData]);
     
     // Check decrypted disk data
     UIImage *decryptedPhoto = [user decryptPhoto:userPhotoPath];

@@ -103,6 +103,9 @@ NSString * const SFUserAccountManagerUserChangeUserKey      = @"user";
 
 // Persistence Keys
 static NSString * const kUserDefaultsLastUserIdentityKey = @"LastUserIdentity";
+//static NSString * const kUserDefaultsLastUserIdentityKey = @"com.salesforce.lastUserIdentity";
+//static NSString * const kUserDefaultsLastUserIdentityLegacyKey = @"LastUserIdentity";
+//static NSString * const kUserDefaultsLastUserIdentityKey = @"com.salesforce.lastUserIdentity";
 static NSString * const kUserDefaultsLastUserCommunityIdKey = @"LastUserCommunityId";
 static NSString * const kSFAppFeatureMultiUser   = @"MU";
 static NSString * const kAlertErrorTitleKey = @"authAlertErrorTitle";
@@ -210,7 +213,12 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         _authSessions = [SFSDKSafeMutableDictionary new];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(sceneDidDisconnect:) name:UISceneDidDisconnectNotification object:nil];
         
+        // BB TODO: Upgrade all accounts
+       
         [self populateErrorHandlers];
+        
+        // TODO: Remove in Mobile SDK 11.0
+        [_accountPersister updateEncryptionForAllAccounts];
      }
 	return self;
 }
@@ -1316,11 +1324,11 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
             SFUserAccountIdentity *result = nil;
             NSError* error = nil;
             NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingFromData:resultData error:&error];
-            unarchiver.requiresSecureCoding = NO;
+            unarchiver.requiresSecureCoding = YES;
             if (error) {
                 [SFSDKCoreLogger e:[self class] format:@"Failed to init unarchiver for current user identity from user defaults: %@.", error];
             } else {
-                result = [unarchiver decodeObjectForKey:kUserDefaultsLastUserIdentityKey];
+                result = [unarchiver decodeObjectOfClass:[SFUserAccountIdentity class] forKey:kUserDefaultsLastUserIdentityKey];
                 [unarchiver finishDecoding];
                 if (result) {
                     _currentUser = [self userAccountForUserIdentity:result];
@@ -1383,7 +1391,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     NSUserDefaults *standardDefaults = [NSUserDefaults msdkUserDefaults];
     [_accountsLock lock];
     if (userAccountIdentity) {
-        NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initRequiringSecureCoding:NO];
+        NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initRequiringSecureCoding:YES];
         [archiver encodeObject:userAccountIdentity forKey:kUserDefaultsLastUserIdentityKey];
         [archiver finishEncoding];
         [standardDefaults setObject:archiver.encodedData forKey:kUserDefaultsLastUserIdentityKey];

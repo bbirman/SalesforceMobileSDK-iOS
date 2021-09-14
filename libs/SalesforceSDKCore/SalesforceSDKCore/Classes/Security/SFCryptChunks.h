@@ -39,6 +39,7 @@ extern uint32_t const SFCryptChunksCipherOptions;
 /**
  *  SFCryptChunksDelegate
  */
+SFSDK_DEPRECATED(9.2, 11.0, "Will be removed, use EncryptStream/DecryptStream instead")
 @protocol SFCryptChunksDelegate <NSObject>
 @required
 /**
@@ -63,6 +64,7 @@ extern uint32_t const SFCryptChunksCipherOptions;
  *      3. Handle results via the delegate methods as you pass data in;
  *      4. When done passing data in, call the finalize crypt method (this is a very important step).
  */
+SFSDK_DEPRECATED(9.2, 11.0, "Will be removed, use EncryptStream/DecryptStream instead")
 @interface SFCryptChunks : NSObject
 
 /**
