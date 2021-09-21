@@ -34,4 +34,8 @@
  */
 -(NSString *)digest;
 
+- (NSString *)digest256;
+
+- (NSString *)hex;
+
 @end

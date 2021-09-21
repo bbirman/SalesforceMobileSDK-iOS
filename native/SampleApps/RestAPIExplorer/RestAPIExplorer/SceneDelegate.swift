@@ -46,6 +46,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.initializeAppViewState()
         AuthHelper.loginIfRequired(scene) {
             self.setupRootViewController()
+            let store = KeyValueEncryptedFileStore.shared(withName: "bbTest")
+            print(store?["MYKEY1"])
+            print(store?["MYKEY2"])
+            print(store?.count())
+            store?.removeAll()
+            print("")
         }
     }
 

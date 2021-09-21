@@ -128,7 +128,7 @@
 - (void)setupSaltBlock {
     [SFSmartStore setEncryptionSaltBlock:^NSString * _Nullable{
             SFEncryptionKey *saltKey = [[SFKeyStoreManager sharedInstance]   retrieveKeyWithLabel:kSFSmartStoreEncryptionSaltLabel autoCreate:YES];
-            NSString *salt = [[saltKey key] digest];
+            NSString *salt = [[saltKey key] digest]; // BB TODO: digest reference here? https://www.raywenderlich.com/10846296-introducing-cryptokit
             return salt;
     }];
 }

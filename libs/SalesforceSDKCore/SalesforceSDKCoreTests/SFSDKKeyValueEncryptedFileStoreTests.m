@@ -31,6 +31,7 @@
 #import <SalesforceSDKCore/SFDirectoryManager.h>
 #import <SalesforceSDKCore/SFEncryptionKey.h>
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#import "NSData+SFAdditions.h"
 
 @interface SFOAuthCredentials ()
 @property (nonatomic, readwrite, nullable) NSURL *identityUrl;
@@ -66,6 +67,12 @@
 }
 
 #pragma mark - Store management
+
+- (void)testKeys {
+    NSData *saltKey = [SFSDKKeyGenerator encryptionKeyFor:@"testlabelbvb" keySize:128 error:nil];// [SFSDKKeyGenerator encryptionKeyFor:kSFSmartStoreEncryptionSaltLabel error:nil];
+    NSString *salt = [saltKey newHexStringFromBytes];
+    NSLog(@"%@", salt);
+}
 
 - (void)testGlobalStoreUsesSameStore {
     NSString *storeName = @"test_global_uses_same_store";

@@ -27,6 +27,7 @@
 #import "SFEncryptStream.h"
 #import "SFDecryptStream.h"
 #import "SFCryptoStreamTestUtils.h"
+#import "SFSDKCoreLogger.h"
 
 
 @interface SFEncryptDecryptStreamTests : XCTestCase
@@ -82,12 +83,17 @@
     [self performTestWithDataLen:SFCryptChunksCipherBlockSize - 1];
 }
 
+- (void)testbogus {
+    NSError *error = nil;
+    [SFSDKCoreLogger e:[self class] format:@"Unable to encrypt response to store %@", error ? error.localizedDescription : @""];
+}
+
 - (void)testWithHugeDataSize {
-    [self performTestWithDataLen:SFCryptChunksCipherBlockSize * 10000];
-    [self performTestWithDataLen:(SFCryptChunksCipherBlockSize * 10000) + 7];
+//    [self performTestWithDataLen:SFCryptChunksCipherBlockSize * 10000];
+//    [self performTestWithDataLen:(SFCryptChunksCipherBlockSize * 10000) + 7];
     //these take a while (~30s):
-    [self performTestWithDataLen:SFCryptChunksCipherBlockSize * 100000];
-    [self performTestWithDataLen:(SFCryptChunksCipherBlockSize * 100000) + 13];
+    [self performTestWithDataLen:71000000];
+//    [self performTestWithDataLen:(SFCryptChunksCipherBlockSize * 100000) + 13];
 }
 
 #pragma mark - The actual test code
@@ -99,19 +105,19 @@
                                   @(SFCryptChunksCipherBlockSize),
                                   @1, // yup, 1 byte buffer.
                                   @(SFCryptChunksCipherBlockSize*10)];
-    // Test with each individually
-    for (int i = 0; i < dataChunksToTest.count; ++i) {
-        [self performTestWithDataLen:testLen useDataChunks:@[dataChunksToTest[i]]];
-    }
-    
-    // Test using all sizes in sequence
-    [self performTestWithDataLen:testLen useDataChunks:dataChunksToTest];
-    
-    // Test using all sizes in inverted-sequence
-    [self performTestWithDataLen:testLen useDataChunks:[[dataChunksToTest reverseObjectEnumerator] allObjects]];
-    
+//    // Test with each individually
+//    for (int i = 0; i < dataChunksToTest.count; ++i) {
+//        [self performTestWithDataLen:testLen useDataChunks:@[dataChunksToTest[i]]];
+//    }
+//
+//    // Test using all sizes in sequence
+//    [self performTestWithDataLen:testLen useDataChunks:dataChunksToTest];
+//
+//    // Test using all sizes in inverted-sequence
+//    [self performTestWithDataLen:testLen useDataChunks:[[dataChunksToTest reverseObjectEnumerator] allObjects]];
+//
     // Test with a gigant buffer
-    [self performTestWithDataLen:testLen useDataChunks:@[@(SFCryptChunksCipherBlockSize*100000)]];
+    [self performTestWithDataLen:testLen useDataChunks:@[@(71000000)]];
 }
 
 - (void)performTestWithDataLen:(NSUInteger)testLen useDataChunks:(NSArray *)chunksLen {
@@ -159,9 +165,13 @@
     };
     
     // Encrypt in memory
-    SFEncryptStream *encryptInMemoryStream = [[SFEncryptStream alloc] initToMemory];
-    performEncryption(encryptInMemoryStream);
-    NSData *encryptedInMemoryResult = [encryptInMemoryStream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+    __block NSData *encryptedInMemoryResult;
+    [self measureBlock:^{
+        SFEncryptStream *encryptInMemoryStream = [[SFEncryptStream alloc] initToMemory];
+        performEncryption(encryptInMemoryStream);
+        encryptedInMemoryResult = [encryptInMemoryStream propertyForKey:NSStreamDataWrittenToMemoryStreamKey];
+    }];
+   
     
     // Encrypt to file via stream
     SFEncryptStream *encryptToFileStream = [[SFEncryptStream alloc] initToFileAtPath:filePath append:NO];

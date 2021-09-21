@@ -32,7 +32,7 @@ import SalesforceSDKCore
 
 import MobileCoreServices
 
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UserAccountManagerDelegate {
     var window: UIWindow?
     
     override init() {
@@ -41,9 +41,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       
         SalesforceManager.initializeSDK()
         SalesforceManager.shared.appDisplayName = "Rest API Explorer"
+        UserAccountManager.shared.add(self)
         
         //Uncomment following block to enable IDP Login flow.
         //SalesforceManager.shared.identityProviderURLScheme = "sampleidpapp"
+    }
+    
+    
+    //- (BOOL)userAccountManager:(SFUserAccountManager *)userAccountManager error:(NSError*)error info:(SFOAuthInfo *)info  NS_SWIFT_NAME(userAccountManager(accountManager:didFailAuthenticationWith:info:))
+    func userAccountManager(accountManager userAccountManager: UserAccountManager, didFailAuthenticationWith error: Error, info: AuthInfo) -> Bool {
+        print("ERROR CALLED")
+        return true
     }
     
     // MARK: - App delegate lifecycle

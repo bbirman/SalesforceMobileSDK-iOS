@@ -28,7 +28,6 @@
 #import "FMDatabase.h"
 #import "FMDatabaseAdditions.h"
 #import "FMDatabaseQueue.h"
-#import <SalesforceSDKCommon/SFJsonUtils.h>
 #import "SFSmartStore+Internal.h"
 #import "SFSmartStoreUpgrade.h"
 #import "SFSmartStoreUtils.h"
@@ -39,12 +38,13 @@
 #import "SFSoupSpec.h"
 #import "SFSoupSpec+Internal.h"
 #import "NSData+SFAdditions.h"
+#import "SFAlterSoupLongOperation.h"
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #import <SalesforceSDKCore/SFKeyStoreManager.h>
 #import <SalesforceSDKCore/SFEncryptionKey.h>
 #import <SalesforceSDKCore/SFSDKCryptoUtils.h>
 #import <SalesforceSDKCore/SFEncryptStream.h>
 #import <SalesforceSDKCore/SFDecryptStream.h>
-#import "SFAlterSoupLongOperation.h"
 #import <SalesforceSDKCore/SFUserAccountManager.h>
 #import <SalesforceSDKCore/SFDirectoryManager.h>
 #import <SalesforceSDKCore/SalesforceSDKManager.h>
@@ -52,12 +52,16 @@
 #import <SalesforceSDKCore/SFSDKAppFeatureMarkers.h>
 #import <SalesforceSDKCore/SFSDKCryptoUtils.h>
 #import <SalesforceSDKCore/SFKeychainItemWrapper.h>
+#import <SalesforceSDKCore/NSData+SFAdditions.h>
 #import <SalesforceSDKCommon/SFSDKDataSharingHelper.h>
+#import <SalesforceSDKCommon/SFJsonUtils.h>
 
 static NSMutableDictionary *_allSharedStores;
 static NSMutableDictionary *_allGlobalSharedStores;
 static SFSmartStoreEncryptionKeyBlock _encryptionKeyBlock = NULL;
+static SFSmartStoreEncryptionKeyGenerator _encryptionKeyGenerator = NULL;
 static SFSmartStoreEncryptionSaltBlock _encryptionSaltBlock = NULL;
+static SFSmartStoreEncryptionSaltGenerator _encryptionSaltGenerator = NULL;
 static BOOL _storeUpgradeHasRun = NO;
 static BOOL _jsonSerializationCheckEnabled = NO;
 static BOOL _postRawJsonOnError = NO;
@@ -128,10 +132,36 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
         _encryptionSaltBlock = ^ {
             NSString* salt = nil;
             if ([[SFKeyStoreManager sharedInstance] keyWithLabelExists:kSFSmartStoreEncryptionSaltLabel] || [[SFSDKDatasharingHelper sharedInstance] appGroupEnabled]) {
-                SFEncryptionKey *saltKey = [[SFKeyStoreManager sharedInstance]   retrieveKeyWithLabel:kSFSmartStoreEncryptionSaltLabel autoCreate:YES];
+                SFEncryptionKey *saltKey = [[SFKeyStoreManager sharedInstance] retrieveKeyWithLabel:kSFSmartStoreEncryptionSaltLabel autoCreate:YES];
                 salt = [[saltKey key] digest];
             }
             return salt;
+        };
+    }
+    
+    if (!_encryptionKeyGenerator) {
+        _encryptionKeyGenerator = ^NSData *{
+            NSError *error = nil;
+            NSData *key = [SFSDKKeyGenerator encryptionKeyFor:kSFSmartStoreEncryptionKeyLabel error:&error];
+            if (error) {
+                [SFSDKSmartStoreLogger e:[self class] format:@"Error getting encryption key: %@", error.localizedDescription];
+            }
+            return key;
+        };
+    }
+    
+    if (!_encryptionSaltGenerator) {
+        _encryptionSaltGenerator = ^NSString * {
+            if ([SFSDKKeyGenerator symmetricKeyExistsFor:kSFSmartStoreEncryptionSaltLabel] || [[SFSDKDatasharingHelper sharedInstance] appGroupEnabled]) {
+                NSError *error = nil;
+                NSData *saltKey = [SFSDKKeyGenerator encryptionKeyFor:kSFSmartStoreEncryptionSaltLabel keySize:128 error:&error];
+                if (error) {
+                    [SFSDKSmartStoreLogger e:[self class] format:@"Error getting key for salt: %@", error.localizedDescription];
+                    return nil;
+                }
+                return [saltKey newHexStringFromBytes];
+            }
+            return nil;
         };
     }
 }
@@ -154,7 +184,8 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
         @synchronized ([SFSmartStore class]) {
             if ([SFUserAccountManager sharedInstance].currentUser != nil && !_storeUpgradeHasRun) {
                 _storeUpgradeHasRun = YES;
-                [SFSmartStoreUpgrade updateEncryptionSalt];
+//                [SFSmartStoreUpgrade updateEncryptionSalt];
+                [SFSmartStoreUpgrade updateEncryption];
             }
         }
         _storeName = name;
@@ -298,8 +329,8 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
 
 - (BOOL) openStoreDatabase {
     NSError *openDbError = nil;
-    NSString *salt =  [[self class]encryptionSaltBlock] ? [[self class] encryptionSaltBlock]() :nil;
-    self.storeQueue = [self.dbMgr openStoreQueueWithName:self.storeName key:[[self class] encKey] salt:salt error:&openDbError];
+   // NSString *salt =  [[self class]encryptionSaltBlock] ? [[self class] encryptionSaltBlock]() :nil;
+    self.storeQueue = [self.dbMgr openStoreQueueWithName:self.storeName key:[[self class] encKey] salt:[[self class] salt] error:&openDbError];
     if (self.storeQueue == nil) {
         [SFSDKSmartStoreLogger e:[self class] format:@"Error opening store '%@': %@", self.storeName, [openDbError localizedDescription]];
     }
@@ -720,8 +751,15 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     return soupNames;
 }
 
-+ (NSString *)encKey
-{
++ (NSString *)encryptionKey {
+    if (_encryptionKeyGenerator) {
+        NSData *encryptionKey = _encryptionKeyGenerator();
+        return [encryptionKey base64EncodedStringWithOptions: 0];
+    }
+    return nil;
+}
+
++ (NSString *)legacyEncKey {
     if (_encryptionKeyBlock) {
         SFEncryptionKey *key = _encryptionKeyBlock();
         return key.keyAsString;
@@ -729,11 +767,26 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     return nil;
 }
 
-+ (NSString *)salt
-{
++ (NSString *)encKey {
+    if (_encryptionKeyGenerator) {
+        NSData *key = _encryptionKeyGenerator();
+        return [key base64EncodedStringWithOptions:0];
+    }
+    return nil;
+}
+
++ (NSString *)legacySalt {
     if (_encryptionSaltBlock) {
         return  _encryptionSaltBlock();
     }
+    return nil;
+}
+
++ (NSString *)salt {
+    // BB TODO:
+//    if (_encryptionSaltBlock) {
+//        return  _encryptionSaltBlock();
+//    }
     return nil;
 }
 
@@ -754,6 +807,26 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
 + (void)setEncryptionKeyBlock:(SFSmartStoreEncryptionKeyBlock)newEncryptionKeyBlock {
     if (newEncryptionKeyBlock != _encryptionKeyBlock) {
         _encryptionKeyBlock = newEncryptionKeyBlock;
+    }
+}
+
++ (SFSmartStoreEncryptionKeyGenerator)encryptionKeyGenerator {
+    return _encryptionKeyGenerator;
+}
+
++ (void)setEncryptionKeyGenerator:(SFSmartStoreEncryptionKeyGenerator)newEncryptionKeyGenerator {
+    if (newEncryptionKeyGenerator != _encryptionKeyGenerator) {
+        _encryptionKeyGenerator = newEncryptionKeyGenerator;
+    }
+}
+
++ (SFSmartStoreEncryptionSaltGenerator)encryptionSaltGenerator {
+    return _encryptionSaltGenerator;
+}
+
++ (void)setEncryptionSaltGenerator:(SFSmartStoreEncryptionSaltBlock)newEncryptionSaltGenerator {
+    if (newEncryptionSaltGenerator != _encryptionSaltGenerator) {
+        _encryptionSaltGenerator = newEncryptionSaltGenerator;
     }
 }
 
@@ -828,11 +901,11 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     
     // Setting up output stream
     NSOutputStream *outputStream = nil;
-    SFSmartStoreEncryptionKeyBlock keyBlock = [SFSmartStore encryptionKeyBlock];
+    SFSmartStoreEncryptionKeyGenerator keyBlock = [SFSmartStore encryptionKeyGenerator];
     if (keyBlock) {
-        SFEncryptStream *encryptStream = [[SFEncryptStream alloc] initToFileAtPath:tmpFilePath append:NO];
-        SFEncryptionKey *encKey = keyBlock();
-        [encryptStream setupWithEncryptionKey:encKey];
+        SFSDKEncryptStream *encryptStream = [[SFSDKEncryptStream alloc] initToFileAtPath:tmpFilePath append:NO];
+        NSData *encKey = keyBlock();
+        [encryptStream setupKey:encKey];
         outputStream = encryptStream;
     } else {
         outputStream = [[NSOutputStream alloc] initToFileAtPath:tmpFilePath append:NO];
@@ -935,14 +1008,19 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     NSString *filePath = [self externalStorageSoupFilePath:soupEntryId
                                              soupTableName:soupTableName];
     
-    SFSmartStoreEncryptionKeyBlock keyBlock = [SFSmartStore encryptionKeyBlock];
-    SFEncryptionKey* encKey;
+//    SFSmartStoreEncryptionKeyBlock keyBlock = [SFSmartStore encryptionKeyBlock];
+//    SFEncryptionKey* encKey;
+//    if (keyBlock) {
+//        encKey = keyBlock();
+//    }
+    SFSmartStoreEncryptionKeyGenerator keyBlock = [SFSmartStore encryptionKeyGenerator];
+    NSData *encKey;
     if (keyBlock) {
         encKey = keyBlock();
     }
     
     NSString* entryAsString = [self readFromEncryptedFile:filePath
-                                                   encKey:encKey];
+                                                   encryptionKey:encKey];
     
     // Before 6.2, we were using nill IV when encrypting.
     // Starting in 6.2, we are using a non-nil IV when encrypting.
@@ -951,13 +1029,18 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     if (![entryAsString hasPrefix:@"{"]) {
         NSDictionary* entry = [SFJsonUtils objectFromJSONString:entryAsString];
         
-        if(!entry) {
-            if (encKey.initializationVector) {
-                entryAsString = [self readFromEncryptedFile:filePath encKey:encKey useNilIV:YES];
+        if (!entry) {
+            SFSmartStoreEncryptionKeyBlock keyBlock = [SFSmartStore encryptionKeyBlock];
+            SFEncryptionKey *legacyEncKey;
+            if (keyBlock) {
+                legacyEncKey = keyBlock();
+            }
+            if (legacyEncKey.initializationVector) {
+                entryAsString = [self readFromEncryptedFile:filePath encKey:legacyEncKey useNilIV:YES];
                 if ([entryAsString length] > 0) {
                     [self writeToEncryptedFile:filePath
                                        content:entryAsString
-                                        encKey:encKey];
+                                        encryptionKey:encKey];
                 } else {
                     [SFSDKSmartStoreLogger e:[self class] format:@"Attempt to migrate an encrypted externally saved soup '%@' with a null IV  failed.", soupTableName];
                 }
@@ -973,7 +1056,7 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
                 @throw [NSException exceptionWithName:kSFSmartStoreErrorLoadExternalSoup
                                                reason:errorMessage
                                              userInfo:nil];
-                
+
             }
         }
     }
@@ -992,7 +1075,21 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     return [self readFromEncryptedFile:filePath encKey:encKey useNilIV:NO];
 }
 
-- (NSString*) readFromEncryptedFile:(NSString*)filePath
+- (NSString *)readFromEncryptedFile:(NSString *)filePath
+                             encryptionKey:(NSData *)encKey {
+    NSInputStream *inputStream = nil;
+    if (encKey) {
+        SFSDKDecryptStream *decryptStream = [[SFSDKDecryptStream alloc] initWithFileAtPath:filePath];
+        [decryptStream setupKey:encKey];
+        inputStream = decryptStream;
+    } else {
+        inputStream = [[NSInputStream alloc] initWithFileAtPath:filePath];
+    }
+    
+    return [SFSmartStore stringFromInputStream:inputStream];
+}
+
+- (NSString *)readFromEncryptedFile:(NSString*)filePath
                              encKey:(SFEncryptionKey*)encKey
                            useNilIV:(BOOL)useNilIV
 {
@@ -1026,6 +1123,24 @@ NSUInteger CACHES_COUNT_LIMIT = 1024;
     }
     [inputStream close];
     return [[NSString alloc] initWithData:content encoding:NSUTF8StringEncoding];
+}
+
+- (void)writeToEncryptedFile:(NSString *)filePath
+                       content:(NSString *)content
+                       encryptionKey:(NSData *)encKey
+{
+    NSOutputStream *outputStream = nil;
+    if (encKey) {
+        SFSDKEncryptStream *encryptStream = [[SFSDKEncryptStream alloc] initToFileAtPath:filePath append:NO];
+        [encryptStream setupKey:encKey];
+        outputStream = encryptStream;
+    } else {
+        outputStream = [[NSOutputStream alloc] initToFileAtPath:filePath append:NO];
+    }
+    [outputStream open];
+    NSData *data = [content dataUsingEncoding:NSUTF8StringEncoding];
+    [outputStream write:data.bytes maxLength:data.length];
+    [outputStream close];
 }
 
 - (void) writeToEncryptedFile:(NSString*)filePath

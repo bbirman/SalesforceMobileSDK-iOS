@@ -66,12 +66,19 @@ extern NSString * const kSFSmartStoreEncryptionSaltLabel NS_SWIFT_NAME(SmartStor
 /**
  Block typedef for generating an encryption key.
  */
-typedef SFEncryptionKey*  _Nullable (^SFSmartStoreEncryptionKeyBlock)(void) NS_SWIFT_NAME(EncryptionKeyBlock);
+typedef SFEncryptionKey* _Nullable (^SFSmartStoreEncryptionKeyBlock)(void) NS_SWIFT_NAME(EncryptionKeyBlock) SFSDK_DEPRECATED(9.2, 11.0, "Will be removed");
+
+typedef NSData* _Nullable (^SFSmartStoreEncryptionKeyGenerator)(void) NS_SWIFT_NAME(EncryptionKeyGenerator);
 
 /**
  Block typedef for generating a 16 byte hash for sharing data betwween multiple apps.
  */
 typedef NSString* _Nullable (^SFSmartStoreEncryptionSaltBlock)(void) NS_SWIFT_NAME(EncryptionSaltBlock);
+
+/**
+ Block typedef for generating a 16 byte hash for sharing data betwween multiple apps.
+ */
+typedef NSString* _Nullable (^SFSmartStoreEncryptionSaltGenerator)(void) NS_SWIFT_NAME(EncryptionSaltGenerator);
 
 /**
  The columns of a soup table
@@ -228,6 +235,7 @@ NS_SWIFT_NAME(SmartStore)
  @param newEncryptionKeyBlock The new encryption key derivation block to use with SmartStore.
  */
 + (void)setEncryptionKeyBlock:(SFSmartStoreEncryptionKeyBlock)newEncryptionKeyBlock;
++ (void)setEncryptionKeyGenerator:(SFSmartStoreEncryptionKeyGenerator)newEncryptionKeyBlock;
 
 #pragma mark - Soup manipulation methods
 

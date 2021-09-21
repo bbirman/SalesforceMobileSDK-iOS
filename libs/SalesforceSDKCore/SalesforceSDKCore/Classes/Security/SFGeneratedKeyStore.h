@@ -26,6 +26,7 @@
 
 extern NSString * const kGeneratedKeyLabelSuffix;
 
+SFSDK_DEPRECATED(9.2, 11.0, "Will be removed")
 @interface SFGeneratedKeyStore : SFKeyStore
 
 @end
