@@ -112,7 +112,7 @@ NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.userAcco
         SFOAuthCredentials *creds = [decoder decodeObjectOfClass:[SFOAuthCredentials class] forKey:kUser_CREDENTIALS];
         [self setCredentialsInternal:creds];
         _idData           = [decoder decodeObjectOfClass:[SFIdentityData class] forKey:kUser_ID_DATA];
-        _customData       = [[decoder decodeObjectOfClass:[NSDictionary class] forKey:kUser_CUSTOM_DATA] mutableCopy];
+        _customData       = [[decoder decodeObjectOfClasses:[NSSet setWithObjects: [NSDictionary class], [NSMutableDictionary class], [NSArray class], [NSString class], [NSNumber class], [NSNull class], [NSURL class], [NSDate class], nil] forKey:kUser_CUSTOM_DATA] mutableCopy];
         _accessRestrictions = [decoder decodeIntegerForKey:kUser_ACCESS_RESTRICTIONS];
         _loginState = (_credentials.refreshToken.length > 0 ? SFUserAccountLoginStateLoggedIn : SFUserAccountLoginStateNotLoggedIn);
         if (_loginState == SFUserAccountLoginStateLoggedIn) {
