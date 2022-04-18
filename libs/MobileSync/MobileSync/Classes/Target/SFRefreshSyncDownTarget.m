@@ -54,6 +54,7 @@ static NSUInteger const kSFSyncTargetRefreshDefaultCountIdsPerSoql = 500;
 
 @end
 
+// TODO: Add here
 @implementation SFRefreshSyncDownTarget
 
 - (instancetype)initWithDict:(NSDictionary *)dict {

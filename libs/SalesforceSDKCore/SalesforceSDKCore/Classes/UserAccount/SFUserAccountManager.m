@@ -451,6 +451,9 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     authSession.authSuccessCallback = completionBlock;
     authSession.oauthCoordinator.delegate = self;
     NSString *sceneId = authSession.sceneId;
+//    if (!sceneId) {
+//        sceneId = [[SFSDKWindowManager sharedManager] defaultScene].session.persistentIdentifier;
+//    }
     self.authSessions[sceneId] = authSession;
     dispatch_async(dispatch_get_main_queue(), ^{
         [SFSDKWebViewStateManager removeSession];

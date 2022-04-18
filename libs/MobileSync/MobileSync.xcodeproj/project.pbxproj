@@ -92,6 +92,8 @@
 		4FF9331722165CD30058807A /* BatchSyncUpTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FF9331622165CD30058807A /* BatchSyncUpTests.m */; };
 		4FF9331922167E420058807A /* SFCompositeRequestHelper.h in Headers */ = {isa = PBXBuildFile; fileRef = 4FF9331822167E420058807A /* SFCompositeRequestHelper.h */; };
 		4FF9331C22167E590058807A /* SFCompositeRequestHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FF9331B22167E590058807A /* SFCompositeRequestHelper.m */; };
+		690B336227FE5478002737EB /* BriefcaseSyncDownTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690B336127FE5478002737EB /* BriefcaseSyncDownTarget.swift */; };
+		69474C3E27FEA30C002C2BEF /* BriefcaseSyncDownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69474C3D27FEA30C002C2BEF /* BriefcaseSyncDownTests.swift */; };
 		828E0E541AB398AA004E0AF2 /* TestSyncUpTarget.m in Sources */ = {isa = PBXBuildFile; fileRef = 828E0E531AB398AA004E0AF2 /* TestSyncUpTarget.m */; };
 		829DA2AF1C12674D0040F5F1 /* MobileSync.h in Headers */ = {isa = PBXBuildFile; fileRef = 829DA2AE1C12674D0040F5F1 /* MobileSync.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B716A36E218F4FC5009D407F /* SalesforceAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B716A34B218F4F9C009D407F /* SalesforceAnalytics.framework */; };
@@ -384,6 +386,9 @@
 		4FF9331822167E420058807A /* SFCompositeRequestHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFCompositeRequestHelper.h; sourceTree = "<group>"; };
 		4FF9331B22167E590058807A /* SFCompositeRequestHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SFCompositeRequestHelper.m; sourceTree = "<group>"; };
 		4FFEE5B31BFE8F8800B7AA8A /* SmartStore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SmartStore.xcodeproj; path = ../SmartStore/SmartStore.xcodeproj; sourceTree = "<group>"; };
+		690B336127FE5478002737EB /* BriefcaseSyncDownTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefcaseSyncDownTarget.swift; sourceTree = "<group>"; };
+		69474C3A27FEA299002C2BEF /* MobileSyncTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MobileSyncTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		69474C3D27FEA30C002C2BEF /* BriefcaseSyncDownTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BriefcaseSyncDownTests.swift; sourceTree = "<group>"; };
 		8207891D1A1BBC56009E9831 /* SFMobileSyncPersistableObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SFMobileSyncPersistableObject.h; sourceTree = "<group>"; };
 		820789211A1D2555009E9831 /* SFMobileSyncPersistableObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SFMobileSyncPersistableObject.m; sourceTree = "<group>"; };
 		820789231A1D26D9009E9831 /* SFMobileSyncPersistableObject+Internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SFMobileSyncPersistableObject+Internal.h"; sourceTree = "<group>"; };
@@ -572,6 +577,7 @@
 				4FF93313221644640058807A /* SFBatchSyncUpTarget.m */,
 				4FDCBD431E8DDC5C008F8FCE /* SFSyncUpTarget.m */,
 				4F2E178E1ED4F0A200C62497 /* SFSyncUpTarget+Internal.h */,
+				690B336127FE5478002737EB /* BriefcaseSyncDownTarget.swift */,
 			);
 			name = Target;
 			sourceTree = "<group>";
@@ -732,6 +738,8 @@
 				4FAA9B762255D49D0006810D /* SFSDKSoqlMutatorTests.m */,
 				828E0E511AB3987C004E0AF2 /* Targets */,
 				CEAAAE5F195911E600CBBFE9 /* Supporting Files */,
+				69474C3A27FEA299002C2BEF /* MobileSyncTests-Bridging-Header.h */,
+				69474C3D27FEA30C002C2BEF /* BriefcaseSyncDownTests.swift */,
 			);
 			path = MobileSyncTests;
 			sourceTree = "<group>";
@@ -978,6 +986,7 @@
 						LastSwiftMigration = 1100;
 					};
 					CEAAAE54195911E600CBBFE9 = {
+						LastSwiftMigration = 1330;
 						TestTargetID = 4F06AF2D1C499FD100F70798;
 					};
 				};
@@ -1197,6 +1206,7 @@
 				4F5BBBDC235F734F00E6D619 /* MobileSync.swift in Sources */,
 				CE01BB1020B759D3008E91B6 /* SFMetadataSyncManager.m in Sources */,
 				4FAA9B6D225461910006810D /* SFSyncDownTask.m in Sources */,
+				690B336227FE5478002737EB /* BriefcaseSyncDownTarget.swift in Sources */,
 				CE98A682209F698400507927 /* SFLayoutSyncDownTarget.m in Sources */,
 				4FDCBD5D1E8DDC5C008F8FCE /* SFRefreshSyncDownTarget.m in Sources */,
 				4F3DF87F1ECFA8BF00D1D9AF /* SFParentChildrenSyncUpTarget.m in Sources */,
@@ -1237,6 +1247,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				828E0E541AB398AA004E0AF2 /* TestSyncUpTarget.m in Sources */,
+				69474C3E27FEA30C002C2BEF /* BriefcaseSyncDownTests.swift in Sources */,
 				4F9732D61A816C2D006E2A86 /* SyncManagerTests.m in Sources */,
 				CEFB4B3020B4951100D70F2B /* SFLayoutSyncManagerTests.m in Sources */,
 				4FAA9B772255D49D0006810D /* SFSDKSoqlMutatorTests.m in Sources */,
@@ -1554,6 +1565,7 @@
 			baseConfigurationReference = CE8F13011AD4A84C00233F2F /* MobileSync-Test.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = NO;
+				CLANG_ENABLE_MODULES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MobileSync/MobileSync-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1575,6 +1587,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.salesforce.mobilesdk.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "MobileSyncTests/MobileSyncTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MobileSyncTestApp.app/MobileSyncTestApp";
 				WRAPPER_EXTENSION = xctest;
 			};
@@ -1585,6 +1600,7 @@
 			baseConfigurationReference = CE8F13011AD4A84C00233F2F /* MobileSync-Test.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = NO;
+				CLANG_ENABLE_MODULES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MobileSync/MobileSync-Prefix.pch";
 				INFOPLIST_FILE = "MobileSyncTests/MobileSyncTests-Info.plist";
@@ -1602,6 +1618,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.salesforce.mobilesdk.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "MobileSyncTests/MobileSyncTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MobileSyncTestApp.app/MobileSyncTestApp";
 				WRAPPER_EXTENSION = xctest;
 			};

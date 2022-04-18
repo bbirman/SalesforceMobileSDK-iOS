@@ -4,7 +4,15 @@
       "syncName": "syncDownContacts",
       "syncType": "syncDown",
       "soupName": "contacts",
-      "target": {"type":"soql", "query":"SELECT FirstName, LastName, Title, MobilePhone, Email, Department, HomePhone FROM Contact LIMIT 10000"},
+      "target": {"type":"briefcase",
+          "infos": [
+                    {
+                      "sobjectType": "Contact",
+                      "fieldlist": ["FirstName", "LastName", "Title", "MobilePhone", "Email", "Department", "HomePhone"],
+                      "soupName": "contacts"
+                    }
+                  ]
+      },
       "options": {"mergeMode":"OVERWRITE"}
     },
     {

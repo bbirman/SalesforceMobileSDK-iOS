@@ -48,8 +48,8 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
         _primingRecords = apiNameToTypeToPrimingRecords;
         
         // Relay token
-        _relayToken = dict[@"relayToken"];
-        
+        _relayToken = [dict[@"relayToken"] isKindOfClass:[NSNull class]] ? nil : dict[@"relayToken"];
+       
         // Rule errors
         NSMutableArray* ruleErrors = [NSMutableArray new];
         NSArray* ruleErrorsRaw = dict[@"ruleErrors"];

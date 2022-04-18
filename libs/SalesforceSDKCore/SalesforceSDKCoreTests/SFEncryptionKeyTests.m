@@ -40,6 +40,10 @@
     [super tearDown];
 }
 
+- (void)testURL {
+    [[NSMutableString alloc] initWithString:nil];
+}
+
 - (void)testKeyEquality
 {
     SFEncryptionKey *key1 = [[SFEncryptionKey alloc] initWithData:[@"keyData" dataUsingEncoding:NSUTF8StringEncoding]

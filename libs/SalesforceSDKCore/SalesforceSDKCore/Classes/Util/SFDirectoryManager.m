@@ -89,7 +89,7 @@ static NSString * const kDirectoryManagerErrorDomain = @"com.salesforce.mobilesd
         NSURL *sharedURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:[SFSDKDatasharingHelper sharedInstance].appGroupName];
         directory = [sharedURL path];
         directory = [directory stringByAppendingPathComponent:[SFSDKDatasharingHelper sharedInstance].appGroupName];
-        if(type == NSLibraryDirectory)
+        if (type == NSLibraryDirectory)
             directory = [directory stringByAppendingPathComponent:kSharedLibraryLocation];
     } else {
         NSArray *directories = NSSearchPathForDirectoriesInDomains(type, NSUserDomainMask, YES);

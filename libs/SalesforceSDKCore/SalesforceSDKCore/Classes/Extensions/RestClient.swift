@@ -100,13 +100,13 @@ extension RestRequest {
   
 }
 
-extension RestClient {
+public extension RestClient {
   
     /// Struct represents the JSON Structure of a Salesforce Response.
     /// This struct requires a Model Object that conforms to Decodable
     /// This model object's properties need to match the Salesforce Schema
     ///   at least in part.
-    public struct QueryResponse<Record: Decodable>: Decodable {
+    struct QueryResponse<Record: Decodable>: Decodable {
       var totalSize: Int?
       var done: Bool?
       var records: [Record]?
@@ -115,7 +115,7 @@ extension RestClient {
     /// Execute a prebuilt request.
     /// - Parameter request: `RestRequest` object.
     /// - Parameter completionBlock: `Result` block that handles the server's response.
-    public func send(request: RestRequest, _ completionBlock: @escaping (Result<RestResponse, RestClientError>) -> Void) {
+     func send(request: RestRequest, _ completionBlock: @escaping (Result<RestResponse, RestClientError>) -> Void) {
         request.parseResponse = false
         __send(request, failureBlock: { (rawResponse, error, urlResponse) in
             let apiError = RestClientError.apiFailed(response: rawResponse, underlyingError: error ?? RestClientError.apiResponseIsEmpty, urlResponse: urlResponse)
@@ -135,7 +135,7 @@ extension RestClient {
     /// - Parameter compositeRequest: `CompositeRequest` object containing the array of subrequests to execute.
     /// - Parameter completionBlock: `Result` block that handles the server's response.
     /// - See   [Composite](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_composite_composite.htm).
-    public func send(compositeRequest: CompositeRequest, _ completionBlock: @escaping (Result<CompositeResponse, RestClientError>) -> Void) {
+    func send(compositeRequest: CompositeRequest, _ completionBlock: @escaping (Result<CompositeResponse, RestClientError>) -> Void) {
         compositeRequest.parseResponse = false
         __send(compositeRequest, failureBlock: { (response, error, urlResponse) in
             let apiError = RestClientError.apiFailed(response: response, underlyingError: error ?? RestClientError.apiResponseIsEmpty, urlResponse: urlResponse)
@@ -149,7 +149,7 @@ extension RestClient {
     /// - Parameter batchRequest: `BatchRequest` object containing the array of subrequests to execute.
     /// - Parameter completionBlock: `Result` block that handles the server's response.
     /// - See   [Batch](https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/resources_composite_batch.htm).
-    public func send(batchRequest: BatchRequest, _ completionBlock: @escaping (Result<BatchResponse, RestClientError>) -> Void ) {
+    func send(batchRequest: BatchRequest, _ completionBlock: @escaping (Result<BatchResponse, RestClientError>) -> Void ) {
         batchRequest.parseResponse = false
         __send(batchRequest, failureBlock: { (response, error, urlResponse) in
             let apiError = RestClientError.apiFailed(response: response, underlyingError: error ?? RestClientError.apiResponseIsEmpty, urlResponse: urlResponse)
@@ -177,7 +177,7 @@ extension RestClient {
     ///
     /// This method relies on the passed parameter ofModelType to infer the generic Record's
     /// concrete type.
-    public func fetchRecords<Record: Decodable>(ofModelType modelType: Record.Type,
+    func fetchRecords<Record: Decodable>(ofModelType modelType: Record.Type,
                                          forRequest request: RestRequest,
                                          withDecoder decoder: JSONDecoder = .init(),
                                        _ completionBlock: @escaping (Result<QueryResponse<Record>, RestClientError>) -> Void) {
@@ -195,6 +195,7 @@ extension RestClient {
                   completionBlock(.failure(err))
           }
         }
+        
     }
   
     /// This method provides a reusuable, generic pipeline for retrieving records
@@ -215,7 +216,7 @@ extension RestClient {
     ///
     /// This method relies on the passed parameter ofModelType to infer the generic Record's
     /// concrete type.
-    public func fetchRecords<Record: Decodable>(ofModelType modelType: Record.Type,
+    func fetchRecords<Record: Decodable>(ofModelType modelType: Record.Type,
                                          forQuery query: String,
                                          withApiVersion version: String = SFRestDefaultAPIVersion,
                                          withDecoder decoder: JSONDecoder = .init(),
