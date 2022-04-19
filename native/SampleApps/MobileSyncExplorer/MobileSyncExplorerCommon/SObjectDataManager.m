@@ -76,16 +76,32 @@ static NSString* const kSyncUpName = @"syncUpContacts";
     [self.syncMgr reSyncByName:kSyncDownName updateBlock:^(SFSyncState *sync) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         if ([sync isDone] || [sync hasFailed]) {
-            [strongSelf refreshLocalData:completionBlock];
+            NSNumber *syncId = [NSNumber numberWithLong:sync.syncId];
+            
+            [[strongSelf syncMgr] cleanResyncGhosts:syncId completionStatusBlock:^(SFSyncStateStatus syncStatus, NSUInteger numRecords) {
+                NSLog(@"here");
+                [strongSelf refreshLocalData:completionBlock];
+            } error: nil];
+       
+            
         }
+        
     } error:nil];
 }
 
 - (void)updateRemoteData:(SFSyncSyncManagerUpdateBlock)completionBlock {
     // See usersyncs.json
+    __weak SObjectDataManager *weakSelf = self;
     [self.syncMgr reSyncByName:kSyncUpName updateBlock:^(SFSyncState* sync) {
         if ([sync isDone] || [sync hasFailed]) {
-            completionBlock(sync);
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+//            NSNumber *syncId = [NSNumber numberWithLong:sync.syncId];
+//
+//            [[strongSelf syncMgr] cleanResyncGhosts:syncId completionStatusBlock:^(SFSyncStateStatus syncStatus, NSUInteger numRecords) {
+//                NSLog(@"here");
+                completionBlock(sync);
+//            } error: nil];
+            
         }
     } error:nil];
 }

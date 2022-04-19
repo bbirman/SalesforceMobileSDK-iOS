@@ -31,8 +31,8 @@ import Foundation
 public class BriefcaseObjectInfo: NSObject, Codable {
     let sobjectType: String
     let fieldlist: [String]
-    var idFieldName: String
-    var modificationDateFieldName: String
+    let idFieldName: String
+    let modificationDateFieldName: String
     let soupName: String
     
     public convenience init(soupName: String, sobjectType: String, fieldlist: [String]) {
@@ -45,7 +45,6 @@ public class BriefcaseObjectInfo: NSObject, Codable {
         self.fieldlist = fieldlist
         self.idFieldName = idFieldName ?? kId
         self.modificationDateFieldName = modificationDateFieldName ?? kLastModifiedDate
-        
     }
     
     public required init(from decoder: Decoder) throws {
@@ -56,44 +55,30 @@ public class BriefcaseObjectInfo: NSObject, Codable {
         self.idFieldName = try container.decodeIfPresent(String.self, forKey: .idFieldName) ?? kId
         self.modificationDateFieldName = try container.decodeIfPresent(String.self, forKey: .modificationDateFieldName) ?? kLastModifiedDate
     }
-    
-//    init(sobjectType: String, fieldlist: [String], idFieldName: String) {
-//       BriefcaseObjectInfo(sobjectType: sobjectType, fieldlist: fieldlist, idFieldName: idFieldName)
-//    }
 }
 
 @objc(SFBriefcaseSyncDownTarget)
 public class BriefcaseSyncDownTarget: SyncDownTarget {
     private var relayToken: String? = nil
     private var maxTimeStamp: Int64 = 0
-    private var infos: [BriefcaseObjectInfo]
-    private var infosMap = [String : BriefcaseObjectInfo]() // TODO: Is this the right style to initialize?
+    private var infos: [BriefcaseObjectInfo] = []
+    private var infosMap: [String: BriefcaseObjectInfo] = [:]
 
     // TODO
     override public init(dict: [AnyHashable : Any]) {
-       
-        
-        
         if let i = dict["infos"]  {
-            do  {
-                print(i)
+            do {
                 let json = try JSONSerialization.data(withJSONObject: i)
                 let briefcaseInfos = try JSONDecoder().decode([BriefcaseObjectInfo].self, from: json)
                 infos = briefcaseInfos
             } catch {
                 print(error)
-                infos = [BriefcaseObjectInfo]()
             }
-           
-        } else {
-            infos = [BriefcaseObjectInfo]() // TODO
         }
         for info in infos {
             infosMap[info.sobjectType] = info
         }
-        
         super.init(dict: dict)
-        
     }
     
     override public class func new(fromDict dict: [AnyHashable : Any]) -> Self? {
@@ -102,12 +87,9 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
     
     override public func asDict() -> NSMutableDictionary {
         let dict = super.asDict()
-        
         let data = try! JSONEncoder().encode(infos)
         let json = try! JSONSerialization.jsonObject(with: data, options: [])
-//        let encodedData = try? JSONEncoder().encode(infos)
-//        let jsonString = String(data: encodedData!,
-//                                encoding: .utf8)
+        
         dict["infos"] = json
         return dict
     }
@@ -137,7 +119,7 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
     
     
     override public func startFetch(syncManager: SyncManager, maxTimeStamp: Int64, onFail errorBlock: @escaping SyncDownErrorBlock, onComplete completeBlock: @escaping SyncDownCompletionBlock) {
-        self.maxTimeStamp = maxTimeStamp
+        //self.maxTimeStamp = maxTimeStamp // TODO: we're on 238
         relayToken = nil
         totalSize = 0 // -1 //Negative integer '-1' overflows when stored into unsigned type 'UInt'
         getIdsFromBriefcasesAndFetchFromServer(syncManager: syncManager, relayToken: relayToken, onFail: errorBlock, onComplete: completeBlock)
@@ -168,10 +150,13 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
                     return nil
                 }
                 
-                let totalCalls = objectFetches.count // TODO: what if this is zero?
                 var successfulCalls = 0
-                var records = [Any]()
-                
+                var records: [Any] = []
+                let totalCalls = objectFetches.count // TODO: what if this is zero?
+                if totalCalls == 0 {
+                    completeBlock?(records)
+                }
+
                 // Get records using SOQL one object type at a time
                 objectFetches.forEach { (objectType, objectInfo, recordIds) in
                     var fieldList = Set(objectInfo.fieldlist)
@@ -208,55 +193,8 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
             }
         }
     }
-    /**
-        * Method that calls the priming records API to get ids to fetch
-        * then use SOQL to get record fields
-        *
-        * @param syncManager
-        * @return
-        */
-//       private JSONArray getIdsFromBriefcasesAndFetchFromServer(SyncManager syncManager)
-//           throws IOException, JSONException {
-//           JSONArray records = new JSONArray();
-//
-//           // Run priming record request
-//           Map<String, List<String>> objectTypeToIds = new HashMap<>();
-//           relayToken = getIdsFromBriefcases(syncManager, objectTypeToIds, relayToken, maxTimeStamp);
-//
-//           // Get records using SOQL one object type at a time
-//           for (Entry<String, List<String>> entry : objectTypeToIds.entrySet()) {
-//               String objectType = entry.getKey();
-//               List<String> idsToFetch = entry.getValue();
-//               if (idsToFetch.size() > 0) {
-//                   BriefcaseObjectInfo info = infosMap.get(objectType);
-//
-//                   ArrayList<String> fieldlistToFetch = new ArrayList<>(info.fieldlist);
-//                   for (String fieldName : Arrays.asList(info.idFieldName, info.modificationDateFieldName)) {
-//                       if (!fieldlistToFetch.contains(fieldName)) {
-//                           fieldlistToFetch.add(fieldName);
-//                       }
-//                   }
-//                   JSONArray fetchedRecords = fetchFromServer(syncManager, info.sobjectType, idsToFetch, fieldlistToFetch);
-//                   for (int i = 0; i < fetchedRecords.length(); i++) {
-//                       records.put(fetchedRecords.getJSONObject(i));
-//                   }
-//               }
-//           }
-//
-//           if (totalSize == -1) {
-//               // FIXME once 238 is GA
-//               //  - this will only be correct if there is only one "page" of results
-//               //  - using response.stats.recordCountTotal would only be correct if the filtering by
-//               //  timestamp did not exclude any results
-//               //  - also in 236, response.stats.recordCountTotal seems wrong (it says 1000 all the time)
-//               totalSize = records.length();
-//           }
-//
-//           return records;
-//       }
     
     private func getIdsFromBriefcases(syncManager: SyncManager, relayToken: String?, maxTimeStamp: Int64, completion: @escaping (Result<([String: [String]], String?), Error>) -> Void) {
-        
         let request = RestClient.shared.request(forPrimingRecords: relayToken, apiVersion: nil)
         NetworkUtils.sendRequest(withMobileSyncUserAgent: request) { response, error, urlResponse in
             completion(.failure(error ?? NSError(domain: "test", code: 101))) // TODO
@@ -268,26 +206,22 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
                 return
             }
             let primingResponse = PrimingRecordsResponse(response)
-            print("BB priming response \(primingResponse)")
-            let allPrimingRecords = primingResponse.primingRecords
-            
-            var objectTypeToIds = [String: [String]]() // right way to initialize?
-            self.infos.forEach({ objectInfo in
-                guard let recordLists = allPrimingRecords[objectInfo.sobjectType]?.values else { return }
-                objectTypeToIds[objectInfo.sobjectType] = recordLists.flatMap { records in
+            let objectTypeToIds = self.infos.reduce(into: [String: [String]]()) { result, objectInfo in
+                guard let recordLists = primingResponse.primingRecords[objectInfo.sobjectType]?.values else { return }
+                result[objectInfo.sobjectType] = recordLists.flatMap { records in
                     return records.filter { record in
                         // Filtering by maxTimeStamp
                         // TODO Remove once 238 is GA (filtering will happen on server)
                         Int64(record.systemModstamp.timeIntervalSince1970) > maxTimeStamp
-                    }
-                }.compactMap { $0.objectId }  // TODO
-            })
+                    }.compactMap { $0.objectId }
+                }
+            }
             completion(.success((objectTypeToIds, primingResponse.relayToken)))
         }
     }
 
     private func fetchRecordsFromServer(sobjectType: String, ids: [String], fieldList: [String], completion: @escaping (Result<[Any]?, Error>) -> Void){
-        let whereClause = "\(idFieldName) IN ('\(ids.joined(separator: "', '"))')" // TODO
+        let whereClause = "\(idFieldName) IN ('\(ids.joined(separator: "', '"))')"
         
         // SOQL query size limit is 100,000 characters (so ~5000 ids)
         // See https://developer.salesforce.com/docs/atlas.en-us.salesforce_app_limits_cheatsheet.meta/salesforce_app_limits_cheatsheet/salesforce_app_limits_platform_soslsoql.htm
@@ -296,7 +230,10 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
         // TODO: The response is 2000 records at a time, is the briefcase size less than that so we don't need to use
         // "nextRecordsUrl"?
         // https://developer.salesforce.com/docs/atlas.en-us.api_rest.meta/api_rest/dome_query.htm
-        let soql = SFSDKSoqlBuilder.withFieldsArray(fieldList).from(sobjectType).whereClause(whereClause).build()!
+        guard let soql = SFSDKSoqlBuilder.withFieldsArray(fieldList).from(sobjectType).whereClause(whereClause).build() else {
+            completion(.failure(NSError(domain: "", code: 1))) // TODO
+            return
+        }
         let request = RestClient.shared.request(forQuery: soql, apiVersion: nil)
        
         
@@ -315,15 +252,15 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
     
     
     // TODO: Need to test recursion
-    func getAllIdsFromBriefcases(syncManager: SyncManager, relayToken: String?, maxTimeStamp: Int64, completion: @escaping (Result<([String: [String]], String?), Error>) -> Void) {
+    func allIdsFromBriefcases(syncManager: SyncManager, relayToken: String?, maxTimeStamp: Int64, completion: @escaping (Result<([String: [String]], String?), Error>) -> Void) {
         getIdsFromBriefcases(syncManager: syncManager, relayToken: relayToken, maxTimeStamp: maxTimeStamp) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success((let records, let relayToken)):
                 
                 if let relayToken = relayToken {
-                    print("BB: relayToken \(relayToken)")
-                    self.getAllIdsFromBriefcases(syncManager: syncManager, relayToken: relayToken, maxTimeStamp: maxTimeStamp) { result in
+                    print("BB: relayToken \(relayToken)") // TODO: remove
+                    self.allIdsFromBriefcases(syncManager: syncManager, relayToken: relayToken, maxTimeStamp: maxTimeStamp) { result in
                         switch result {
                         case .success((let nextRecords, let nextRelayToken)):
                             let combinedRecords = records.merging(nextRecords) { $0 + $1 }
@@ -341,144 +278,97 @@ public class BriefcaseSyncDownTarget: SyncDownTarget {
             
         }
     }
-    
-    func nonDirtyRecordsIds(syncManager: SyncManager, soupName: String, idField: String, additionalPredicate: String) -> NSOrderedSet {
-        let sql = "SELECT {\(soupName):\(idField)} FROM {\(soupName)} WHERE {\(soupName):\(kSyncTargetLocal)} = '0' \(additionalPredicate) ORDER BY {\(soupName):\(idField)} ASC"
-        
-       return idsWithQuery(sql, syncManager: syncManager)
-    }
-    
-    func idsWithQuery(_ query: String, syncManager: SyncManager) -> NSOrderedSet {
-        return NSOrderedSet()
-        // TODO: Below
-    }
-    
-//    - (NSOrderedSet *)getIdsWithQuery:idsSql syncManager:(SFMobileSyncSyncManager *)syncManager {
-//        NSMutableOrderedSet* ids = [NSMutableOrderedSet new];
-//        SFQuerySpec* querySpec = [SFQuerySpec newSmartQuerySpec:idsSql withPageSize:kSyncTargetPageSize];
-//
-//        BOOL hasMore = YES;
-//        for (NSUInteger pageIndex=0; hasMore; pageIndex++) {
-//            NSArray* results = [syncManager.store queryWithQuerySpec:querySpec pageIndex:pageIndex error:nil];
-//            hasMore = (results.count == kSyncTargetPageSize);
-//            [ids addObjectsFromArray:[self flatten:results]];
-//        }
-//        return ids;
-//    }
-    
-    
-//    - (NSOrderedSet *)getNonDirtyRecordIds:(SFMobileSyncSyncManager *)syncManager soupName:(NSString *)soupName idField:(NSString *)idField additionalPredicate:(NSString *)additionalPredicate {
-//        NSString* nonDirtyRecordsSql = [self getNonDirtyRecordIdsSql:soupName idField:idField additionalPredicate:additionalPredicate];
-//        return [self getIdsWithQuery:nonDirtyRecordsSql syncManager:syncManager];
-//    }
 
-//    - (NSString *)getNonDirtyRecordIdsSql:(NSString *)soupName idField:(NSString *)idField additionalPredicate:(NSString *)additionalPredicate {
-//        return [NSString stringWithFormat:@"SELECT {%@:%@} FROM {%@} WHERE {%@:%@} = '0' %@ ORDER BY {%@:%@} ASC",
-//                                          soupName, idField, soupName, soupName, kSyncTargetLocal, additionalPredicate, soupName, idField];
-//    }
-    
     override public func cleanGhosts(syncManager: SyncManager, soupName: String, syncId: NSNumber, onFail errorBlock: @escaping SyncDownErrorBlock, onComplete completeBlock: @escaping SyncDownCompletionBlock) {
         
-        getAllIdsFromBriefcases(syncManager: syncManager, relayToken: nil, maxTimeStamp: maxTimeStamp) { [weak self] result in
+        // Get all ids
+        allIdsFromBriefcases(syncManager: syncManager, relayToken: nil, maxTimeStamp: maxTimeStamp) { [weak self] result in
             guard let self = self else { return }
             switch result {
-            case .success(let records, _):
-                records.map { (objectName, records) in
-                    let objectInfo = self.infosMap[objectName]
-                    //clean
+            case .success((let objectTypeToIds, _)):
+                do {
+                    // Cleaning up ghosts one object type at a time
+                    let ghostRecords = try objectTypeToIds.compactMap { (objectName, records) -> [String]? in
+                        guard let objectInfo = self.infosMap[objectName] else { return nil }
+                        
+                        let predicate = self.buildSyncIdPredicateIfIndexed(syncManager: syncManager, soupName: soupName, syncId: syncId)
+                        let localIds = try self.nonDirtyRecordsIds(syncManager: syncManager, soupName: objectInfo.soupName, idField: objectInfo.idFieldName, additionalPredicate: predicate).mutableCopy() as? NSMutableOrderedSet
+                        localIds?.removeObjects(in: records)
+                        if let ghosts = localIds?.array as? [String], !ghosts.isEmpty {
+                            try self.deleteRecordsFromLocalStore(syncManager: syncManager, soupName: soupName, ids: ghosts, idField: objectInfo.idFieldName)
+                            return ghosts
+                        }
+                        return nil
+                    }.flatMap { $0 }
+                    completeBlock(ghostRecords)
+                } catch {
+                    errorBlock(error)
                 }
-                
             case .failure(let error):
                 errorBlock(error)
             }
         }
-        
-        
-        
     }
-//        int countGhosts = 0;
-//
-//            // Get all ids
-//            Map<String, List<String>> objectTypeToIds = new HashMap<>();
-//            String relayToken = null;
-//            do {
-//                relayToken = getIdsFromBriefcases(syncManager, objectTypeToIds, relayToken, 0);
-//            } while (relayToken != null);
-//
-//            // Cleaning up ghosts one object type at a time
-//            for (Entry<String, List<String>> entry : objectTypeToIds.entrySet()) {
-//                String objectType = entry.getKey();
-//                BriefcaseObjectInfo info = infosMap.get(objectType);
-//                SortedSet<String> remoteIds = new TreeSet<>(entry.getValue());
-//                SortedSet<String> localIds = getNonDirtyRecordIds(syncManager, info.soupName, info.idFieldName,
-//                    buildSyncIdPredicateIfIndexed(syncManager, info.soupName, syncId));
-//                localIds.removeAll(remoteIds);
-//                int localIdSize = localIds.size();
-//                if (localIdSize > 0) {
-//                    deleteRecordsFromLocalStore(syncManager, info.soupName, localIds, info.idFieldName);
-//                }
-//                countGhosts += localIdSize;
-//            }
-//
-//            return countGhosts;
 
     // Overriding because records could be in different soups
     override public func cleanAndSaveRecordsToLocalStore(syncManager: SyncManager, soupName: String, records: [Any], syncId: NSNumber) {
-        let store = syncManager.store
-        //let db = store.da
-        
-       // super.sa'
-        
-       // TODO: Single DB transaction
-        
+        // TODO: Single DB transaction
         records.forEach { record in
-            guard var record = record as? [String: Any],
-                  let info = briefcaseInfo(for: record) else {
-                // TODO: Log
-                return
+            if let record = record as? [String: Any],
+               let info = briefcaseInfo(for: record) {
+                super.cleanAndSaveRecordsToLocalStore(syncManager: syncManager, soupName: info.soupName, records: [record], syncId: syncId)
             }
-            super.cleanAndSaveRecordsToLocalStore(syncManager: syncManager, soupName: info.soupName, records: [record], syncId: syncId)
-            
-//            - (void)cleanAndSaveRecordsToLocalStore:(SFMobileSyncSyncManager *)syncManager soupName:(NSString *)soupName records:(NSArray *)records syncId:(NSNumber *)syncId {
-//                [self saveInSmartStore:syncManager.store soupName:soupName records:records idFieldName:self.idFieldName syncId:syncId lastError:nil cleanFirst:YES];
-//            }
-
-            
-            // cleanAndSaveInSmartStore(smartStore, info.soupName, record, info.idFieldName, false);
-//            NSMutableArray* recordsFromSmartStore = [NSMutableArray new];
-//            NSMutableArray* recordsFromServer = [NSMutableArray new];
-//
-//            for (NSDictionary * record in records) {
-//                NSMutableDictionary *mutableRecord = [record mutableCopy];
-//                if (cleanFirst) {
-//                    [self cleanRecord:mutableRecord];
-//                }
-//                [self addSyncId:mutableRecord syncId:syncId];
-//                [self addLastError:mutableRecord lastError:lastError];
-//                if (mutableRecord[SOUP_ENTRY_ID]) {
-//                    // Record came from smartstore
-//                    [recordsFromSmartStore addObject:mutableRecord];
-//                } else {
-//                    // Record came from server
-//                    [recordsFromServer addObject:mutableRecord];
-//                }
-//            }
-//
-//            // Saving in bulk
-//            [smartStore upsertEntries:recordsFromSmartStore toSoup:soupName];
-//            [smartStore upsertEntries:recordsFromServer toSoup:soupName withExternalIdPath:idFieldName error:nil];
-            
+            // TODO: else case
         }
-
     }
     
-    
-    
-    private func briefcaseInfo(for record: [String: Any]) -> BriefcaseObjectInfo? {
+    func briefcaseInfo(for record: [String: Any]) -> BriefcaseObjectInfo? {
         if let attributes = record["attributes"] as? [String: Any],
            let objectType = attributes["type"] as? String {
             return infosMap[objectType]
         }
         return nil
+    }
+    
+    // adapted from SyncDownTarget.m
+    
+    func buildSyncIdPredicateIfIndexed(syncManager: SyncManager, soupName: String, syncId: NSNumber) -> String {
+        let indexSpecs = syncManager.store.indices(forSoupNamed: soupName)
+        for indexSpec in indexSpecs {
+            if indexSpec.path == kSyncTargetSyncId {
+                return "AND {\(soupName):\(kSyncTargetSyncId)} = \(syncId.stringValue)"
+            }
+        }
+        return ""
+    }
+    
+    func deleteRecordsFromLocalStore(syncManager: SyncManager, soupName: String, ids: [String], idField: String) throws {
+        if !ids.isEmpty {
+            let smartSql = "SELECT {\(soupName):\(SmartStore.soupEntryId)} FROM {\(soupName)} WHERE {\(soupName):\(idField)} IN ('\(ids.joined(separator: "','"))')"
+            if let spec = QuerySpec.buildSmartQuerySpec(smartSql: smartSql, pageSize: UInt(ids.count)) {
+                try syncManager.store.removeEntries(usingQuerySpec: spec, forSoupNamed: soupName)
+            }
+            
+        }
+    }
+    
+    func nonDirtyRecordsIds(syncManager: SyncManager, soupName: String, idField: String, additionalPredicate: String) throws -> NSOrderedSet {
+        let sql = "SELECT {\(soupName):\(idField)} FROM {\(soupName)} WHERE {\(soupName):\(kSyncTargetLocal)} = '0' \(additionalPredicate) ORDER BY {\(soupName):\(idField)} ASC"
+        
+       return try idsWithQuery(sql, syncManager: syncManager)
+    }
+    
+    func idsWithQuery(_ query: String, syncManager: SyncManager) throws -> NSOrderedSet {
+        guard let querySpec = QuerySpec.buildSmartQuerySpec(smartSql: query, pageSize: 20) else { return NSOrderedSet() }// TODO:
+
+        let ids = NSMutableOrderedSet()
+        var pageIndex: UInt = 0
+        var hasMore = true
+        while let results = try syncManager.store.query(using: querySpec, startingFromPageIndex: pageIndex) as? [[Any]], hasMore {
+            hasMore = (results.count == 20) // TODO: kSyncTargetPageSize
+            pageIndex += 1
+            ids.addObjects(from: results.flatMap { $0 })
+        }
+        return ids
     }
 }

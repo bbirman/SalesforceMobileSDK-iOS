@@ -244,7 +244,12 @@ static NSUInteger const kSFSyncTargetRefreshDefaultCountIdsPerSoql = 500;
     }
     // Get records from server that have changed after maxTimeStamp
     if (idsInSmartStore.count > 0) {
-        [self fetchFromServer:idsInSmartStore fieldlist:self.fieldlist maxTimeStamp:maxTimeStamp errorBlock:errorBlock completeBlock:^(NSArray *records) {
+        NSMutableSet *fieldlistToFetch = [NSMutableSet setWithArray: self.fieldlist];
+        for (NSString *fieldName in @[self.idFieldName, self.modificationDateFieldName]) {
+            [fieldlistToFetch addObject:fieldName];
+        }
+        
+        [self fetchFromServer:idsInSmartStore fieldlist:[fieldlistToFetch allObjects] maxTimeStamp:maxTimeStamp errorBlock:errorBlock completeBlock:^(NSArray *records) {
             // Increment page if there is more to fetch
             BOOL done = self.countIdsPerSoql * (self.page + 1) >= self.totalSize;
             self.page = (done ? 0 : self.page+1);
