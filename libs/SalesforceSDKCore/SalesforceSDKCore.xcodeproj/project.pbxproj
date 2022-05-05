@@ -71,6 +71,8 @@
 		6900B62D24B64DD800500923 /* NSURLResponse+SFAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 6900B62B24B64DD800500923 /* NSURLResponse+SFAdditions.m */; };
 		6900D804243D521C00888336 /* SFRestAPI+Notifications.h in Headers */ = {isa = PBXBuildFile; fileRef = 6900D802243D521C00888336 /* SFRestAPI+Notifications.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6900D805243D521C00888336 /* SFRestAPI+Notifications.m in Sources */ = {isa = PBXBuildFile; fileRef = 6900D803243D521C00888336 /* SFRestAPI+Notifications.m */; };
+		691E4F8128246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 691E4F8028246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf */; };
+		691E4F8228246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 691E4F8028246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf */; };
 		6924966A2444E50500D3F63B /* SFFormatUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 692496682444E50500D3F63B /* SFFormatUtils.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6924966B2444E50500D3F63B /* SFFormatUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 692496692444E50500D3F63B /* SFFormatUtils.m */; };
 		6931E954248B5C7100417362 /* SFDirectoryManager+Internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 6931E94E248ADD8E00417362 /* SFDirectoryManager+Internal.h */; };
@@ -688,6 +690,7 @@
 		6900D802243D521C00888336 /* SFRestAPI+Notifications.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SFRestAPI+Notifications.h"; sourceTree = "<group>"; };
 		6900D803243D521C00888336 /* SFRestAPI+Notifications.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "SFRestAPI+Notifications.m"; sourceTree = "<group>"; };
 		691D129F23296A93000D6D41 /* SFSDKURLCacheTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SFSDKURLCacheTests.m; path = SalesforceSDKCoreTests/SFSDKURLCacheTests.m; sourceTree = SOURCE_ROOT; };
+		691E4F8028246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = 068B000000DbTz7IAF_1.pdf; sourceTree = "<group>"; };
 		692496682444E50500D3F63B /* SFFormatUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SFFormatUtils.h; sourceTree = "<group>"; };
 		692496692444E50500D3F63B /* SFFormatUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SFFormatUtils.m; sourceTree = "<group>"; };
 		6931E94E248ADD8E00417362 /* SFDirectoryManager+Internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SFDirectoryManager+Internal.h"; sourceTree = "<group>"; };
@@ -1457,6 +1460,7 @@
 		82D4642819C7C8170006BDFE /* SalesforceSDKCoreTestApp */ = {
 			isa = PBXGroup;
 			children = (
+				691E4F8028246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf */,
 				B7282F3F1D8C70E700475F79 /* SalesforceSDKCoreTestApp.entitlements */,
 				4F7EB4951BFFCEF600768720 /* AppDelegate.h */,
 				4F7EB4961BFFCEF600768720 /* AppDelegate.m */,
@@ -2044,6 +2048,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BC9BFF421D5A46B6009FFA1F /* test_credentials.json in Resources */,
+				691E4F8228246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2061,6 +2066,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4FE5332B1BFFE70600814D2A /* Main_iPhone.storyboard in Resources */,
+				691E4F8128246C5B00D5F50D /* 068B000000DbTz7IAF_1.pdf in Resources */,
 				4FE5332A1BFFE70600814D2A /* Main_iPad.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

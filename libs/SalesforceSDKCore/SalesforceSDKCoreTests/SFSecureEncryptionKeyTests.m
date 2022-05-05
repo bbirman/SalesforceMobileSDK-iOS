@@ -25,22 +25,165 @@
 #import <SalesforceSDKCore/SalesforceSDKCore.h>
 #import "SFSecureEncryptionKey.h"
 
+@implementation NSData (FieldServiceCore)
+
++ (nullable instancetype)dataWithContentsOfEncryptedFile:(nonnull NSString *)path withKey:(nonnull NSData *)key {
+    NSFileManager *fileMgr = [[NSFileManager alloc] init];
+    if (![fileMgr fileExistsAtPath:path]) {
+        return nil;
+    }
+    
+    BOOL fallbackDecrypt = NO;
+    NSData *decryptedData = nil;
+    NSMutableData *decryptedDataMutable = [[NSMutableData alloc] init];
+    uint8_t bytes[4096];
+    memset(bytes, 0, 4096);
+    
+
+    // check if this is decryptable with new style
+    NSData *symKey = [SFSDKKeyGenerator encryptionKeyFor:[[NSString alloc] initWithData:key encoding:NSUTF8StringEncoding] error:nil];
+    if (symKey != nil) {
+        SFSDKDecryptStream *stream = [[SFSDKDecryptStream alloc] initWithFileAtPath:path];
+        [stream setupEncryptionKey:symKey];
+        [stream open];
+        
+        // attempt to decrypt one chunk of data.
+        NSInteger bytesDecrypted = [stream read:bytes maxLength:4096];
+        
+        // If it fails, we fallback
+        if (bytesDecrypted == -1) {
+            fallbackDecrypt = YES;
+        } else {
+            // otherwise, we're good to go. Continue with the reads.
+            [decryptedDataMutable appendBytes:bytes length:bytesDecrypted];
+
+            while ([stream hasBytesAvailable]) {
+                memset(bytes, 0, 4096);
+                bytesDecrypted = [stream read:bytes maxLength:4096];
+                if (bytesDecrypted > -1) {
+                    [decryptedDataMutable appendBytes:bytes length:bytesDecrypted];
+                } else {
+                    NSLog(@"Negative one");
+                }
+            }
+            
+            decryptedData = [decryptedDataMutable copy];
+        }
+        
+        [stream close];
+        
+        // At _some point_ SFDecryptStream is removed from MSDK. At that time, we MAY NOT
+        // have a fallback point, and we'd have to handle a failure to decrypt gracefully
+        // up the call stack.
+        if (fallbackDecrypt == YES) {
+            NSLog(@"fallback");
+            //decryptedData = [NSData dataWithContentsOfEncryptedFileDeprecated:path withKey:key];
+        }
+    }
+    return decryptedData;
+}
+
+- (void)writeToEncryptedFile:(NSString *)path withKeyString:(nonnull NSString *) keyString {
+    NSData *symKey = [SFSDKKeyGenerator encryptionKeyFor:keyString error:nil];
+    if (symKey != nil) {
+        SFSDKEncryptStream *stream = [[SFSDKEncryptStream alloc] initToFileAtPath:path append:NO];
+        [stream setupEncryptionKey:symKey];
+
+        [stream open];
+        long totalBytesWritten = 0;
+        long bytesWritten = 0;
+        long maxBytesToWrite = 4096;
+        while (bytesWritten >= 0 && totalBytesWritten < self.length) {
+
+            long bytesRemaining = self.length - totalBytesWritten;
+            if (maxBytesToWrite > bytesRemaining) {
+                maxBytesToWrite = bytesRemaining;
+            }
+
+            bytesWritten = [stream write:&(self.bytes[totalBytesWritten]) maxLength:maxBytesToWrite];
+
+            if (bytesWritten >= 0) {
+                totalBytesWritten += bytesWritten;
+            }
+        }
+        [stream close];
+    }
+}
+
+- (void)writeToEncryptedFile:(nonnull NSString *)path withKey:(nonnull NSData *) key {
+    [self writeToEncryptedFile:path withKeyString:[[NSString alloc] initWithData:key encoding:NSUTF8StringEncoding]];
+}
+@end
+
 @interface SFSecureEncryptionKeyTests : XCTestCase
 @end
 
 @implementation SFSecureEncryptionKeyTests
-
-
-- (void)setUp
-{
+- (void)setUp {
     [super setUp];
 }
 
-- (void)tearDown
-{
+- (void)tearDown {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
     [super tearDown];
 }
+
+- (void)testFileStream {
+    // Data set up
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"068B000000DbTz7IAF_1" ofType:@"pdf"];
+    XCTAssertNotNil(filePath);
+    XCTAssertTrue([[NSFileManager defaultManager] fileExistsAtPath:filePath]);
+    
+    NSData *originalData = [NSData dataWithContentsOfFile:filePath];
+    UIImage *originalImage = [UIImage imageWithData:originalData];
+    
+    
+    NSError *error = nil;
+    // Get encrypted file location and delete any existing file before writing new one
+    NSString *encryptedFileDirectory = [[SFDirectoryManager sharedManager] globalDirectoryOfType:NSLibraryDirectory components:nil];
+    [SFDirectoryManager ensureDirectoryExists:encryptedFileDirectory error:&error];
+    XCTAssertNil(error);
+    NSString *encryptedFileLocation = [encryptedFileDirectory stringByAppendingPathComponent:@"encryptedFile"];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:encryptedFileLocation]) {
+        [[NSFileManager defaultManager] removeItemAtPath:encryptedFileLocation error:&error];
+    }
+    XCTAssertFalse([[NSFileManager defaultManager] fileExistsAtPath:encryptedFileLocation]);
+    XCTAssertNil(error);
+    
+    // Encrypt + verify new file exists
+    NSData *encryptionKey = [SFSDKKeyGenerator encryptionKeyFor:@"testKey" error:&error];
+    XCTAssertNil(error);
+    [originalData writeToEncryptedFile:encryptedFileLocation withKey:encryptionKey];
+    XCTAssertTrue([[NSFileManager defaultManager] fileExistsAtPath:encryptedFileLocation]);
+    
+    // TODO: Validate encrypted file? Check size?
+    NSData *encryptedData = [NSData dataWithContentsOfFile:encryptedFileLocation];
+    //XCTAssertEqual(encryptedData.length, 88560);
+    
+    // Decrypt
+    NSData *decryptedData = [NSData dataWithContentsOfEncryptedFile:encryptedFileLocation withKey:encryptionKey];
+    UIImage *decryptedImage = [UIImage imageWithData:decryptedData];
+    
+    // Compare original and final decrypted
+    UInt8 *originalArray = (UInt8 *)originalData.bytes;
+    UInt8 *decryptedArray = (UInt8 *)decryptedData.bytes;
+
+    NSInteger totalData = [decryptedData length] / sizeof(uint8_t);
+    int failCount = 0;
+    for (int i = 0; i< originalData.length; i++) {
+        if (originalArray[i] != decryptedArray[i]) {
+            failCount++;
+        }
+    }
+    XCTAssertEqualObjects(originalData, decryptedData);
+    XCTAssertEqualObjects(originalImage, decryptedImage);
+    NSLog(@"Original data length: %lu", originalData.length); // 83520
+    NSLog(@"Decrypted data length: %lu", decryptedData.length);
+    NSLog(@"Number of differing values: %i", failCount);
+}
+
+
+
 
 // ensures create / retrieve / delete work
 -(void)testCreateRetrieveDelete
