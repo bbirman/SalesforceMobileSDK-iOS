@@ -24,7 +24,12 @@ let package = Package(
         .target(
             name: "SalesforceSDKCommon",
             dependencies: [],
-            path: "SalesforceSDKCommon"),
+            path: "SalesforceSDKCommon",
+            publicHeadersPath: "Classes/Public"),
+        .target(
+            name: "SalesforceSDKCommonSwift",
+            dependencies: ["SalesforceSDKCommon"],
+            path: "SalesforceSDKCommonSwift"),
         .testTarget(
             name: "SalesforceSDKCommonTests",
             dependencies: ["SalesforceSDKCommon"],
