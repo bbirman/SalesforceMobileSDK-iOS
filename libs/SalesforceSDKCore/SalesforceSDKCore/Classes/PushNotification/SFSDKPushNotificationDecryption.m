@@ -22,8 +22,9 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWIS
 WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#import <SalesforceSDKCore/SFSDKCryptoUtils.h>
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCore/SFSDKCryptoUtils.h>
+#import "SFSDKCryptoUtils.h"
+@import SalesforceSDKCommon;
 #import "SFSDKPushNotificationDecryption.h"
 #import "SFSDKPushNotificationDecryption+Internal.h"
 #import "SFSDKPushNotificationFieldsConstants.h"

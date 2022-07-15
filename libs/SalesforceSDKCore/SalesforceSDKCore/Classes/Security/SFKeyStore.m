@@ -25,7 +25,13 @@
 #import "SFKeyStore+Internal.h"
 #import "SFCrypto.h"
 #import "SFSDKCryptoUtils.h"
+#import "SFSDKCoreLogger.h"
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCommonSwift;
+#else
 #import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
+#endif
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-implementations"

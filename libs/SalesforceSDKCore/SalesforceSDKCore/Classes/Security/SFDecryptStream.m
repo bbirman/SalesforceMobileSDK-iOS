@@ -23,6 +23,7 @@
  */
 
 #import "SFDecryptStream.h"
+#import "SFSDKCoreLogger.h"
 
 
 @interface SFDecryptStream()

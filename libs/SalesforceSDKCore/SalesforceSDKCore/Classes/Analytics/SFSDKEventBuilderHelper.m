@@ -30,7 +30,8 @@
 #import "SFSDKEventBuilderHelper.h"
 #import "SFUserAccountManager.h"
 #import "SFSDKSalesforceAnalyticsManager.h"
-#import <SalesforceAnalytics/SFSDKInstrumentationEventBuilder.h>
+//#import <SalesforceAnalytics/SFSDKInstrumentationEventBuilder.h>
+@import SalesforceAnalytics;
 
 NSString * const kSFSDKEventBuilderHelperStartTime   = @"startTime";
 NSString * const kSFSDKEventBuilderHelperEndTime   = @"endTime";

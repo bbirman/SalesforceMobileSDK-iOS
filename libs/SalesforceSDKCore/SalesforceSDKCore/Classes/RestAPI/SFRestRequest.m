@@ -22,7 +22,8 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
+@import SalesforceSDKCommon;
 #import "SFRestRequest+Internal.h"
 #import "SFRestAPI+Internal.h"
 #import "NSString+SFAdditions.h"

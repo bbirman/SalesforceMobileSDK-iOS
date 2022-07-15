@@ -25,16 +25,26 @@
 //  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
 //  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
-#import <SalesforceSDKCommon/SFFileProtectionHelper.h>
+@import SalesforceSDKCommon;
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCommonSwift;
+@import SalesforceSDKCoreSwiftBase;
+#else
 #import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#endif
+
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+//#import <SalesforceSDKCommon/SFFileProtectionHelper.h>
+
 #import "SFSDKSalesforceSDKUpgradeManager.h"
 #import "SFDirectoryManager+Internal.h"
 #import "SFUserAccount+Internal.h"
 #import "SFKeyStoreManager.h"
 #import "SFDefaultUserAccountPersister.h"
 #import "SFApplicationHelper.h"
+#import "SFSDKCoreLogger.h"
 
 NSString * const kSalesforceSDKManagerVersionKey = @"com.salesforce.mobilesdk.salesforcesdkmanager.version";
 static NSString * _lastVersion = nil;
@@ -247,7 +257,8 @@ static NSString * _currentVersion = nil;
 }
 
 + (void)upgradePasscode {
-    [[SFScreenLockManager shared] upgradePasscode];
+    // TODO spm, will be removed in 11.0
+    //[[SFScreenLockManager shared] upgradePasscode];
 }
 
 @end

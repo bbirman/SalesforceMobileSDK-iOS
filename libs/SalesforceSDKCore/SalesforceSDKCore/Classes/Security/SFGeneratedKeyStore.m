@@ -24,7 +24,13 @@
 
 #import "SFGeneratedKeyStore.h"
 #import "SFKeyStore+Internal.h"
+#import "SFSDKCoreLogger.h"
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCommonSwift;
+#else
 #import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
+#endif
 
 // Keychain and NSCoding constants
 static NSString * const kGeneratedKeyStoreKeychainIdentifier = @"com.salesforce.keystore.generatedKeystoreKeychainId";

@@ -35,7 +35,13 @@
 #import "SFSDKWindowManager+Internal.h"
 #import "SFDefaultUserManagementViewController.h"
 #import "SFApplicationHelper.h"
+#import "SFSDKCoreLogger.h"
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#else
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#endif
 
 @implementation SFSDKAuthHelper
 
@@ -66,14 +72,17 @@
     }
 }
 
+
+
+// TODO: Rewrite this class in Swift?
 +(void)screenLockValidation:(void (^)(void))completionBlock  {
-    [[SFScreenLockManager shared] setCallbackBlockWithScreenLockCallbackBlock:^{
-            [SFSDKCoreLogger i:[self class] format:@"Screen unlocked or not configured.  Proceeding with authentication validation."];
-            if (completionBlock) {
-                completionBlock();
-            }
-    }];
-    [[SFScreenLockManager shared] handleAppForeground];
+//    [[SFScreenLockManager shared] setCallbackBlockWithScreenLockCallbackBlock:^{
+//            [SFSDKCoreLogger i:[self class] format:@"Screen unlocked or not configured.  Proceeding with authentication validation."];
+//            if (completionBlock) {
+//                completionBlock();
+//            }
+//    }];
+//    [[SFScreenLockManager shared] handleAppForeground];
 }
 
 + (void)handleLogout:(void (^)(void))completionBlock {

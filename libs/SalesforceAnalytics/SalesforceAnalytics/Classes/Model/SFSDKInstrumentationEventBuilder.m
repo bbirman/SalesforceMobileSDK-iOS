@@ -31,7 +31,8 @@
 #import "SFSDKAnalyticsManager+Internal.h"
 #import "SFSDKInstrumentationEvent+Internal.h"
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
-#import <SalesforceSDKCommon/SFSDKReachability.h>
+#import "SFSDKAnalyticsLogger.h"
+//#import <SalesforceSDKCommon/SFSDKReachability.h>
 
 @interface SFSDKInstrumentationEventBuilder ()
 
@@ -68,10 +69,10 @@
     if (self.schemaType != SchemaTypePerf && !self.page) {
         errorMessage = @"Mandatory field 'page' not set!";
     }
-    if (errorMessage) {
-        [SFSDKAnalyticsLogger w:[self class] format:@"WARNING: Building event failed! REASON: %@", errorMessage];
-        return nil;
-    }
+//    if (errorMessage) {
+//        [SFSDKAnalyticsLogger w:[self class] format:@"WARNING: Building event failed! REASON: %@", errorMessage];
+//        return nil;
+//    }
     NSInteger sequenceId = self.analyticsManager.globalSequenceId + 1;
     self.analyticsManager.globalSequenceId = sequenceId;
 
@@ -85,25 +86,27 @@
     if ([NSJSONSerialization isValidJSONObject:[event jsonDictionary]]) {
         return event;
     } else {
-        [SFSDKAnalyticsLogger w:[self class] format:@"WARNING: Building event failed! REASON: Invalid JSON properties set!"];
-        return nil;
+//        [SFSDKAnalyticsLogger w:[self class] format:@"WARNING: Building event failed! REASON: Invalid JSON properties set!"];
+//        return nil;
     }
+    return nil;
 }
 
 - (NSString *) getConnectionType {
-    SFSDKReachability *reachability = [SFSDKReachability reachabilityForInternetConnection];
-    [reachability startNotifier];
-    SFSDKReachabilityNetworkStatus networkStatus = [reachability currentReachabilityStatus];
-    switch (networkStatus) {
-        case SFSDKReachabilityNotReachable:
-            return @"None";
-        case SFSDKReachabilityReachableViaWWAN:
-            return [self getMobileConnectionSubType];
-        case SFSDKReachabilityReachableViaWiFi:
-            return @"WiFi";
-        default:
-            return @"Unknown";
-    }
+//    SFSDKReachability *reachability = [SFSDKReachability reachabilityForInternetConnection];
+//    [reachability startNotifier];
+//    SFSDKReachabilityNetworkStatus networkStatus = [reachability currentReachabilityStatus];
+//    switch (networkStatus) {
+//        case SFSDKReachabilityNotReachable:
+//            return @"None";
+//        case SFSDKReachabilityReachableViaWWAN:
+//            return [self getMobileConnectionSubType];
+//        case SFSDKReachabilityReachableViaWiFi:
+//            return @"WiFi";
+//        default:
+//            return @"Unknown";
+//    }
+    return @"";
 }
 
 - (NSString *) getMobileConnectionSubType {

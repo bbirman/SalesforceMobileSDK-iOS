@@ -43,12 +43,15 @@
 #import "SFNetwork.h"
 #import "NSURL+SFAdditions.h"
 #import "SFSDKURLHandlerManager.h"
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
 #import "SFSDKOAuth2+Internal.h"
 #import "SFSDKOAuthConstants.h"
 #import "SFSDKAuthSession.h"
 #import "SFSDKAuthRequest.h"
+#import "SFSDKCoreLogger.h"
+
+@import SalesforceSDKCommon;
 @interface SFOAuthCoordinator()
 
 @property (nonatomic) NSString *networkIdentifier;

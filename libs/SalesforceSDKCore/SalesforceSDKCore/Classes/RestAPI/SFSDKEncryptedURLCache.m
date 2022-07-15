@@ -22,9 +22,16 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#else
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#endif
+
 #import "SFSDKEncryptedURLCache.h"
 #import "NSData+SFAdditions.h"
+#import "SFSDKCoreLogger.h"
 
 static NSString * const kURLSchemePrefix = @"sfsdkURLCache://";
 static NSString * const kURLCacheEncryptionKeyLabel = @"com.salesforce.URLCache.encryptionKey";

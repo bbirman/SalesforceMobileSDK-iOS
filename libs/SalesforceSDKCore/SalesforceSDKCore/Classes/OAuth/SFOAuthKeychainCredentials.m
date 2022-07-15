@@ -28,9 +28,19 @@
 #import "SFKeyStoreManager.h"
 #import "UIDevice+SFHardware.h"
 #import "NSString+SFAdditions.h"
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
-#import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
+#import "SFSDKCoreLogger.h"
+
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+
+@import SalesforceSDKCommon;
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+@import SalesforceSDKCommonSwift;
+#else
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
+#endif
 
 @implementation SFOAuthKeychainCredentials
 

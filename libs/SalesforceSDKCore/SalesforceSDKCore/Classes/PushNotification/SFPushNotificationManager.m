@@ -22,7 +22,8 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
+@import SalesforceSDKCommon;
 #import "NSString+SFAdditions.h"
 #import "SFPreferences.h"
 #import "SFUserAccountManager.h"
@@ -33,6 +34,7 @@
 #import "SFRestAPI+Blocks.h"
 #import "SFSDKPushNotificationEncryptionConstants.h"
 #import "SFSDKCryptoUtils.h"
+#import "SFSDKCoreLogger.h"
 
 static NSString* const kSFDeviceToken = @"deviceToken";
 static NSString* const kSFDeviceSalesforceId = @"deviceSalesforceId";

@@ -25,6 +25,7 @@
 #import "SFSDKCryptoUtils.h"
 #import <CommonCrypto/CommonCrypto.h>
 #import "NSData+SFAdditions.h"
+#import "SFSDKCoreLogger.h"
 #import <Security/Security.h>
 #import "TargetConditionals.h"
 #import <LocalAuthentication/LocalAuthentication.h>

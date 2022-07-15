@@ -32,16 +32,19 @@
 #import "SFSDKAppFeatureMarkers.h"
 #import "SFSDKDevInfoViewController.h"
 #import "SFDefaultUserManagementViewController.h"
-#import <SalesforceSDKCommon/SFSwiftDetectUtil.h>
 #import "SFSDKEncryptedURLCache.h"
 #import "SFSDKNullURLCache.h"
 #import "UIColor+SFColors.h"
 #import "SFDirectoryManager+Internal.h"
-#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #import "SFSDKResourceUtils.h"
 #import "SFSDKMacDetectUtil.h"
 #import "SFSDKSalesforceSDKUpgradeManager.h"
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+#import "SFSDKCoreLogger.h"
+@import SalesforceSDKCommon;
+//#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#endif
 
 static NSString * const kSFAppFeatureSwiftApp    = @"SW";
 static NSString * const kSFAppFeatureMultiUser   = @"MU";
@@ -299,7 +302,7 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
         [self setupServiceConfiguration];
         _snapshotViewControllers = [SFSDKSafeMutableDictionary new];
         [SFSDKSalesforceSDKUpgradeManager upgrade];
-        [[SFScreenLockManager shared] checkForScreenLockUsers]; // This is necessary because keychain values can outlive the app.
+       // [[SFScreenLockManager shared] checkForScreenLockUsers]; // This is necessary because keychain values can outlive the app.
     }
     return self;
 }
@@ -460,10 +463,11 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
                  }];
                  [presentedViewController presentViewController:umvc animated:YES completion:nil];
              }],
-             [[SFSDKDevAction alloc]initWith:@"Inspect Key-Value Store" handler:^{
-                 UIViewController *keyValueStoreInspector = [[SFSDKKeyValueEncryptedFileStoreViewController new] createUI];
-                 [presentedViewController presentViewController:keyValueStoreInspector animated:YES completion:nil];
-             }]
+             // TODO spm
+//             [[SFSDKDevAction alloc]initWith:@"Inspect Key-Value Store" handler:^{
+//                 UIViewController *keyValueStoreInspector = [[SFSDKKeyValueEncryptedFileStoreViewController new] createUI];
+//                 [presentedViewController presentViewController:keyValueStoreInspector animated:YES completion:nil];
+//             }]
     ];
 }
 
@@ -479,8 +483,9 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
             @"Identity Provider", [self isIdentityProvider] ? @"YES" : @"NO",
             @"Current User", [self userToString:userAccountManager.currentUser],
             @"Authenticated Users", [self usersToString:userAccountManager.allUserAccounts],
-            @"User Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allStoreNames] separator:@", "],
-            @"Global Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allGlobalStoreNames] separator:@", "]
+            // TODO spm
+//            @"User Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allStoreNames] separator:@", "],
+//            @"Global Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allGlobalStoreNames] separator:@", "]
     ]];
 
     [devInfos addObjectsFromArray:[self dictToDevInfos:self.appConfig.configDict keyPrefix:@"BootConfig"]];
@@ -546,7 +551,8 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
 - (void)handleAppForeground:(NSNotification *)notification
 {
     [SFSDKSalesforceSDKUpgradeManager upgrade];
-    [[SFScreenLockManager shared] handleAppForeground];
+    // TODO spm
+//    [[SFScreenLockManager shared] handleAppForeground];
 }
 
 - (void)handleAppBackground:(NSNotification *)notification
@@ -632,12 +638,14 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
 }
 - (void)handleUserWillLogout:(NSNotification *)notification {
     SFUserAccount *user = notification.userInfo[kSFNotificationUserInfoAccountKey];
-    [SFSDKKeyValueEncryptedFileStore removeAllStoresForUser:user];
+    // TODO spm -- move notification to SFSDKKeyValueEncryptedFileStore?
+   // [SFSDKKeyValueEncryptedFileStore removeAllStoresForUser:user];
 }
 
 - (void)handlePostLogout
 {
-    [[SFScreenLockManager shared] checkForScreenLockUsers];
+    // TODO spm
+  //  [[SFScreenLockManager shared] checkForScreenLockUsers];
 }
     
 - (BOOL)isSnapshotPresented:(UIScene *)scene {

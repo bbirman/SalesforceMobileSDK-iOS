@@ -22,7 +22,8 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
+@import SalesforceSDKCommon;
 #import "SFIdentityCoordinator+Internal.h"
 #import "SFOAuthCredentials.h"
 #import "SFOAuthSessionRefresher.h"
@@ -30,6 +31,7 @@
 #import "SFUserAccountManager.h"
 #import "SFNetwork.h"
 #import "SFSDKAuthSession.h"
+#import "SFSDKCoreLogger.h"
 
 // Public constants
 

@@ -24,7 +24,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+@import SalesforceSDKCommon;
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
 #import "SFRestAPI+Files.h"
 #import "SFRestRequest+Internal.h"
 #import "SFOAuthCredentials.h"

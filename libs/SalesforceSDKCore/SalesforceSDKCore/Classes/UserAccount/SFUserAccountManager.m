@@ -34,8 +34,8 @@
 #import "SFSDKAuthRequest.h"
 #import "SFOAuthCoordinator+Internal.h"
 #import "SFIdentityCoordinator+Internal.h"
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
-#import <SalesforceSDKCommon/SFSDKDatasharingHelper.h>
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+//#import <SalesforceSDKCommon/SFSDKDatasharingHelper.h>
 #import "SFSDKAuthRootController.h"
 #import "SFSDKWindowContainer.h"
 #import "SFSDKIDPAuthHelper.h"
@@ -59,7 +59,17 @@
 #import "SFNetwork.h"
 #import "SFSDKSalesforceAnalyticsManager.h"
 #import "SFApplicationHelper.h"
+
+#import "SFSDKCoreLogger.h"
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#else
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#endif
+
+
+@import SalesforceSDKCommon;
 
 // Notifications
 NSNotificationName SFUserAccountManagerDidChangeUserNotification       = @"SFUserAccountManagerDidChangeUserNotification";
@@ -1550,8 +1560,9 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
           __strong typeof(weakSelf) strongSelf = weakSelf;
         [strongSelf finalizeAuthCompletion:authSession];
         if (authSession.authInfo.authType != SFOAuthTypeRefresh) {
-            [[SFScreenLockManager shared] storeMobilePolicyWithUserAccount:self.currentUser hasMobilePolicy:hasMobilePolicy];
-            [[SFScreenLockManager shared] handleAppForeground];
+            // TODO spm
+//            [[SFScreenLockManager shared] storeMobilePolicyWithUserAccount:self.currentUser hasMobilePolicy:hasMobilePolicy];
+//            [[SFScreenLockManager shared] handleAppForeground];
        }
     }];
     [self dismissAuthViewControllerIfPresent];

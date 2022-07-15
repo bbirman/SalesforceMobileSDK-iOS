@@ -28,6 +28,7 @@
 #import "SFSDKCryptoUtils.h"
 #import "SFSecureEncryptionKey.h"
 #import "SalesforceSDKConstants.h"
+#import "SFSDKCoreLogger.h"
 
 // Static log messages/format strings
 static NSString * const kKeyStoreDecryptionFailedMessage = @"Could not decrypt key store with existing key store key.  Key store is invalid.";

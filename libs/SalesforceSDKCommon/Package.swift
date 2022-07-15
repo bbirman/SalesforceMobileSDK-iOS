@@ -5,6 +5,11 @@ import PackageDescription
 
 let package = Package(
     name: "SalesforceSDKCommon",
+    platforms: [
+        .iOS(.v14),
+        //.macCatalyst(.v15)
+       // .macOS(.v10_15),
+    ],
    
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
@@ -21,22 +26,24 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
+//        .target(
+//            name: "SalesforceSDKCommonSwift",
+//            dependencies: ["SalesforceSDKCommon"],
+//            path: "SalesforceSDKCommonSwift"),
         .target(
             name: "SalesforceSDKCommon",
             dependencies: [],
             path: "SalesforceSDKCommon",
-            publicHeadersPath: "Classes/Public"),
-        .target(
-            name: "SalesforceSDKCommonSwift",
-            dependencies: ["SalesforceSDKCommon"],
-            path: "SalesforceSDKCommonSwift"),
-        .testTarget(
-            name: "SalesforceSDKCommonTests",
-            dependencies: ["SalesforceSDKCommon"],
-            path: "SalesforceSDKCommonTests"),
-        .testTarget(
-            name: "SalesforceSDKCommonSwiftTests",
-            dependencies: ["SalesforceSDKCommonSwift"],
-            path: "SalesforceSDKCommonSwiftTests"),
+            sources: ["Classes"],
+            publicHeadersPath: "Public"),
+        
+//        .testTarget(
+//            name: "SalesforceSDKCommonTests",
+//            dependencies: ["SalesforceSDKCommon"],
+//            path: "SalesforceSDKCommonTests"),
+//        .testTarget(
+//            name: "SalesforceSDKCommonSwiftTests",
+//            dependencies: ["SalesforceSDKCommonSwift"],
+//            path: "SalesforceSDKCommonSwiftTests"),
     ]
 )

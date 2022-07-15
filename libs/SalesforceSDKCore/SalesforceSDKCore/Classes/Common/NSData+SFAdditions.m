@@ -23,6 +23,7 @@
  */
 
 #import "NSData+SFAdditions.h"
+#import "SFSDKCoreLogger.h"
 #define COMMON_DIGEST_FOR_OPENSSL
 #import <CommonCrypto/CommonDigest.h>
 #include "zlib.h"

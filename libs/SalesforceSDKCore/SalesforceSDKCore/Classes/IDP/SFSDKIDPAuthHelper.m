@@ -42,6 +42,7 @@ WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH 
 #import "SFSDKWindowManager.h"
 #import "SFSDKAuthErrorCommand.h"
 #import "SFUserAccountManager.h"
+#import "SFSDKCoreLogger.h"
 @implementation SFSDKIDPAuthHelper
 
 + (void)invokeIDPApp:(SFSDKAuthSession *)session completion:(void (^)(BOOL))completionBlock {

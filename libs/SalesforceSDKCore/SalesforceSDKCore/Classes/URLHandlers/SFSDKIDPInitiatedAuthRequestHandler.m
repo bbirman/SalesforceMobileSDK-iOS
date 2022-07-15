@@ -31,7 +31,7 @@
 #import "SFSDKIDPConstants.h"
 #import "NSURL+SFAdditions.h"
 #import "SFUserAccountManager+URLHandlers.h"
-#import "SalesforceSDKCore.h"
+//#import "SalesforceSDKCore.h"
 #import "SFSDKIDPInitCommand.h"
 
 @implementation SFSDKIDPInitiatedAuthRequestHandler

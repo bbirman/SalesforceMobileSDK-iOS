@@ -21,8 +21,14 @@
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+//
 
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#else
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#endif
+
 #import "SFUserAccount+Internal.h"
 #import "SFUserAccountManager+Internal.h"
 #import "SFDirectoryManager.h"
@@ -30,6 +36,7 @@
 #import "SFSDKAppFeatureMarkers.h"
 #import "SFOAuthCredentials+Internal.h"
 #import "SFUserAccountIdentity+Internal.h"
+#import "SFSDKCoreLogger.h"
 
 static NSString * const kUser_ACCESS_SCOPES       = @"accessScopes";
 static NSString * const kUser_CREDENTIALS         = @"credentials";

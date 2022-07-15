@@ -23,7 +23,9 @@
  */
 
 #import "SFInactivityTimerCenter.h"
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+#import "SFSDKCoreLogger.h"
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+@import SalesforceSDKCommon;
 
 @implementation SFInactivityTimerCenter
 

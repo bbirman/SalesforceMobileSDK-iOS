@@ -22,7 +22,7 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+@import SalesforceSDKCommon;
 #import "SalesforceSDKManager+Internal.h"
 #import "SFUserAccountManager.h"
 #import "TestSetupUtils.h"

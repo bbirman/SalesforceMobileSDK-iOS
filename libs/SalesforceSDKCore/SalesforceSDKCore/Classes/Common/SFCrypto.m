@@ -25,8 +25,16 @@
 #import "SFCrypto.h"
 #import "NSString+SFAdditions.h"
 #import "NSData+SFAdditions.h"
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+#import "SFSDKCoreLogger.h"
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+//#import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
+@import SalesforceSDKCommon;
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCommonSwift;
+#else
 #import <SalesforceSDKCommon/SalesforceSDKCommon-Swift.h>
+#endif
 
 NSString * const kKeychainIdentifierBaseAppId = @"com.salesforce.security.baseappid";
 static NSString * const kKeychainIdentifierSimulatorBaseAppId = @"com.salesforce.security.baseappid.sim";

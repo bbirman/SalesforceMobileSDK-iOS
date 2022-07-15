@@ -27,7 +27,7 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+//#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #import "SFSDKSalesforceAnalyticsManager+Internal.h"
 #import "SFUserAccountManager.h"
 #import "SalesforceSDKManager.h"
@@ -38,11 +38,24 @@
 #import "UIDevice+SFHardware.h"
 #import "SFIdentityData.h"
 #import "SFApplicationHelper.h"
-#import <SalesforceAnalytics/SFSDKAILTNTransform.h>
-#import <SalesforceAnalytics/SFSDKDeviceAppAttributes.h>
-#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+//#import <SalesforceAnalytics/SFSDKAILTNTransform.h>
+//#import <SalesforceAnalytics/SFSDKDeviceAppAttributes.h>
+@import SalesforceAnalytics;
+//#import <SalesforceSDKCommon/NSUserDefaults+SFAdditions.h>
+@import SalesforceSDKCommon;
+
 #import "SFSDKAppFeatureMarkers.h"
 #import "SFSDKAppConfig.h"
+#import "SFSDKCoreLogger.h"
+
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#import "SFSDKEventStoreManager.h"
+#else
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#import <SalesforceAnalytics/SFSDKEventStoreManager.h>
+#endif
 
 static NSString * const kAnalyticsUnauthenticatedManagerKey = @"-unauthenticated-";
 static NSString * const kEventStoresDirectory = @"event_stores";

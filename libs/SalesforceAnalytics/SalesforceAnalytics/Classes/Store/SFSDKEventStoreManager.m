@@ -27,7 +27,14 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+
+#if SWIFT_PACKAGE
 #import "SFSDKEventStoreManager.h"
+#else
+#import <SalesforceAnalytics/SFSDKEventStoreManager.h>
+#endif
+
 #import "SFSDKInstrumentationEvent+Internal.h"
 
 @interface SFSDKEventStoreManager ()
@@ -99,7 +106,7 @@
         [[NSFileManager defaultManager] createDirectoryAtPath:parentDir withIntermediateDirectories:YES attributes: @{ NSFileProtectionKey: NSFileProtectionCompleteUntilFirstUserAuthentication } error:&error];
         [encryptedData writeToFile:filename options:NSDataWritingFileProtectionCompleteUntilFirstUserAuthentication error:&error];
         if (error) {
-            [SFSDKAnalyticsLogger w:[self class] format:@"Error occurred while writing to file: %@", error.localizedDescription];
+//            [SFSDKAnalyticsLogger w:[self class] format:@"Error occurred while writing to file: %@", error.localizedDescription];
         } else {
             @synchronized (self.eventCountMutex) {
                 self.numStoredEvents++;

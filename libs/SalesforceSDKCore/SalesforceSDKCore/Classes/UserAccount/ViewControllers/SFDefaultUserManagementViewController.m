@@ -25,6 +25,7 @@
 #import "SFDefaultUserManagementViewController+Internal.h"
 #import "SFDefaultUserManagementListViewController.h"
 #import "SFUserAccountManager.h"
+#import "SFSDKCoreLogger.h"
 
 @interface SFDefaultUserManagementViewController ()
 

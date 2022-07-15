@@ -43,6 +43,8 @@
 #import "SFSDKLoginFlowSelectionView.h"
 #import "SFSDKLoginFlowSelectionViewController.h"
 #import "SFSDKAuthRequest.h"
+#import "SFSDKResourceUtils.h"
+#import "SFSDKCoreLogger.h"
 
 @implementation SFUserAccountManager (URLHandlers)
 

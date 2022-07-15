@@ -23,6 +23,7 @@
  */
 
 #import "SFApplicationHelper.h"
+@import UIKit;
 
 @implementation SFApplicationHelper
 

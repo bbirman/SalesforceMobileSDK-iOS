@@ -23,6 +23,7 @@
  */
 
 #import "SFMethodInterceptor.h"
+#import "SFSDKCoreLogger.h"
 #import <objc/message.h>
 #import <objc/runtime.h>
 

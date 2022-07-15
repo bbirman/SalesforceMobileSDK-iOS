@@ -29,8 +29,18 @@
 #import "SFDirectoryManager+Internal.h"
 #import "SFKeyStoreManager.h"
 #import "SFSDKCryptoUtils.h"
-#import <SalesforceSDKCommon/SFFileProtectionHelper.h>
+#import "SFSDKCoreLogger.h"
+//#import <SalesforceSDKCommon/SFFileProtectionHelper.h>
+@import SalesforceSDKCommon;
+//#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+//@import SalesforceSDKCoreSwiftBase;
+
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwiftBase;
+#else
 #import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#endif
 
 
 // Name of the individual file containing the archived SFUserAccount class

@@ -27,7 +27,7 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
 #import "SFSDKInstrumentationEvent+Internal.h"
 
 @interface SFSDKInstrumentationEvent ()
@@ -85,49 +85,49 @@
 - (instancetype) initWithJson:(NSData *) jsonRepresentation {
     self = [super init];
     if (self && jsonRepresentation) {
-        NSDictionary *dict = [SFJsonUtils objectFromJSONData:jsonRepresentation];
-
-        if (dict) {
-            self.eventId = dict[kEventIdKey];
-            if (dict[kStartTimeKey]) {
-                self.startTime = [dict[kStartTimeKey] integerValue];
-            }
-            if (dict[kEndTimeKey]) {
-                self.endTime = [dict[kEndTimeKey] integerValue];
-            }
-            self.name = dict[kNameKey];
-            self.attributes = dict[kAttributesKey];
-            self.sessionId = dict[kSessionIdKey];
-            if (dict[kSequenceIdKey]) {
-                self.sequenceId = [dict[kSequenceIdKey] integerValue];
-            }
-            self.senderId = dict[kSenderIdKey];
-            self.senderContext = dict[kSenderContextKey];
-            NSString *stringSchemaType = dict[kSchemaTypeKey];
-            if (stringSchemaType) {
-                self.schemaType = [self schemaTypeFromString:stringSchemaType];
-            }
-            NSString *stringEventType = dict[kEventTypeKey];
-            if (stringEventType) {
-                self.eventType = [self eventTypeFromString:stringEventType];
-            }
-            NSString *stringErrorType = dict[kErrorTypeKey];
-            if (stringErrorType) {
-                self.errorType = [self errorTypeFromString:stringErrorType];
-            }
-            NSDictionary *deviceAttrDict = dict[kDeviceAppAttributesKey];
-            if (deviceAttrDict) {
-                self.deviceAppAttributes = [[SFSDKDeviceAppAttributes alloc] initWithJson:deviceAttrDict];
-            }
-            self.connectionType = dict[kConnectionTypeKey];
-            self.senderParentId = dict[kSenderParentIdKey];
-            if (dict[kSessionStartTimeKey]) {
-                self.sessionStartTime = [dict[kSessionStartTimeKey] integerValue];
-            }
-            self.page = dict[kPageKey];
-            self.previousPage = dict[kPreviousPageKey];
-            self.marks = dict[kMarksKey];
-        }
+//        NSDictionary *dict = [SFJsonUtils objectFromJSONData:jsonRepresentation];
+//
+//        if (dict) {
+//            self.eventId = dict[kEventIdKey];
+//            if (dict[kStartTimeKey]) {
+//                self.startTime = [dict[kStartTimeKey] integerValue];
+//            }
+//            if (dict[kEndTimeKey]) {
+//                self.endTime = [dict[kEndTimeKey] integerValue];
+//            }
+//            self.name = dict[kNameKey];
+//            self.attributes = dict[kAttributesKey];
+//            self.sessionId = dict[kSessionIdKey];
+//            if (dict[kSequenceIdKey]) {
+//                self.sequenceId = [dict[kSequenceIdKey] integerValue];
+//            }
+//            self.senderId = dict[kSenderIdKey];
+//            self.senderContext = dict[kSenderContextKey];
+//            NSString *stringSchemaType = dict[kSchemaTypeKey];
+//            if (stringSchemaType) {
+//                self.schemaType = [self schemaTypeFromString:stringSchemaType];
+//            }
+//            NSString *stringEventType = dict[kEventTypeKey];
+//            if (stringEventType) {
+//                self.eventType = [self eventTypeFromString:stringEventType];
+//            }
+//            NSString *stringErrorType = dict[kErrorTypeKey];
+//            if (stringErrorType) {
+//                self.errorType = [self errorTypeFromString:stringErrorType];
+//            }
+//            NSDictionary *deviceAttrDict = dict[kDeviceAppAttributesKey];
+//            if (deviceAttrDict) {
+//                self.deviceAppAttributes = [[SFSDKDeviceAppAttributes alloc] initWithJson:deviceAttrDict];
+//            }
+//            self.connectionType = dict[kConnectionTypeKey];
+//            self.senderParentId = dict[kSenderParentIdKey];
+//            if (dict[kSessionStartTimeKey]) {
+//                self.sessionStartTime = [dict[kSessionStartTimeKey] integerValue];
+//            }
+//            self.page = dict[kPageKey];
+//            self.previousPage = dict[kPreviousPageKey];
+//            self.marks = dict[kMarksKey];
+//        }
     }
     return self;
 }

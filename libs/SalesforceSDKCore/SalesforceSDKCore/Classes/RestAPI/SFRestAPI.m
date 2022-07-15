@@ -22,8 +22,9 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#import <SalesforceSDKCommon/SFJsonUtils.h>
-#import <SalesforceSDKCommon/SFSDKSafeMutableDictionary.h>
+@import SalesforceSDKCommon;
+//#import <SalesforceSDKCommon/SFJsonUtils.h>
+//#import <SalesforceSDKCommon/SFSDKSafeMutableDictionary.h>
 #import "SFSDKOAuth2.h"
 #import "SFRestAPI+Internal.h"
 #import "SFRestRequest+Internal.h"
@@ -36,6 +37,7 @@
 #import "SFSDKCompositeRequest.h"
 #import "SFSDKBatchRequest.h"
 #import "SFFormatUtils.h"
+#import "SFSDKCoreLogger.h"
 
 NSString* const kSFRestDefaultAPIVersion = @"v55.0";
 NSString* const kSFRestIfUnmodifiedSince = @"If-Unmodified-Since";

@@ -29,6 +29,9 @@
 
 #import "SFSDKStartURLHandler.h"
 #import "SFApplicationHelper.h"
+#import "SFSDKCoreLogger.h"
+
+
 @implementation SFSDKStartURLHandler
 
 - (BOOL)canHandleRequest:(NSURL *)url options:(NSDictionary *)options {
