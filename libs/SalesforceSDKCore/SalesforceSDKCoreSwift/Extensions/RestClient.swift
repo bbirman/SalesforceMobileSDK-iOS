@@ -29,6 +29,7 @@
 
 import Foundation
 import Combine
+import SalesforceSDKCore
 
 /// Errors that can be thrown while using RestClient
 public enum RestClientError: Error {

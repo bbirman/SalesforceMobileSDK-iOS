@@ -28,6 +28,10 @@
 import Foundation
 import SalesforceSDKCommon
 import CryptoKit
+import SalesforceSDKCore
+#if SWIFT_PACKAGE
+import SalesforceSDKCoreSwiftBase
+#endif
 
 /// File-based key-value storage
 @objc(SFSDKKeyValueEncryptedFileStore)

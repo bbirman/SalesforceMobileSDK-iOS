@@ -28,7 +28,7 @@
  */
 
 #import "SFNetwork.h"
-#import "SalesforceSDKManager.h"
+//#import "SalesforceSDKManager.h"
 @import SalesforceSDKCommon;
 //#import <SalesforceSDKCommon/SFSDKSafeMutableDictionary.h>
 
@@ -88,9 +88,10 @@ static SFSDKMetricsCollectedBlock _metricsCollectedAction = nil;
 - (NSURLSessionDataTask *)sendRequest:(NSMutableURLRequest *)urlRequest dataResponseBlock:(SFDataResponseBlock)dataResponseBlock {
 
     // Sets Mobile SDK user agent if it hasn't been set already elsewhere.
-    if (![urlRequest.allHTTPHeaderFields.allKeys containsObject:@"User-Agent"]) {
-        [urlRequest setValue:[SalesforceSDKManager sharedManager].userAgentString(@"") forHTTPHeaderField:@"User-Agent"];
-    }
+    // TODO spm
+//    if (![urlRequest.allHTTPHeaderFields.allKeys containsObject:@"User-Agent"]) {
+//        [urlRequest setValue:[SalesforceSDKManager sharedManager].userAgentString(@"") forHTTPHeaderField:@"User-Agent"];
+//    }
     NSURLSessionDataTask *dataTask = [self.activeSession dataTaskWithRequest:urlRequest completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         if (dataResponseBlock) {
             dataResponseBlock(data, response, error);

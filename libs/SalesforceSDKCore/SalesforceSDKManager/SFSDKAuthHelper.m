@@ -25,28 +25,35 @@
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#import "SalesforceSDKManager.h"
-#import "SalesforceSDKManager+Internal.h"
-#import "SFSDKAppConfig.h"
+
+
 #import "SFSDKAuthHelper.h"
+#import "SalesforceSDKManager.h"
+
+#if SWIFT_PACKAGE
+@import SalesforceSDKCoreSwift;
+@import SalesforceSDKCoreSwiftBase;
+@import SalesforceSDKCore;
+@import Foundation;
+#else
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+
+#import "SFSDKAppConfig.h"
+
 #import "SFUserAccountManager.h"
-#import "SFUserAccountManager+Internal.h"
+//#import "SFUserAccountManager+Internal.h"
 #import "SFSDKWindowManager.h"
-#import "SFSDKWindowManager+Internal.h"
+//#import "SFSDKWindowManager+Internal.h"
 #import "SFDefaultUserManagementViewController.h"
 #import "SFApplicationHelper.h"
 #import "SFSDKCoreLogger.h"
-
-#if SWIFT_PACKAGE
-@import SalesforceSDKCoreSwiftBase;
-#else
-#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #endif
 
 @implementation SFSDKAuthHelper
 
 + (void)loginIfRequired:(void (^)(void))completionBlock {
-    UIScene *scene = [[SFSDKWindowManager sharedManager] defaultScene];
+    // todo spm
+    UIScene *scene = nil; //[[SFSDKWindowManager sharedManager] defaultScene];
     [SFSDKAuthHelper loginIfRequired:scene completion:completionBlock];
 }
 
@@ -57,16 +64,18 @@
         }
     }];
 
+    // TODO spm
     if (![SFUserAccountManager sharedInstance].currentUser && [SalesforceSDKManager sharedManager].appConfig.shouldAuthenticate) {
         SFUserAccountManagerFailureCallbackBlock failureBlock = ^(SFOAuthInfo *authInfo, NSError *authError) {
             [SFSDKCoreLogger e:[self class] format:@"Authentication failed: %@.", [authError localizedDescription]];
         };
-        BOOL result = [[SFUserAccountManager sharedInstance] loginWithCompletion:nil failure:failureBlock scene:scene];
-        if (!result) {
-            [[SFUserAccountManager sharedInstance] stopCurrentAuthentication:^(BOOL result) {
-                [[SFUserAccountManager sharedInstance] loginWithCompletion:nil failure:failureBlock scene:scene];
-            }];
-        }
+        // todo spm
+//        BOOL result = [[SFUserAccountManager sharedInstance] loginWithCompletion:nil failure:failureBlock scene:scene];
+//        if (!result) {
+//            [[SFUserAccountManager sharedInstance] stopCurrentAuthentication:^(BOOL result) {
+//                [[SFUserAccountManager sharedInstance] loginWithCompletion:nil failure:failureBlock scene:scene];
+//            }];
+//        }
     } else {
         [self screenLockValidation:completionBlock];
     }
@@ -76,17 +85,19 @@
 
 // TODO: Rewrite this class in Swift?
 +(void)screenLockValidation:(void (^)(void))completionBlock  {
-//    [[SFScreenLockManager shared] setCallbackBlockWithScreenLockCallbackBlock:^{
-//            [SFSDKCoreLogger i:[self class] format:@"Screen unlocked or not configured.  Proceeding with authentication validation."];
-//            if (completionBlock) {
-//                completionBlock();
-//            }
-//    }];
-//    [[SFScreenLockManager shared] handleAppForeground];
+    // TODO spm
+    [[SFScreenLockManager shared] setCallbackBlockWithScreenLockCallbackBlock:^{
+            [SFSDKCoreLogger i:[self class] format:@"Screen unlocked or not configured.  Proceeding with authentication validation."];
+            if (completionBlock) {
+                completionBlock();
+            }
+    }];
+    [[SFScreenLockManager shared] handleAppForeground];
 }
 
 + (void)handleLogout:(void (^)(void))completionBlock {
-    UIScene *scene = [[SFSDKWindowManager sharedManager] defaultScene];
+    // todo spm
+    UIScene *scene =  nil; //[[SFSDKWindowManager sharedManager] defaultScene];
     [SFSDKAuthHelper handleLogout:scene completion:completionBlock];
 }
 
@@ -126,7 +137,8 @@
 }
 
 + (void)registerBlockForCurrentUserChangeNotifications:(void (^)(void))completionBlock {
-    UIScene *scene = [[SFSDKWindowManager sharedManager] defaultScene];
+    // todo spm
+    UIScene *scene = nil; //[[SFSDKWindowManager sharedManager] defaultScene];
     [SFSDKAuthHelper registerBlockForCurrentUserChangeNotifications:scene completion:completionBlock];
 }
 
@@ -136,7 +148,8 @@
 }
 
 + (void)registerBlockForLogoutNotifications:(void (^)(void))completionBlock {
-    UIScene *scene = [[SFSDKWindowManager sharedManager] defaultScene];
+    // todo spm
+    UIScene *scene = nil; //[[SFSDKWindowManager sharedManager] defaultScene];
     [SFSDKAuthHelper registerBlockForLogoutNotifications:scene completion:completionBlock];
 }
 

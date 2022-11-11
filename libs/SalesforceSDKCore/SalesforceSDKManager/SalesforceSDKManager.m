@@ -24,7 +24,19 @@
 
 #import <objc/runtime.h>
 #import "SalesforceSDKManager+Internal.h"
-#import "SFUserAccountManager+Internal.h"
+#import "SFSDKSalesforceSDKUpgradeManager.h"
+//#import "SFUserAccountManager+Internal.h"
+
+@import SalesforceSDKCommon;
+//#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+#if SWIFT_PACKAGE
+@import SalesforceSDKCore;
+@import SalesforceSDKCoreSwiftBase;
+@import SalesforceSDKCoreSwift;
+#else
+
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
+
 #import "SFSDKWindowManager.h"
 #import "SFManagedPreferences.h"
 #import "SFInactivityTimerCenter.h"
@@ -38,12 +50,8 @@
 #import "SFDirectoryManager+Internal.h"
 #import "SFSDKResourceUtils.h"
 #import "SFSDKMacDetectUtil.h"
-#import "SFSDKSalesforceSDKUpgradeManager.h"
+
 #import "SFSDKCoreLogger.h"
-@import SalesforceSDKCommon;
-//#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
-#if SWIFT_PACKAGE
-@import SalesforceSDKCoreSwiftBase;
 #endif
 
 static NSString * const kSFAppFeatureSwiftApp    = @"SW";
@@ -216,9 +224,10 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
         if([SFSwiftDetectUtil isSwiftApp]) {
             [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSwiftApp];
         }
-        if ([SFSDKMacDetectUtil isOnMac]) {
-            [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureMacApp];
-        }
+        // todo spm
+//        if ([SFSDKMacDetectUtil isOnMac]) {
+//            [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureMacApp];
+//        }
         if([[[SFUserAccountManager sharedInstance] allUserIdentities] count]>1){
             [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureMultiUser];
         }
@@ -294,7 +303,8 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenLockFlowWillBegin:) name:kSFScreenLockFlowWillBegin object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(screenLockFlowDidComplete:) name:kSFScreenLockFlowCompleted object:nil];
         
-        _useSnapshotView = ![SFSDKMacDetectUtil isOnMac];
+        // todo SPM 
+       // _useSnapshotView = ![SFSDKMacDetectUtil isOnMac];
         [self computeWebViewUserAgent]; // web view user agent is computed asynchronously so very first call to self.userAgentString(...) will be missing it
         self.userAgentString = [self defaultUserAgentString];
         self.URLCacheType = kSFURLCacheTypeEncrypted;
@@ -302,7 +312,7 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
         [self setupServiceConfiguration];
         _snapshotViewControllers = [SFSDKSafeMutableDictionary new];
         [SFSDKSalesforceSDKUpgradeManager upgrade];
-       // [[SFScreenLockManager shared] checkForScreenLockUsers]; // This is necessary because keychain values can outlive the app.
+        [[SFScreenLockManager shared] checkForScreenLockUsers]; // This is necessary because keychain values can outlive the app.
     }
     return self;
 }
@@ -463,11 +473,10 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
                  }];
                  [presentedViewController presentViewController:umvc animated:YES completion:nil];
              }],
-             // TODO spm
-//             [[SFSDKDevAction alloc]initWith:@"Inspect Key-Value Store" handler:^{
-//                 UIViewController *keyValueStoreInspector = [[SFSDKKeyValueEncryptedFileStoreViewController new] createUI];
-//                 [presentedViewController presentViewController:keyValueStoreInspector animated:YES completion:nil];
-//             }]
+             [[SFSDKDevAction alloc]initWith:@"Inspect Key-Value Store" handler:^{
+                 UIViewController *keyValueStoreInspector = [[SFSDKKeyValueEncryptedFileStoreViewController new] createUI];
+                 [presentedViewController presentViewController:keyValueStoreInspector animated:YES completion:nil];
+             }]
     ];
 }
 
@@ -483,9 +492,8 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
             @"Identity Provider", [self isIdentityProvider] ? @"YES" : @"NO",
             @"Current User", [self userToString:userAccountManager.currentUser],
             @"Authenticated Users", [self usersToString:userAccountManager.allUserAccounts],
-            // TODO spm
-//            @"User Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allStoreNames] separator:@", "],
-//            @"Global Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allGlobalStoreNames] separator:@", "]
+            @"User Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allStoreNames] separator:@", "],
+            @"Global Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allGlobalStoreNames] separator:@", "]
     ]];
 
     [devInfos addObjectsFromArray:[self dictToDevInfos:self.appConfig.configDict keyPrefix:@"BootConfig"]];
@@ -525,7 +533,8 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
 - (void)configureManagedSettings
 {
     if ([SFManagedPreferences sharedPreferences].requireCertificateAuthentication) {
-        [SFUserAccountManager sharedInstance].useBrowserAuth = YES;
+       // todo spm
+//         [SFUserAccountManager sharedInstance].useBrowserAuth = YES;
     }
     
     if ([SFManagedPreferences sharedPreferences].connectedAppId.length > 0) {
@@ -551,8 +560,7 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
 - (void)handleAppForeground:(NSNotification *)notification
 {
     [SFSDKSalesforceSDKUpgradeManager upgrade];
-    // TODO spm
-//    [[SFScreenLockManager shared] handleAppForeground];
+    [[SFScreenLockManager shared] handleAppForeground];
 }
 
 - (void)handleAppBackground:(NSNotification *)notification
@@ -639,7 +647,7 @@ NSString * const kSFScreenLockFlowCompleted = @"SFScreenLockFlowCompleted";
 - (void)handleUserWillLogout:(NSNotification *)notification {
     SFUserAccount *user = notification.userInfo[kSFNotificationUserInfoAccountKey];
     // TODO spm -- move notification to SFSDKKeyValueEncryptedFileStore?
-   // [SFSDKKeyValueEncryptedFileStore removeAllStoresForUser:user];
+    [SFSDKKeyValueEncryptedFileStore removeAllStoresForUser:user];
 }
 
 - (void)handlePostLogout
@@ -797,17 +805,18 @@ void dispatch_once_on_main_thread(dispatch_once_t *predicate, dispatch_block_t b
         _URLCacheType = URLCacheType;
         [NSURLCache.sharedURLCache removeAllCachedResponses];
         NSURLCache *cache;
-        switch (URLCacheType) {
-            case kSFURLCacheTypeEncrypted:
-                cache = [[SFSDKEncryptedURLCache alloc] initWithMemoryCapacity:kDefaultCacheMemoryCapacity diskCapacity:kDefaultCacheDiskCapacity directoryURL:nil];
-                break;
-            case kSFURLCacheTypeNull:
-                cache = [[SFSDKNullURLCache alloc] initWithMemoryCapacity:kDefaultCacheMemoryCapacity diskCapacity:kDefaultCacheDiskCapacity directoryURL:nil];
-                break;
-            case kSFURLCacheTypeStandard:
-                cache = [[NSURLCache alloc] initWithMemoryCapacity:kDefaultCacheMemoryCapacity diskCapacity:kDefaultCacheDiskCapacity directoryURL:nil];
-                break;
-        }
+        // todo spm
+//        switch (URLCacheType) {
+//            case kSFURLCacheTypeEncrypted:
+//                cache = [[SFSDKEncryptedURLCache alloc] initWithMemoryCapacity:kDefaultCacheMemoryCapacity diskCapacity:kDefaultCacheDiskCapacity directoryURL:nil];
+//                break;
+//            case kSFURLCacheTypeNull:
+//                cache = [[SFSDKNullURLCache alloc] initWithMemoryCapacity:kDefaultCacheMemoryCapacity diskCapacity:kDefaultCacheDiskCapacity directoryURL:nil];
+//                break;
+//            case kSFURLCacheTypeStandard:
+//                cache = [[NSURLCache alloc] initWithMemoryCapacity:kDefaultCacheMemoryCapacity diskCapacity:kDefaultCacheDiskCapacity directoryURL:nil];
+//                break;
+//        }
         [NSURLCache setSharedURLCache:cache];
     }
 }

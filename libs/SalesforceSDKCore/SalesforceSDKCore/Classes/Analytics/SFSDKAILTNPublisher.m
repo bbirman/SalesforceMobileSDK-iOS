@@ -29,7 +29,6 @@
 
 #import "SFSDKAILTNPublisher.h"
 #import "SFUserAccountManager.h"
-#import "SalesforceSDKManager.h"
 #import "NSData+SFAdditions.h"
 #import "SFRestAPI+Blocks.h"
 #import "SFSDKCoreLogger.h"

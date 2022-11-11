@@ -28,6 +28,7 @@
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 import Foundation
+import SalesforceSDKCore
 
 public enum UserAccountManagerError: Error {
     case loginFailed(underlyingError: Error, authInfo: AuthInfo)

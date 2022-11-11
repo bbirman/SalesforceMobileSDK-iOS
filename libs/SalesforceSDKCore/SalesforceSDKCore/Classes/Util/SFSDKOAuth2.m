@@ -194,11 +194,16 @@ const NSTimeInterval kSFOAuthDefaultTimeout  = 120.0; // seconds
 
 - (void)accessTokenForApprovalCode:(SFSDKOAuthTokenEndpointRequest *)endpointReq completion:(void (^)(SFSDKOAuthTokenEndpointResponse *)) completionBlock {
     NSMutableURLRequest *request = [self prepareBasicRequest:endpointReq];
+//    NSMutableString *params = [[NSMutableString alloc] initWithFormat:@"%@=%@&%@=%@&%@=%@&%@=%@",
+//                               kSFOAuthFormat, @"json",
+//                               kSFOAuthRedirectUri, endpointReq.redirectURI,
+//                               kSFOAuthClientId, endpointReq.clientID,
+//                               kSFOAuthDeviceId,[[[UIDevice currentDevice] identifierForVendor] UUIDString]];
     NSMutableString *params = [[NSMutableString alloc] initWithFormat:@"%@=%@&%@=%@&%@=%@&%@=%@",
                                kSFOAuthFormat, @"json",
                                kSFOAuthRedirectUri, endpointReq.redirectURI,
                                kSFOAuthClientId, endpointReq.clientID,
-                               kSFOAuthDeviceId,[[[UIDevice currentDevice] identifierForVendor] UUIDString]];
+                               kSFOAuthDeviceId, @"todo"]; // TODO ^
     [params appendFormat:@"&%@=%@", kSFOAuthCodeVerifierParamName, endpointReq.codeVerifier];
     [params appendFormat:@"&%@=%@&%@=%@", kSFOAuthGrantType, kSFOAuthGrantTypeAuthorizationCode, kSFOAuthApprovalCode, endpointReq.approvalCode];
     NSData *encodedBody = [params dataUsingEncoding:NSUTF8StringEncoding];
@@ -244,11 +249,16 @@ const NSTimeInterval kSFOAuthDefaultTimeout  = 120.0; // seconds
  */
 - (void)accessTokenForRefresh:(SFSDKOAuthTokenEndpointRequest *)endpointReq completion:(void (^)(SFSDKOAuthTokenEndpointResponse *)) completionBlock {
     NSMutableURLRequest *request = [self prepareBasicRequest:endpointReq];
+//    NSMutableString *params = [[NSMutableString alloc] initWithFormat:@"%@=%@&%@=%@&%@=%@&%@=%@",
+//                               kSFOAuthFormat, @"json",
+//                               kSFOAuthRedirectUri, endpointReq.redirectURI,
+//                               kSFOAuthClientId, endpointReq.clientID,
+//                               kSFOAuthDeviceId,[[[UIDevice currentDevice] identifierForVendor] UUIDString]];
     NSMutableString *params = [[NSMutableString alloc] initWithFormat:@"%@=%@&%@=%@&%@=%@&%@=%@",
                                kSFOAuthFormat, @"json",
                                kSFOAuthRedirectUri, endpointReq.redirectURI,
                                kSFOAuthClientId, endpointReq.clientID,
-                               kSFOAuthDeviceId,[[[UIDevice currentDevice] identifierForVendor] UUIDString]];
+                               kSFOAuthDeviceId, @"todo"]; // todo ^
     [SFSDKCoreLogger i:[self class] format:@"%@: Initiating refresh token flow.", NSStringFromSelector(_cmd)];
     [params appendFormat:@"&%@=%@&%@=%@", kSFOAuthGrantType, kSFOAuthGrantTypeHybridRefresh, kSFOAuthRefreshToken, endpointReq.refreshToken];
     for (NSString * key in endpointReq.additionalTokenRefreshParams) {

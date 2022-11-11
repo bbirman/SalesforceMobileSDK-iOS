@@ -28,6 +28,12 @@
 import Foundation
 import SwiftUI
 
+#if SWIFT_PACKAGE
+import SalesforceSDKCore
+import SalesforceSDKCommonSwift
+#endif
+
+
 // Callback block used to launch the app when the screen is unlocked.
 public typealias ScreenLockCallbackBlock = () -> Void
 
@@ -176,7 +182,8 @@ public class ScreenLockManager: NSObject {
     func unlock() {
         // Send flow will begin notification
         SFSDKCoreLogger.d(ScreenLockManager.self, message: "Sending screen lock flow completed notification")
-        NotificationCenter.default.post(name: Notification.Name(rawValue: kSFScreenLockFlowCompleted), object: nil)
+        // todo spm
+        //NotificationCenter.default.post(name: Notification.Name(rawValue: kSFScreenLockFlowCompleted), object: nil)
         
         SFSDKWindowManager.shared().screenLockWindow().dismissWindow()
         unlockPostProcessing()
@@ -205,7 +212,8 @@ public class ScreenLockManager: NSObject {
         
         // Send flow will begin notification
         SFSDKCoreLogger.d(ScreenLockManager.self, message: "Sending Screen Lock flow will begin notification")
-        NotificationCenter.default.post(name: Notification.Name(rawValue: kSFScreenLockFlowWillBegin), object: nil)
+        // todo spm
+        //NotificationCenter.default.post(name: Notification.Name(rawValue: kSFScreenLockFlowWillBegin), object: nil)
         
         // Launch Screen Lock
         let screenLockViewController = UIHostingController(rootView: ScreenLockUIView())

@@ -30,7 +30,7 @@
 //#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #import "SFSDKSalesforceAnalyticsManager+Internal.h"
 #import "SFUserAccountManager.h"
-#import "SalesforceSDKManager.h"
+//#import "SalesforceSDKManager.h"
 #import "SFDirectoryManager.h"
 #import "SFKeyStoreManager.h"
 #import "SFSDKCryptoUtils.h"
@@ -342,20 +342,23 @@ static NSMutableDictionary *analyticsManagerList = nil;
 }
 
 + (SFSDKDeviceAppAttributes *) getDeviceAppAttributes {
-    SalesforceSDKManager *sdkManager = [SalesforceSDKManager sharedManager];
-    NSString *prodAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
-    NSString *buildNumber = [[NSBundle mainBundle] infoDictionary][(NSString*)kCFBundleVersionKey];
-    NSString *appVersion = [NSString stringWithFormat:@"%@(%@)", prodAppVersion, buildNumber];
-    NSString *appName = [SalesforceSDKManager ailtnAppName];
-    UIDevice *curDevice = [UIDevice currentDevice];
-    NSString *osVersion = [curDevice systemVersion];
-    NSString *osName = [curDevice systemName];
-    NSString *appTypeStr = [sdkManager getAppTypeAsString];
-    NSString *mobileSdkVersion = SALESFORCE_SDK_VERSION;
-    NSString *deviceModel = [curDevice platform];
-    NSString *deviceId = [sdkManager deviceId];
-    NSString *clientId = sdkManager.appConfig.remoteAccessConsumerKey;
-    return [[SFSDKDeviceAppAttributes alloc] initWithAppVersion:appVersion appName:appName osVersion:osVersion osName:osName nativeAppType:appTypeStr mobileSdkVersion:mobileSdkVersion deviceModel:deviceModel deviceId:deviceId clientId:clientId];
+    
+    // TODO spm
+//    SalesforceSDKManager *sdkManager = [SalesforceSDKManager sharedManager];
+//    NSString *prodAppVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"];
+//    NSString *buildNumber = [[NSBundle mainBundle] infoDictionary][(NSString*)kCFBundleVersionKey];
+//    NSString *appVersion = [NSString stringWithFormat:@"%@(%@)", prodAppVersion, buildNumber];
+//    NSString *appName = [SalesforceSDKManager ailtnAppName];
+//    UIDevice *curDevice = [UIDevice currentDevice];
+//    NSString *osVersion = [curDevice systemVersion];
+//    NSString *osName = [curDevice systemName];
+//    NSString *appTypeStr = [sdkManager getAppTypeAsString];
+//    NSString *mobileSdkVersion = SALESFORCE_SDK_VERSION;
+//    NSString *deviceModel = [curDevice platform];
+//    NSString *deviceId = [sdkManager deviceId];
+//    NSString *clientId = sdkManager.appConfig.remoteAccessConsumerKey;
+//    return [[SFSDKDeviceAppAttributes alloc] initWithAppVersion:appVersion appName:appName osVersion:osVersion osName:osName nativeAppType:appTypeStr mobileSdkVersion:mobileSdkVersion deviceModel:deviceModel deviceId:deviceId clientId:clientId];
+    return nil;
 }
 
 - (void) storeAnalyticsPolicy:(BOOL) enabled {

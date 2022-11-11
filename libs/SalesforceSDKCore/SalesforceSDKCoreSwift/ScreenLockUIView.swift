@@ -27,6 +27,7 @@
 
 import SwiftUI
 import LocalAuthentication
+import SalesforceSDKCore
 
 struct ScreenLockUIView: View {
     @Environment(\.presentationMode) var presentationMode
@@ -95,7 +96,8 @@ struct ScreenLockUIView: View {
                 }
             }
         } else {
-            errorText = String(format: SFSDKResourceUtils.localizedString("setUpPasscodeMessage"), SalesforceManager.shared.appDisplayName)
+            // todo spm 
+            //errorText = String(format: SFSDKResourceUtils.localizedString("setUpPasscodeMessage"), SalesforceManager.shared.appDisplayName)
             hasError = true
             canEvaluatePolicy = false
         }

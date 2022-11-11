@@ -29,7 +29,7 @@
 #import "SFRestAPI+Internal.h"
 #import "SFRestRequest+Internal.h"
 #import "SFSDKWebUtils.h"
-#import "SalesforceSDKManager.h"
+//#import "SalesforceSDKManager.h"
 #import "SFSDKEventBuilderHelper.h"
 #import "SFNetwork.h"
 #import "SFOAuthSessionRefresher.h"
@@ -222,7 +222,9 @@ static dispatch_once_t pred;
 }
 
 + (NSString *)userAgentString:(NSString*)qualifier {
-    return [SalesforceSDKManager sharedManager].userAgentString(qualifier);
+    return @"";
+    // TODO spm
+  //  return [SalesforceSDKManager sharedManager].userAgentString(qualifier);
 }
 
 #pragma mark - send method

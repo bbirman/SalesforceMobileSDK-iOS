@@ -21,7 +21,7 @@
  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
  WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#import "SalesforceSDKManager+Internal.h"
+//#import "SalesforceSDKManager+Internal.h"
 #import "SFUserAccountManager+Internal.h"
 #import "SFSDKWindowManager+Internal.h"
 #import "SFUserAccount+Internal.h"
@@ -1882,10 +1882,11 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         }
     };
     
-    if ([[SalesforceSDKManager sharedManager] isSnapshotPresented:viewHandler.scene]) {
-        [[SalesforceSDKManager sharedManager] dismissSnapshot:viewHandler.scene completion:^{
-            presentWindowBlock();
-        }];
+    // todo SPM
+    if ([[[SFSDKWindowManager sharedManager] snapshotWindow:viewHandler.scene] isEnabled]) {
+//        [[SalesforceSDKManager sharedManager] dismissSnapshot:viewHandler.scene completion:^{
+//            presentWindowBlock();
+//        }];
     } else {
         presentWindowBlock();
     }

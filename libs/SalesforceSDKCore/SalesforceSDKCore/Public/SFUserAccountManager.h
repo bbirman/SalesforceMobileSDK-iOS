@@ -464,6 +464,10 @@ NS_SWIFT_NAME(UserAccountManager)
 - (BOOL)loginWithCompletion:(nullable SFUserAccountManagerSuccessCallbackBlock)completionBlock
                     failure:(nullable SFUserAccountManagerFailureCallbackBlock)failureBlock NS_REFINED_FOR_SWIFT;
 
+- (BOOL)loginWithCompletion:(nullable SFUserAccountManagerSuccessCallbackBlock)completionBlock
+                    failure:(nullable SFUserAccountManagerFailureCallbackBlock)failureBlock
+                    scene:(nullable UIScene *) scene NS_REFINED_FOR_SWIFT;
+
 /**
  Kick off the refresh process for the specified credentials.
  @param credentials SFOAuthCredentials to be refreshed.

@@ -24,7 +24,7 @@
 
 
 #import "SFSDKDevInfoViewController.h"
-#import "SalesforceSDKManager.h"
+//#import "SalesforceSDKManager.h"
 #import "SFSDKResourceUtils.h"
 #import "UIColor+SFColors.h"
 
@@ -52,7 +52,8 @@ static NSString * const kDevInfoOKKey = @"devInfoOKKey";
 {
     self = [super init];
     if (self) {
-        self.infoData = [[SalesforceSDKManager sharedManager] getDevSupportInfos];
+        // TODO spm
+       // self.infoData = [[SalesforceSDKManager sharedManager] getDevSupportInfos];
     }
     return self;
 }
@@ -100,7 +101,9 @@ static NSString * const kDevInfoOKKey = @"devInfoOKKey";
 {
     UINavigationBar* navBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, kNavBarHeight)];
     navBar.delegate = self;
-    UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:[[SalesforceSDKManager sharedManager] devInfoTitleString]];
+    // TODO spm
+//    UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:[[SalesforceSDKManager sharedManager] devInfoTitleString]];
+    UINavigationItem *navItem = [[UINavigationItem alloc] initWithTitle:@""];
     UIBarButtonItem *backItem = [[UIBarButtonItem alloc] initWithTitle:[SFSDKResourceUtils localizedString:kDevInfoBackButtonTitleKey] style:UIBarButtonItemStylePlain target:self action:@selector(backButtonClicked)];
     [navItem setLeftBarButtonItem:backItem];
     [navBar setItems:@[navItem] animated:YES];

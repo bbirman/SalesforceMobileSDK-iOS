@@ -21,7 +21,7 @@ let package = Package(
             
         .library(
             name: "SalesforceSDKCoreLib",
-            targets: ["SalesforceSDKCore", "SalesforceSDKCoreSwiftBase"]
+            targets: ["SalesforceSDKCore", "SalesforceSDKCoreSwiftBase", "SalesforceSDKCoreManager"]
         ),
 //        .library(
 //            name: "SmartStore",
@@ -62,18 +62,26 @@ let package = Package(
             publicHeadersPath: "Public"
 
         ),
+        
         .target(
-            name: "SalesforceSDKCoreSwiftBase",
-            dependencies: ["SalesforceSDKCommon", "SalesforceSDKCommonSwift"],
-            path: "libs/SalesforceSDKCore/SalesforceSDKCoreSwiftBase"
-          //  publicHeadersPath: "Public",
-//                cSettings: [
-//                      .headerSearchPath("Internal"),
-//                      //.headerSearchPath("include"),
-//                      .headerSearchPath("Public")
-//                   ]
-//           exclude: ["Extensions/PushNotificationManager.swift", "Extensions/UserAccountManager.swift", "Extensions/RestClient.swift"]
+            name: "SalesforceSDKCoreManager",
+            dependencies: ["SalesforceSDKCommon", "SalesforceSDKCoreSwiftBase", "SalesforceSDKCoreSwift", "SalesforceSDKCommonSwift", "SalesforceAnalytics", "SalesforceSDKCore"],
+            path: "libs/SalesforceSDKCore/SalesforceSDKManager",
+            publicHeadersPath: "Public",
+            cSettings: [
+                  .headerSearchPath("Internal"),
+                  .headerSearchPath("Public")
+               ]
         ),
+        
+        
+        .target(
+            name: "SalesforceSDKCoreSwift",
+            dependencies: ["SalesforceSDKCommon", "SalesforceSDKCommonSwift", "SalesforceSDKCoreSwiftBase", "SalesforceSDKCore"],
+            path: "libs/SalesforceSDKCore/SalesforceSDKCoreSwift"
+        ),
+        
+
         
         .target(
             name: "SalesforceSDKCore",
@@ -88,6 +96,11 @@ let package = Package(
                ]
            //exclude: ["Classes/Extensions/RestClient.swift"]
         ),
+        .target(
+            name: "SalesforceSDKCoreSwiftBase",
+            dependencies: ["SalesforceSDKCommon", "SalesforceSDKCommonSwift"],
+            path: "libs/SalesforceSDKCore/SalesforceSDKCoreSwiftBase"
+        )
 //        .target(
 //            name: "SmartStore",
 //            dependencies: ["SalesforceSDKCore"],

@@ -23,7 +23,7 @@
  */
 
 @import SalesforceSDKCommon;
-#import "SalesforceSDKManager+Internal.h"
+//#import "SalesforceSDKManager+Internal.h"
 #import "SFUserAccountManager.h"
 #import "TestSetupUtils.h"
 #import "SFUserAccountManager+Internal.h"
@@ -68,14 +68,16 @@ static SFOAuthCredentials *credentials = nil;
     // check whether the test config file has never been edited
     NSAssert(![credsData.refreshToken isEqualToString:@"__INSERT_TOKEN_HERE__"],
              @"You need to obtain credentials for your test org and replace test_credentials.json");
-    [SalesforceSDKManager initializeSDK];
+    // TODO spm
+    //[SalesforceSDKManager initializeSDK];
 
     // Note: We need to fix this inconsistency for tests in the long run.There should be a clean way to refresh appConfigs for tests. The configs should apply across all components that need the  config.
     SFSDKAppConfig *appconfig  = [[SFSDKAppConfig alloc] init];
     appconfig.oauthRedirectURI = credsData.redirectUri;
     appconfig.remoteAccessConsumerKey = credsData.clientId;
     appconfig.oauthScopes = [NSSet setWithObjects:@"web", @"api", @"openid", nil];
-    [SalesforceSDKManager sharedManager].appConfig = appconfig;
+    // TODO spm
+   // [SalesforceSDKManager sharedManager].appConfig = appconfig;
     [SFUserAccountManager sharedInstance].oauthClientId = credsData.clientId;
     [SFUserAccountManager sharedInstance].oauthCompletionUrl = credsData.redirectUri;
     [SFUserAccountManager sharedInstance].scopes = [NSSet setWithObjects:@"web", @"api", nil];
