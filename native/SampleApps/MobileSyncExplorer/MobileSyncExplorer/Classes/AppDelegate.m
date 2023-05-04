@@ -61,11 +61,8 @@
 {
     self = [super init];
     if (self) {
-        MobileSyncExplorerConfig *config = [MobileSyncExplorerConfig sharedInstance];
-        [SFSDKDatasharingHelper sharedInstance].appGroupName = config.appGroupName;
-        [SFSDKDatasharingHelper sharedInstance].appGroupEnabled = config.appGroupsEnabled;
-
         [MobileSyncSDKManager initializeSDK];
+        [SalesforceSDKManager sharedManager].idpKeychainGroup = @"XD7TD9S6ZU.com.bbirman.msdk";
         
         //App Setup for any changes to the current authenticated user
         __weak typeof (self) weakSelf = self;
@@ -79,6 +76,7 @@
         //Uncomment following lines to enable IDP Login flow. Set scheme of idpAppp & display name (optional)
         //[MobileSyncSDKManager sharedManager].idpAppURIScheme = @"sampleidpapp";
         //[MobileSyncSDKManager sharedManager].appDisplayName = @"SampleAppOne";
+        [MobileSyncSDKManager sharedManager].isIdentityProvider = YES;
         
     }
     return self;
@@ -146,7 +144,7 @@
 {
     
     // Uncomment following block to enable IDP Login flow
-    // return [[SFUserAccountManager sharedInstance] handleIDPAuthenticationResponse:url options:options];
+     return [[SFUserAccountManager sharedInstance] handleIDPAuthenticationResponse:url options:options];
     return NO;
 
 }

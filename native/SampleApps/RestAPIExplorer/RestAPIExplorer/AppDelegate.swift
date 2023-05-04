@@ -41,12 +41,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       
         SalesforceManager.initializeSDK()
         SalesforceManager.shared.appDisplayName = "Rest API Explorer"
-        
+        SalesforceManager.shared.identityProviderKeychainGroup = "XD7TD9S6ZU.com.bbirman.msdk"
+
         //Uncomment following block to enable IDP Login flow.
-        //SalesforceManager.shared.identityProviderURLScheme = "sampleidpapp"
+        SalesforceManager.shared.identityProviderURLScheme = "sfdc"
     }
     
     // MARK: - App delegate lifecycle
+    
+    func application(_ app: UIApplication,
+                  open url: URL,
+                   options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        return UserAccountManager.shared.handleIdentityProviderResponse(
+            from: url, with: options)
+    }
+    
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         self.window = UIWindow(frame: UIScreen.main.bounds)
@@ -54,7 +63,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If you wish to register for push notifications, uncomment the line below.  Note that,
         // if you want to receive push notifications from Salesforce, you will also need to
         // implement the application:didRegisterForRemoteNotificationsWithDeviceToken: method (below).
-        // self.registerForRemotePushNotifications()
+//         self.registerForRemotePushNotifications()
         
         // Uncomment the code below to see how you can customize the color, textcolor,
         // font and fontsize of the navigation bar
@@ -64,7 +73,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         // Uncomment the code below to register your device token with the push notification manager
-        // didRegisterForRemoteNotifications(deviceToken)
+         didRegisterForRemoteNotifications(deviceToken)
     }
 
     func didRegisterForRemoteNotifications(_ deviceToken: Data) {
@@ -83,6 +92,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error ) {
         // Respond to any push notification registration errors here.
+        print("Error! \(error.localizedDescription)")
     }
     
     // MARK: - Private methods
