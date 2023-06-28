@@ -150,8 +150,8 @@ static SFSDKMetricsCollectedBlock _metricsCollectedAction = nil;
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task willPerformHTTPRedirection:(NSHTTPURLResponse *)response newRequest:(NSURLRequest *)request completionHandler:(void (^)(NSURLRequest * _Nullable))completionHandler {
-    if ([task.originalRequest valueForHTTPHeaderField:@"Authorization"]) {
-        // Don't auto follow redirects in authenticated case
+    if ([task.originalRequest valueForHTTPHeaderField:@"Authorization"] && ![self isSalesforceURL:request.URL]) {
+        // Don't auto follow redirects in authenticated case if we don't recognize the domain
         completionHandler(nil);
     } else {
         NSMutableURLRequest *newRequest = [request mutableCopy];
@@ -160,6 +160,21 @@ static SFSDKMetricsCollectedBlock _metricsCollectedAction = nil;
         [newRequest setHTTPMethod:task.originalRequest.HTTPMethod];
         completionHandler(newRequest);
     }
+}
+
+- (BOOL)isSalesforceURL:(NSURL *)url {
+    return [url.host hasSuffix:@".salesforce.com"] ||
+           [url.host hasSuffix:@".force.com"] ||
+           [url.host hasSuffix:@".salesforce-experience.com"] ||
+           [url.host hasSuffix:@".sfdcopens.com"] ||
+           [url.host hasSuffix:@".site.com"] ||
+           [url.host hasSuffix:@".lightning.com"] ||
+           [url.host hasSuffix:@".salesforce-sites.com"] ||
+           [url.host hasSuffix:@".force-user-content.com"] ||
+           [url.host hasSuffix:@".forceusercontent.com"] ||
+           [url.host hasSuffix:@".salesforce-experience.com"] ||
+           [url.host hasSuffix:@".vf.force.com"] ||
+           [url.host hasSuffix:@".salesforce-scrt.com"];
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didFinishCollectingMetrics:(NSURLSessionTaskMetrics *)metrics {
