@@ -59,6 +59,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        self.window?.makeKeyAndVisible()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -79,9 +80,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         // Uncomment following block to enable IDP Login flow
-//        if let urlContext = URLContexts.first {
+        if let urlContext = URLContexts.first {
+            UserAccountManager.shared.handleIdentityProviderCommand(from: urlContext.url, with: [UserAccountManager.IDPSceneKey: scene.session.persistentIdentifier]) { result in
+                print(result)
+            }
 //            UserAccountManager.shared.handleIdentityProviderResponse(from: urlContext.url, with: [UserAccountManager.IDPSceneKey: scene.session.persistentIdentifier])
-//        }
+        }
     }
     
     // MARK: - Private methods

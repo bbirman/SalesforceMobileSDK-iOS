@@ -28,6 +28,7 @@
 #import <SalesforceSDKCore/SFDefaultUserManagementViewController.h>
 #import <SalesforceSDKCore/SFUserAccountManager.h>
 #import <SalesforceSDKCore/SalesforceSDKManager.h>
+#import <SalesforceSDKCore/SalesforceSDKCore-Swift.h>
 #import <SmartStore/SFSmartStoreInspectorViewController.h>
 
 static NSString * const kNavBarTitleText                = @"Contacts";
@@ -410,13 +411,21 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 }
 
 - (void)addContact {
-    self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:kNavBarTitleText style:UIBarButtonItemStylePlain target:nil action:nil];
-    ContactDetailViewController *detailVc = [[ContactDetailViewController alloc] initForNewContactWithDataManager:self.dataMgr saveBlock:^{
-        [self.dataMgr refreshLocalData:^{
-            [self refreshList];
-        }];
+    NSSet *scopes = [NSSet setWithArray:@[@"web", @"api"]];
+    SFSDKSPConfig *config = [[SFSDKSPConfig alloc] initWithOauthClientId:@"3MVG9SemV5D80oBcXZ2EUzbcJwwLciA635iQNoqfp.UUuxWpBqgN1C7lLOJcZVCSgFK8iF8nR0atddqxCk19l" oauthCallbackURL:@"com.salesforce.mobilesdk.sample.restapiexplorer://oauth/success" oauthScopes:scopes keychainGroup:@"XD7TD9S6ZU.com.bbirman.msdkapp"];
+    [[SFUserAccountManager sharedInstance] kickOffIDPInitiatedLoginFlowForSP:config statusUpdate:^(SFSPLoginStatus status) {
+        NSLog(@"status");
+    } failure:^(SFSPLoginError error) {
+        NSLog(@"error");
     }];
-    [self.navigationController pushViewController:detailVc animated:YES];
+    
+//    self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:kNavBarTitleText style:UIBarButtonItemStylePlain target:nil action:nil];
+//    ContactDetailViewController *detailVc = [[ContactDetailViewController alloc] initForNewContactWithDataManager:self.dataMgr saveBlock:^{
+//        [self.dataMgr refreshLocalData:^{
+//            [self refreshList];
+//        }];
+//    }];
+//    [self.navigationController pushViewController:detailVc animated:YES];
 }
 
 - (void)showOtherActions {
