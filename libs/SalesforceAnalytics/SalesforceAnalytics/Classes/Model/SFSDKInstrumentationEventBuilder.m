@@ -30,7 +30,7 @@
 #import "SFSDKInstrumentationEventBuilder.h"
 #import "SFSDKAnalyticsManager+Internal.h"
 #import "SFSDKInstrumentationEvent+Internal.h"
-#import <CoreTelephony/CTTelephonyNetworkInfo.h>
+//#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <SalesforceSDKCommon/SFSDKReachability.h>
 
 @interface SFSDKInstrumentationEventBuilder ()
@@ -108,12 +108,13 @@
 
 - (NSString *) getMobileConnectionSubType {
     NSString *type = @"Mobile";
-    CTTelephonyNetworkInfo *telephonyInfo = [[CTTelephonyNetworkInfo alloc] init];
-    NSString *subType = telephonyInfo.serviceCurrentRadioAccessTechnology.allValues.firstObject;
-    if (subType != nil) {
-        type = [NSString stringWithFormat:@"Mobile;%@", subType];
-    }
+//    CTTelephonyNetworkInfo *telephonyInfo = [[CTTelephonyNetworkInfo alloc] init];
+//    NSString *subType = telephonyInfo.serviceCurrentRadioAccessTechnology.allValues.firstObject;
+//    if (subType != nil) {
+//        type = [NSString stringWithFormat:@"Mobile;%@", subType];
+//    }
     return type;
+    
 }
 
 @end

@@ -29,6 +29,7 @@
 #import "SFSDKWindowContainer.h"
 #import "SFSDKWindowManager.h"
 #import "SFSDKRootController.h"
+#import "SFApplicationHelper.h"
 @interface SFSDKWindowContainer()
 
 @end
@@ -55,7 +56,12 @@
 
 - (UIWindow *)window {
     if (_window == nil) {
-        _window = [[SFSDKUIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds andName:_windowName];
+        
+        
+        UIWindowScene *scene = (UIWindowScene *)[SFApplicationHelper sharedApplication].connectedScenes.allObjects.firstObject;
+        _window = [[SFSDKUIWindow alloc] initWithFrame:scene.coordinateSpace.bounds andName:_windowName];
+        
+//        _window = [[SFSDKUIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds andName:_windowName];
         _window.windowLevel = self.windowLevel;
         if (!self.viewController ) {
             self.viewController = [[SFSDKRootController alloc] init];

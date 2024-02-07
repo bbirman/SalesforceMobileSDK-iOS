@@ -195,7 +195,7 @@
         [self.view addSubview:self.navBar];
     }
     
-    [self setNeedsStatusBarAppearanceUpdate];
+//    [self setNeedsStatusBarAppearanceUpdate];
 }
 
 - (void)setupBackButton {

@@ -120,7 +120,7 @@
     
     self.navBar.topItem.titleView = item;
     [self showSettingsIcon];
-    [self setNeedsStatusBarAppearanceUpdate];
+//    [self setNeedsStatusBarAppearanceUpdate];
 }
 
 + (UIImage*)imageWithImage:(UIImage*)image

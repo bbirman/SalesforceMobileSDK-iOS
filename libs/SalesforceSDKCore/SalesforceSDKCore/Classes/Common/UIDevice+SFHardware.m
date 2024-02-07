@@ -10,8 +10,8 @@
 #include <net/if.h>
 #include <net/if_dl.h>
 #import <mach/mach.h>
-#import <CoreTelephony/CTTelephonyNetworkInfo.h>
-#import <CoreTelephony/CTCarrier.h>
+//#import <CoreTelephony/CTTelephonyNetworkInfo.h>
+//#import <CoreTelephony/CTCarrier.h>
 #import "UIDevice+SFHardware.h"
 #import "UIScreen+SFAdditions.h"
 #import "SFApplicationHelper.h"
@@ -296,8 +296,8 @@
     // Simulator thanks Jordan Breeding
     if ([platform hasSuffix:@"86"] || [platform isEqual:@"x86_64"])
     {
-        BOOL smallerScreen = [[UIScreen mainScreen] bounds].size.width < 768;
-        return smallerScreen ? UIDeviceSimulatoriPhone : UIDeviceSimulatoriPad;
+//        BOOL smallerScreen = [[UIScreen mainScreen] bounds].size.width < 768;
+//        return smallerScreen ? UIDeviceSimulatoriPhone : UIDeviceSimulatoriPad;
     }
     
     return UIDeviceUnknown;
@@ -433,14 +433,14 @@
     return UIDeviceFamilyUnknown;
 }
 
-- (UIInterfaceOrientation)sfsdk_interfaceOrientation {
-    UIDeviceOrientation deviceOrientation = UIDevice.currentDevice.orientation;
-    UIInterfaceOrientation orientation = (UIInterfaceOrientation)deviceOrientation;
-    if (!UIDeviceOrientationIsValidInterfaceOrientation(deviceOrientation)) {
-        orientation = [SFApplicationHelper sharedApplication].windows.firstObject.windowScene.interfaceOrientation;
-    }
-    return orientation;
-}
+//- (UIInterfaceOrientation)sfsdk_interfaceOrientation {
+//    UIDeviceOrientation deviceOrientation = UIDevice.currentDevice.orientation;
+//    UIInterfaceOrientation orientation = (UIInterfaceOrientation)deviceOrientation;
+//    if (!UIDeviceOrientationIsValidInterfaceOrientation(deviceOrientation)) {
+//        orientation = [SFApplicationHelper sharedApplication].windows.firstObject.windowScene.interfaceOrientation;
+//    }
+//    return orientation;
+//}
 
 + (BOOL)sfsdk_currentDeviceIsIPad {
     return (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad);

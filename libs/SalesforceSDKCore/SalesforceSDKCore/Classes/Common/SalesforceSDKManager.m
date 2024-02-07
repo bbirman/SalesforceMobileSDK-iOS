@@ -99,7 +99,9 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.frame = [UIScreen mainScreen].bounds;
+    UIWindowScene *scene = (UIWindowScene *)[SFApplicationHelper sharedApplication].connectedScenes.allObjects.firstObject;
+    self.view.frame = scene.coordinateSpace.bounds;
+//    self.view.frame = [UIScreen mainScreen].bounds;
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     self.view.backgroundColor = [UIColor salesforceSystemBackgroundColor];
 }
