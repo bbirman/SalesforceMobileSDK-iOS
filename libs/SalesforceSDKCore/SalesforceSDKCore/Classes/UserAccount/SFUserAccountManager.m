@@ -549,12 +549,13 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
 }
 
 - (void)logoutUser:(SFUserAccount *)user {
-  
     // No-op, if the user is not valid.
     if (user == nil) {
         [SFSDKCoreLogger i:[self class] format:@"logoutUser: user is nil. No action taken."];
         return;
     }
+    
+    
     BOOL loggingOutTransitionSucceeded = [user transitionToLoginState:SFUserAccountLoginStateLoggingOut];
     if (!loggingOutTransitionSucceeded) {
 
@@ -762,6 +763,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
         self.alertDisplayBlock(messageObject, [[SFSDKWindowManager sharedManager] authWindow:coordinator.authSession.oauthRequest.scene]);
     });
 }
+
 // IDP related code fetched as an identity provider app
 - (void)oauthCoordinatorDidFetchAuthCode:(SFOAuthCoordinator *)coordinator authInfo:(SFOAuthInfo *)authInfo {
     coordinator.authSession.authInfo = authInfo;

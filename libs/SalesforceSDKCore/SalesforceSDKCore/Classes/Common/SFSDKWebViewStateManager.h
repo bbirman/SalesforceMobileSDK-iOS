@@ -48,7 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  Clears session cookie data from the cookie store unless session cookie removal  has been disabled.
  */
-+ (void)resetSessionCookie;
++ (void)resetSessionCookie:(void (^)(void))completionHandler;
 @end
 
 NS_ASSUME_NONNULL_END

@@ -167,7 +167,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 
 + (void)initialize {
     if (self == [SalesforceSDKManager class]) {
-
+        
         /*
          * Checks if an analytics app name has already been set by the app.
          * If not, fetches the default app name to be used and sets it.
@@ -179,7 +179,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
                 [SalesforceSDKManager setAiltnAppName:ailtnAppName];
             }
         }
-
+        
         /*
          * Checks if an app name has already been set by the app.
          * If not, fetches the default app name to be used and sets it.
@@ -236,7 +236,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
         Method sfsdkMotionEndedMethod = class_getInstanceMethod([UIWindow class], @selector(sfsdk_motionEnded:withEvent:));
         IMP sfsdkMotionEndedImplementation = method_getImplementation(sfsdkMotionEndedMethod);
         motionEndedImplementation = method_setImplementation(class_getInstanceMethod([UIWindow class], @selector(motionEnded:withEvent:)), sfsdkMotionEndedImplementation);
-
+        
         // Pasteboard
         // Get implementation of general pasteboard and store it
         Method generalPasteboardMethod = class_getClassMethod([UIPasteboard class], @selector(generalPasteboard));
@@ -256,7 +256,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 }
 
 + (UIPasteboard *)sdkNamedPasteboard {
-     return [UIPasteboard pasteboardWithName:@"com.salesforce.mobilesdk.pasteboard" create:YES];
+    return [UIPasteboard pasteboardWithName:@"com.salesforce.mobilesdk.pasteboard" create:YES];
 }
 
 + (UIPasteboard *)sdkPasteboard {
@@ -277,11 +277,12 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleAppTerminate:) name:UIApplicationWillTerminateNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidActivate:) name:UISceneDidActivateNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillEnterForeground:) name:UISceneWillEnterForegroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidEnterBackground:) name:UISceneDidEnterBackgroundNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneWillConnect:) name:UISceneWillConnectNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleSceneDidDisconnect:) name:UISceneDidDisconnectNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow
-                                                selector:@selector(handleAuthCompleted:)
+                                                 selector:@selector(handleAuthCompleted:)
                                                      name:kSFNotificationUserDidLogIn object:nil];
         
         [[NSNotificationCenter defaultCenter] addObserver:self.sdkManagerFlow selector:@selector(handleIDPInitiatedAuthCompleted:)
@@ -328,7 +329,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
     if (NSClassFromString(@"SFNetReactBridge") != nil) {
         return kSFAppTypeReactNative;
     }
-
+    
     return kSFAppTypeNative;
 }
 
@@ -361,7 +362,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 }
 
 - (void)setIsIdentityProvider:(BOOL)isIdentityProvider {
-   [SFUserAccountManager sharedInstance].isIdentityProvider = isIdentityProvider;
+    [SFUserAccountManager sharedInstance].isIdentityProvider = isIdentityProvider;
 }
 
 - (BOOL)idpEnabled {
@@ -422,12 +423,12 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 
 - (void) showDevSupportDialog:(UIViewController *)presentedViewController
 {
-
+    
     // Do nothing if dev support is not enabled or dialog is already being shown
     if (!self.isDevSupportEnabled || self.actionSheet) {
         return;
     }
-
+    
     // On larger devices we don't have an anchor point for the action sheet
     UIAlertControllerStyle style = [[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone ? UIAlertControllerStyleActionSheet : UIAlertControllerStyleAlert;
     self.actionSheet = [UIAlertController alertControllerWithTitle:[self devInfoTitleString] message:@"" preferredStyle:style];
@@ -436,14 +437,14 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
         [self.actionSheet addAction:[UIAlertAction actionWithTitle:devActions[i].name
                                                              style:UIAlertActionStyleDefault
                                                            handler:^(__unused UIAlertAction *action) {
-                                                               devActions[i].handler();
-                                                               self.actionSheet = nil;
-                                                           }]];
+            devActions[i].handler();
+            self.actionSheet = nil;
+        }]];
     }
     [self.actionSheet addAction:[UIAlertAction actionWithTitle:[SFSDKResourceUtils localizedString:@"devInfoCancelKey"] style:UIAlertActionStyleCancel
                                                        handler:^(__unused UIAlertAction *action) {
-                                                           self.actionSheet = nil;
-                                                       }]];
+        self.actionSheet = nil;
+    }]];
     [presentedViewController presentViewController:self.actionSheet animated:YES completion:nil];
 }
 
@@ -455,23 +456,23 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 - (NSArray<SFSDKDevAction *>*) getDevActions:(UIViewController *)presentedViewController
 {
     return @[
-             [[SFSDKDevAction alloc]initWith:@"Show dev info" handler:^{
-                 SFSDKDevInfoViewController *devInfo = [[SFSDKDevInfoViewController alloc] init];
-                 [presentedViewController presentViewController:devInfo animated:NO completion:nil];
-             }],
-             [[SFSDKDevAction alloc]initWith:@"Logout" handler:^{
-                 [[SFUserAccountManager  sharedInstance] logout];
-             }],
-             [[SFSDKDevAction alloc]initWith:@"Switch user" handler:^{
-                 SFDefaultUserManagementViewController *umvc = [[SFDefaultUserManagementViewController alloc] initWithCompletionBlock:^(SFUserManagementAction action) {
-                     [presentedViewController dismissViewControllerAnimated:YES completion:nil];
-                 }];
-                 [presentedViewController presentViewController:umvc animated:YES completion:nil];
-             }],
-             [[SFSDKDevAction alloc]initWith:@"Inspect Key-Value Store" handler:^{
-                 UIViewController *keyValueStoreInspector = [[SFSDKKeyValueEncryptedFileStoreViewController new] createUI];
-                 [presentedViewController presentViewController:keyValueStoreInspector animated:YES completion:nil];
-             }]
+        [[SFSDKDevAction alloc]initWith:@"Show dev info" handler:^{
+            SFSDKDevInfoViewController *devInfo = [[SFSDKDevInfoViewController alloc] init];
+            [presentedViewController presentViewController:devInfo animated:NO completion:nil];
+        }],
+        [[SFSDKDevAction alloc]initWith:@"Logout" handler:^{
+            [[SFUserAccountManager  sharedInstance] logout];
+        }],
+        [[SFSDKDevAction alloc]initWith:@"Switch user" handler:^{
+            SFDefaultUserManagementViewController *umvc = [[SFDefaultUserManagementViewController alloc] initWithCompletionBlock:^(SFUserManagementAction action) {
+                [presentedViewController dismissViewControllerAnimated:YES completion:nil];
+            }];
+            [presentedViewController presentViewController:umvc animated:YES completion:nil];
+        }],
+        [[SFSDKDevAction alloc]initWith:@"Inspect Key-Value Store" handler:^{
+            UIViewController *keyValueStoreInspector = [[SFSDKKeyValueEncryptedFileStoreViewController new] createUI];
+            [presentedViewController presentViewController:keyValueStoreInspector animated:YES completion:nil];
+        }]
     ];
 }
 
@@ -479,19 +480,19 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 {
     SFUserAccountManager* userAccountManager = [SFUserAccountManager sharedInstance];
     NSMutableArray * devInfos = [NSMutableArray arrayWithArray:@[
-            @"SDK Version", SALESFORCE_SDK_VERSION,
-            @"App Type", [self getAppTypeAsString],
-            @"User Agent", self.userAgentString(@""),
-            @"Use Web Server Authentication", [self useWebServerAuthentication]  ? @"YES" : @"NO",
-            @"Browser Login Enabled", [SFUserAccountManager sharedInstance].useBrowserAuth? @"YES" : @"NO",
-            @"IDP Enabled", [self idpEnabled] ? @"YES" : @"NO",
-            @"Identity Provider", [self isIdentityProvider] ? @"YES" : @"NO",
-            @"Current User", [self userToString:userAccountManager.currentUser],
-            @"Authenticated Users", [self usersToString:userAccountManager.allUserAccounts],
-            @"User Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allStoreNames] separator:@", "],
-            @"Global Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allGlobalStoreNames] separator:@", "]
+        @"SDK Version", SALESFORCE_SDK_VERSION,
+        @"App Type", [self getAppTypeAsString],
+        @"User Agent", self.userAgentString(@""),
+        @"Use Web Server Authentication", [self useWebServerAuthentication]  ? @"YES" : @"NO",
+        @"Browser Login Enabled", [SFUserAccountManager sharedInstance].useBrowserAuth? @"YES" : @"NO",
+        @"IDP Enabled", [self idpEnabled] ? @"YES" : @"NO",
+        @"Identity Provider", [self isIdentityProvider] ? @"YES" : @"NO",
+        @"Current User", [self userToString:userAccountManager.currentUser],
+        @"Authenticated Users", [self usersToString:userAccountManager.allUserAccounts],
+        @"User Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allStoreNames] separator:@", "],
+        @"Global Key-Value Stores", [self safeJoin:[SFSDKKeyValueEncryptedFileStore allGlobalStoreNames] separator:@", "]
     ]];
-
+    
     [devInfos addObjectsFromArray:[self dictToDevInfos:self.appConfig.configDict keyPrefix:@"BootConfig"]];
     
     SFManagedPreferences *managedPreferences = [SFManagedPreferences sharedPreferences];
@@ -499,7 +500,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
     if ([managedPreferences hasManagedPreferences]) {
         [devInfos addObjectsFromArray:[self dictToDevInfos:managedPreferences.rawPreferences keyPrefix:@"Managed Pref"]];
     }
-
+    
     return devInfos;
 }
 
@@ -568,17 +569,26 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 - (void)handleAppTerminate:(NSNotification *)notification { }
 
 - (void)handleSceneDidActivate:(NSNotification *)notification {
-     UIScene *scene = (UIScene *)notification.object;
-     NSString *sceneId = scene.session.persistentIdentifier;
-     [SFSDKCoreLogger d:[self class] format:@"Scene %@ is resuming active state.", sceneId];
-
-     @try {
-         [self dismissSnapshot:scene completion:nil];
-     }
-     @catch (NSException *exception) {
-         [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view for scene %@: '%@'. Will continue to resume scene.", sceneId, [exception reason]];
-     }
+//    UIScene *scene = (UIScene *)notification.object;
+//    NSString *sceneId = scene.session.persistentIdentifier;
+//    [SFSDKCoreLogger d:[self class] format:@"Scene %@ is resuming active state.", sceneId];
+//    
+//    @try {
+//        [self dismissSnapshot:scene completion:nil];
+//    }
+//    @catch (NSException *exception) {
+//        [SFSDKCoreLogger w:[self class] format:@"Exception thrown while removing security snapshot view for scene %@: '%@'. Will continue to resume scene.", sceneId, [exception reason]];
+//    }
 }
+
+- (void)handleSceneWillEnterForeground:(NSNotification *)notification {
+    UIScene *scene = (UIScene *)notification.object;
+    NSString *sceneId = scene.session.persistentIdentifier;
+    [SFSDKCoreLogger d:[self class] format:@"Scene %@ will enter foreground.", sceneId];
+    
+    [self dismissSnapshot:scene completion:nil];
+}
+
 
 - (void)handleSceneWillConnect:(NSNotification *)notification {
     UIScene *scene = (UIScene *)notification.object;
@@ -691,12 +701,15 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
 
 - (void)dismissSnapshot:(UIScene *)scene completion:(void (^ __nullable)(void))completion {
     if ([self isSnapshotPresented:scene]) {
+//        NSLog(@"Snapshot is presented on scene %@", scene.session.persistentIdentifier);
         if (self.snapshotPresentationAction && self.snapshotDismissalAction) {
             self.snapshotDismissalAction(self.snapshotViewControllers[scene.session.persistentIdentifier]);
         } else {
             SFSDKWindowContainer *snapshotWindow = [[SFSDKWindowManager sharedManager] snapshotWindow:scene];
+            NSLog(@"Snapshot dismiss for scene %@: %@", scene.session.persistentIdentifier, snapshotWindow.debugDescription);
             [snapshotWindow.viewController dismissViewControllerAnimated:NO completion:^{
                 [snapshotWindow dismissWindowAnimated:NO withCompletion:^{
+                    
                     if (completion) {
                         completion();
                     }
@@ -704,6 +717,7 @@ NSString * const kSFBiometricAuthenticationFlowCompleted = @"SFBiometricAuthenti
             }];
         }
     }
+//    NSLog(@"Snapshot is not presented on scene %@", scene.session.persistentIdentifier);
 }
 
 - (void)clearClipboard

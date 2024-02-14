@@ -93,6 +93,8 @@
 
 /** SDK uses this window to present the snapshot view for a given scene. Defaults to a connected scene if one isn't provided.
  */
+- (nullable SFSDKWindowContainer *)snapshotWindow:(nullable UIScene *)scene autoCreate:(BOOL)autoCreate;
+
 - (nonnull SFSDKWindowContainer *)snapshotWindow:(nullable UIScene *)scene;
 
 /** Returns the SFSDKWindowContainer window representing the mainWindow that has been set for a given scene. Defaults to a connected scene if one isn't provided.

@@ -47,7 +47,7 @@ static BOOL _sessionCookieManagementDisabled = NO;
     }
     
     //reset WKWebView related state if any
-    [self removeWKWebViewCookies];
+    [self removeWKWebViewCookies:nil];
   
 }
 
@@ -77,25 +77,56 @@ static BOOL _sessionCookieManagementDisabled = NO;
 
 #pragma mark Private helper methods
 
-+ (void)removeWKWebViewCookies {
++ (void)removeWKWebViewCookies:(void (^)(void))completionHandler {
     if (_sessionCookieManagementDisabled) {
         [SFSDKCoreLogger d:self format:@"[%@ %@]: Cookie Management disabled. Will do nothing.", NSStringFromClass(self), NSStringFromSelector(_cmd)];
         return;
     }
     
+    
+    [[[WKWebsiteDataStore defaultDataStore] httpCookieStore] getAllCookies:^(NSArray<NSHTTPCookie *> * _Nonnull cookies) {
+        for (NSHTTPCookie *cookie in cookies) {
+            NSLog([cookie debugDescription]);
+            [[[WKWebsiteDataStore defaultDataStore] httpCookieStore] deleteCookie:cookie completionHandler:^{
+                NSLog(@"completed");
+            }];
+        }
+    }];
+    
     WKWebsiteDataStore *dataStore = [WKWebsiteDataStore defaultDataStore];
-    NSSet *websiteDataTypes = [NSSet setWithArray:@[ WKWebsiteDataTypeCookies]];
+    NSSet *websiteDataTypes = [NSSet setWithArray:@[
+        WKWebsiteDataTypeFetchCache,
+        WKWebsiteDataTypeDiskCache,
+        WKWebsiteDataTypeMemoryCache,
+        WKWebsiteDataTypeOfflineWebApplicationCache,
+        WKWebsiteDataTypeCookies,
+        WKWebsiteDataTypeSessionStorage,
+        WKWebsiteDataTypeLocalStorage,
+        WKWebsiteDataTypeWebSQLDatabases,
+        WKWebsiteDataTypeIndexedDBDatabases,
+        WKWebsiteDataTypeServiceWorkerRegistrations,
+        // iOS 16 + 17 only
+        
+        
+        WKWebsiteDataTypeFileSystem,
+        WKWebsiteDataTypeSearchFieldRecentSearches,
+        WKWebsiteDataTypeMediaKeys,
+        WKWebsiteDataTypeHashSalt
+        
+    ]];
     [dataStore removeDataOfTypes:websiteDataTypes modifiedSince:[NSDate distantPast] completionHandler:^{
+        if (completionHandler) completionHandler();
+        NSLog(@"completion");
         // Intentionally blank because completion can't be nil
     }];
 }
 
-+ (void)resetSessionCookie {
++ (void)resetSessionCookie:(void (^)(void))completionHandler {
     if (_sessionCookieManagementDisabled) {
         [SFSDKCoreLogger d:self format:@"[%@ %@]: Cookie Management disabled. Will do nothing.", NSStringFromClass(self), NSStringFromSelector(_cmd)];
         return;
     }
-    [self removeWKWebViewCookies];
+    [self removeWKWebViewCookies:completionHandler];
 }
 
 @end

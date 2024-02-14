@@ -28,6 +28,7 @@
 import Foundation
 import UIKit
 import SalesforceSDKCore
+import MobileSync
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -59,7 +60,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneDidBecomeActive(_ scene: UIScene) {
         // Called when the scene has moved from an inactive state to an active state.
         // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+<<<<<<< Updated upstream
         self.window?.makeKeyAndVisible()
+=======
+//            UIScene *scene = (UIScene *)notification.object;
+//            NSString *sceneId = scene.session.persistentIdentifier;
+//            [SFSDKCoreLogger d:[self class] format:@"Scene %@ will enter foreground.", sceneId];
+        LayoutSyncManager().fetchLayout(forObjectAPIName: <#T##String#>, formFactor: <#T##String?#>, layoutType: <#T##String?#>, mode: <#T##String?#>, recordTypeId: <#T##String?#>, syncMode: <#T##FetchMode#>, completionBlock: <#T##LayoutSyncCompletionBlock##LayoutSyncCompletionBlock##(String, String?, String?, String?, String?, Layout?) -> Void#>)
+//            [self dismissSnapshot:scene completion:nil];
+>>>>>>> Stashed changes
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
@@ -68,10 +77,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {
+//        SalesforceManager.shared.dismissSnapshot(scene)
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
     }
 
+
+    
     func sceneDidEnterBackground(_ scene: UIScene) {
         // Called as the scene transitions from the foreground to the background.
         // Use this method to save data, release shared resources, and store enough scene-specific state information

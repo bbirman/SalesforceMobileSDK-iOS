@@ -302,6 +302,8 @@ NS_SWIFT_NAME(SalesforceManager)
  */
 - (id <SFBiometricAuthenticationManager>)biometricAuthenticationManager;
 
+- (void)dismissSnapshot:(nonnull UIScene *)scene completion:(void (^ __nullable)(void))completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

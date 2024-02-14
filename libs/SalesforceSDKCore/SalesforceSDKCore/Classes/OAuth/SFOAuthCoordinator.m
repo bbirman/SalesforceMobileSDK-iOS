@@ -307,7 +307,7 @@
 - (WKWebView *)view {
     if (_view == nil) {
         WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-        config.processPool = SFSDKWebViewStateManager.sharedProcessPool;
+//        config.processPool = SFSDKWebViewStateManager.sharedProcessPool;
         UIWindowScene *scene = (UIWindowScene *)self.authSession.oauthRequest.scene;
 //        CGRect viewBounds = scene? scene.coordinateSpace.bounds : [UIScreen mainScreen].bounds;
         CGRect viewBounds = scene.coordinateSpace.bounds;
@@ -486,21 +486,25 @@
 
 // IDP related
 - (void)beginIDPFlow {
-    self.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeIDP];
-    self.initialRequestLoaded = NO;
-    // notify delegate will be begin authentication in our (web) vew
-    if (self.credentials.accessToken && self.credentials.apiUrl) {
-        NSString *baseUrlString = [self.credentials.apiUrl absoluteString];
-        NSString *approvalUrlString = [self approvalURLForEndpoint:kSFOAuthEndPointAuthorize
-                                                       credentials:self.spAppCredentials
-                                                     webServerFlow:YES
-                                                          protocol:@"https"
-                                                            domain:self.credentials.domain
-                                                     codeChallenge:self.spAppCredentials.challengeString];
-        NSString *escapedApprovalUrlString = [approvalUrlString sfsdk_stringByURLEncoding];
-        NSString *frontDoorUrlString = [NSString stringWithFormat:@"%@/secur/frontdoor.jsp?sid=%@&retURL=%@", baseUrlString, self.credentials.accessToken, escapedApprovalUrlString];
-        [self loadWebViewWithUrlString:frontDoorUrlString cookie:YES];
-    }
+    
+    [SFSDKWebViewStateManager resetSessionCookie:^{
+        self.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeIDP];
+        self.initialRequestLoaded = NO;
+        // notify delegate will be begin authentication in our (web) vew
+        if (self.credentials.accessToken && self.credentials.apiUrl) {
+            NSString *baseUrlString = [self.credentials.apiUrl absoluteString];
+            NSString *approvalUrlString = [self approvalURLForEndpoint:kSFOAuthEndPointAuthorize
+                                                           credentials:self.spAppCredentials
+                                                         webServerFlow:YES
+                                                              protocol:@"https"
+                                                                domain:self.credentials.domain
+                                                         codeChallenge:self.spAppCredentials.challengeString];
+            NSString *escapedApprovalUrlString = [approvalUrlString sfsdk_stringByURLEncoding];
+            NSString *frontDoorUrlString = [NSString stringWithFormat:@"%@/secur/frontdoor.jsp?sid=%@&retURL=%@", baseUrlString, self.credentials.accessToken, escapedApprovalUrlString];
+            [self loadWebViewWithUrlString:frontDoorUrlString cookie:YES];
+        }
+    
+    }];
 }
 
 - (void)loadWebViewWithUrlString:(NSString *)urlString cookie:(BOOL)enableCookie {
@@ -723,7 +727,7 @@
         NSString *responseType = [[SalesforceSDKManager sharedManager] useHybridAuthentication] ? kSFOAuthResponseTypeHybridToken : kSFOAuthResponseTypeToken;
         [approvalUrlString appendFormat:@"&%@=%@", kSFOAuthResponseType, responseType];
     }
-    
+    [approvalUrlString appendFormat:@"&%@=%@", @"login_hint", @"brianna@jb.com"];
     // OAuth scopes
     NSString *scopeString = [self scopeQueryParamString];
     if (scopeString != nil) {

@@ -28,6 +28,6 @@
 
 - (void)presentSnapshot:(nonnull UIScene *)scene;
 - (BOOL)isSnapshotPresented:(nonnull UIScene *)scene;
-- (void)dismissSnapshot:(nonnull UIScene *)scene completion:(void (^ __nullable)(void))completion;
+//- (void)dismissSnapshot:(nonnull UIScene *)scene completion:(void (^ __nullable)(void))completion;
 
 @end

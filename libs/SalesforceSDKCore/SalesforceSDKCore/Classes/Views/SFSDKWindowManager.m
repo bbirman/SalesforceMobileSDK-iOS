@@ -182,16 +182,21 @@ static NSString *const kSFScreenLockWindowKey = @"screenlock";
     return [self snapshotWindow:nil];
 }
 
-- (SFSDKWindowContainer *)snapshotWindow:(UIScene *)scene {
+- (nullable SFSDKWindowContainer *)snapshotWindow:(nullable UIScene *)scene autoCreate:(BOOL)autoCreate {
     scene = [self nonnullScene:scene];
     SFSDKWindowContainer *container = [self containerForWindowKey:kSFSnaphotWindowKey scene:scene];
     if (!container) {
+//    if (!container && autoCreate) {
         container = [self createSnapshotWindowForScene:scene];
     }
     [self setWindowScene:container scene:scene];
     //enforce WindowLevel
     container.windowLevel = [self mainWindow:scene].window.windowLevel + SFWindowLevelSnapshotOffset;
     return container;
+}
+
+- (SFSDKWindowContainer *)snapshotWindow:(UIScene *)scene {
+    return [self snapshotWindow:scene autoCreate:YES];
 }
 
 - (SFSDKWindowContainer *)screenLockWindow {

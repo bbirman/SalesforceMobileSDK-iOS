@@ -88,7 +88,11 @@
 }
 
 - (BOOL)isEnabled {
-    return self.window.alpha == 1.0 && !self.window.isHidden;
+        return self.window.alpha == 1.0 && !self.window.isHidden;
+    NSLog(@"%@ on scene %@ has alpha=%f and isHidden=%i", self.windowName, self.window.windowScene.session.persistentIdentifier, self.window.alpha, self.window.isHidden);
+    NSLog(@"isKey? %i", self.window.isKeyWindow);
+//    return self.window.alpha == 1.0 && !self.window.isHidden;
+//    return self.window.isKeyWindow;
 }
 
 - (void)presentWindowAnimated:(BOOL)animated withCompletion:(void (^ _Nullable)(void))completion {

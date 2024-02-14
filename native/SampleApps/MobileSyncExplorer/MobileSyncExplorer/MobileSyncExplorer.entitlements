@@ -11,8 +11,12 @@
 	<key>com.apple.security.network.client</key>
 	<true/>
 	<key>keychain-access-groups</key>
+<<<<<<< Updated upstream
 	<array>
 		<string>$(AppIdentifierPrefix)com.bbirman.msdkapp</string>
 	</array>
+=======
+	<array/>
+>>>>>>> Stashed changes
 </dict>
 </plist>

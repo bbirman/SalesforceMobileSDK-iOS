@@ -1020,7 +1020,11 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_LDFLAGS = "-ObjC";
+<<<<<<< Updated upstream
 				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapptwo;
+=======
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp;
+>>>>>>> Stashed changes
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 4.0;
@@ -1046,7 +1050,11 @@
 					"@executable_path/Frameworks",
 				);
 				OTHER_LDFLAGS = "-ObjC";
+<<<<<<< Updated upstream
 				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapptwo;
+=======
+				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapp;
+>>>>>>> Stashed changes
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 4.0;
