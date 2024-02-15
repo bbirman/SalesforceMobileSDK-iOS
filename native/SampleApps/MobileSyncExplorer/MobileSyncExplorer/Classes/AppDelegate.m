@@ -37,6 +37,9 @@
 #import <SalesforceSDKCore/SFSDKNavigationController.h>
 #import <SalesforceSDKCore/SFUserAccountManager.h>
 #import <UserNotifications/UserNotifications.h>
+#import <SalesforceSDKCommon/SFLogger.h>
+#import <MobileSync/SFSDKMobileSyncLogger.h>
+#import <SalesforceSDKCore/SFApplicationHelper.h>
 
 @interface AppDelegate ()
 
@@ -92,7 +95,9 @@
     // lead to weird UIWindow behaviors. To avoid such rotation and other issues
     // between visible and hidden windows use the SFSDKUIWindow instead of  
     // UIWindow.
-    self.window = [[SFSDKUIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    CGRect bounds = ((UIWindowScene *) [SFApplicationHelper sharedApplication].connectedScenes.allObjects.firstObject).coordinateSpace.bounds;
+//    scene.coordinateSpace.bounds
+    self.window = [[SFSDKUIWindow alloc] initWithFrame:bounds];
     [self initializeAppViewState];
     
     // If you wish to register for push notifications, uncomment the line below.  Note that,

@@ -616,28 +616,28 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 
 - (UIImage *)initialsBackgroundImageWithColor:(UIColor *)circleColor initials:(NSString *)initials {
 
-    UIGraphicsBeginImageContextWithOptions(CGSizeMake(kInitialsCircleDiameter, kInitialsCircleDiameter), NO, [UIScreen mainScreen].scale);
-
-    // Draw the circle.
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    UIGraphicsPushContext(context);
-    CGPoint circleCenter = CGPointMake(kInitialsCircleDiameter / 2.0, kInitialsCircleDiameter / 2.0);
-    CGContextSetFillColorWithColor(context, [circleColor CGColor]);
-    CGContextBeginPath(context);
-    CGContextAddArc(context, circleCenter.x, circleCenter.y, kInitialsCircleDiameter / 2.0, 0, 2*M_PI, 0);
-    CGContextFillPath(context);
-
-    // Draw the initials.
-    NSDictionary *initialsAttrs = @{ NSForegroundColorAttributeName: [UIColor whiteColor], NSFontAttributeName: [UIFont systemFontOfSize:kInitialsFontSize] };
-    CGSize initialsTextSize = [initials sizeWithAttributes:initialsAttrs];
-    CGRect initialsRect = CGRectMake(circleCenter.x - (initialsTextSize.width / 2.0), circleCenter.y - (initialsTextSize.height / 2.0), initialsTextSize.width, initialsTextSize.height);
-    [initials drawInRect:initialsRect withAttributes:initialsAttrs];
-
-    UIGraphicsPopContext();
-
+//    UIGraphicsBeginImageContextWithOptions(CGSizeMake(kInitialsCircleDiameter, kInitialsCircleDiameter), NO, [UIScreen mainScreen].scale);
+//
+//    // Draw the circle.
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    UIGraphicsPushContext(context);
+//    CGPoint circleCenter = CGPointMake(kInitialsCircleDiameter / 2.0, kInitialsCircleDiameter / 2.0);
+//    CGContextSetFillColorWithColor(context, [circleColor CGColor]);
+//    CGContextBeginPath(context);
+//    CGContextAddArc(context, circleCenter.x, circleCenter.y, kInitialsCircleDiameter / 2.0, 0, 2*M_PI, 0);
+//    CGContextFillPath(context);
+//
+//    // Draw the initials.
+//    NSDictionary *initialsAttrs = @{ NSForegroundColorAttributeName: [UIColor whiteColor], NSFontAttributeName: [UIFont systemFontOfSize:kInitialsFontSize] };
+//    CGSize initialsTextSize = [initials sizeWithAttributes:initialsAttrs];
+//    CGRect initialsRect = CGRectMake(circleCenter.x - (initialsTextSize.width / 2.0), circleCenter.y - (initialsTextSize.height / 2.0), initialsTextSize.width, initialsTextSize.height);
+//    [initials drawInRect:initialsRect withAttributes:initialsAttrs];
+//
+//    UIGraphicsPopContext();
+//
     UIImage *imageFromGraphicsContext = UIGraphicsGetImageFromCurrentImageContext();
-
-    UIGraphicsEndImageContext();
+//
+//    UIGraphicsEndImageContext();
 
     return imageFromGraphicsContext;
 }

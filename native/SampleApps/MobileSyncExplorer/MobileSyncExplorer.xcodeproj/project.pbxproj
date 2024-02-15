@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -28,12 +28,12 @@
 		8284055A19EAFD9C0079AB60 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8284055919EAFD9C0079AB60 /* Images.xcassets */; };
 		82D0AC061C49A7BE0081F833 /* SalesforceSDKCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82D0ABC51C49A7550081F833 /* SalesforceSDKCore.framework */; };
 		82D0AC071C49A7BE0081F833 /* SalesforceSDKCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 82D0ABC51C49A7550081F833 /* SalesforceSDKCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		82D0AC121C49A7F60081F833 /* SmartStore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82D0AB9A1C49A6FB0081F833 /* SmartStore.framework */; };
-		82D0AC131C49A7F60081F833 /* SmartStore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 82D0AB9A1C49A6FB0081F833 /* SmartStore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		82D0AC121C49A7F60081F833 /* SmartStore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 82D0AB9A1C49A6FB0081F833 /* SmartStore.framework */; platformFilters = (ios, xros, ); };
+		82D0AC131C49A7F60081F833 /* SmartStore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 82D0AB9A1C49A6FB0081F833 /* SmartStore.framework */; platformFilters = (ios, xros, ); settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		82D0AC161C49A8120081F833 /* MobileSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 829DA25D1C1260960040F5F1 /* MobileSync.framework */; };
 		82D0AC171C49A8120081F833 /* MobileSync.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 829DA25D1C1260960040F5F1 /* MobileSync.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		A3D23092219749D4009F433D /* SalesforceSDKCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B7D641D4218F42B5006DF5F0 /* SalesforceSDKCommon.framework */; };
-		A3D23093219749D4009F433D /* SalesforceSDKCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B7D641D4218F42B5006DF5F0 /* SalesforceSDKCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A3D23092219749D4009F433D /* SalesforceSDKCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B7D641D4218F42B5006DF5F0 /* SalesforceSDKCommon.framework */; platformFilters = (ios, xros, ); };
+		A3D23093219749D4009F433D /* SalesforceSDKCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B7D641D4218F42B5006DF5F0 /* SalesforceSDKCommon.framework */; platformFilters = (ios, xros, ); settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B7168F2D1FACC1F100A48DB5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B7168F2C1FACC1F100A48DB5 /* LaunchScreen.storyboard */; };
 		B71E61B51D9AD4990065FD4E /* MobileSyncExplorerConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = B71E61B31D9AD4990065FD4E /* MobileSyncExplorerConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B71E61B61D9AD4990065FD4E /* MobileSyncExplorerConfig.m in Sources */ = {isa = PBXBuildFile; fileRef = B71E61B41D9AD4990065FD4E /* MobileSyncExplorerConfig.m */; };
@@ -55,8 +55,8 @@
 		B7A135181D99EC6100A4559C /* SObjectDataSpec.m in Sources */ = {isa = PBXBuildFile; fileRef = B7A134721D99DF8E00A4559C /* SObjectDataSpec.m */; };
 		B7BAD7351FBB7DC30046629F /* IDPLoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7BAD7321FBB7DC30046629F /* IDPLoginViewController.xib */; };
 		B7DC2CFA20FD491300B62708 /* bootconfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = B7DC2CF920FD491300B62708 /* bootconfig.plist */; };
-		BCAE02051D7F7A9A00944153 /* SalesforceAnalytics.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE2B8D4C1CE932BD00C6FC6A /* SalesforceAnalytics.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		CE2B8D671CE932D600C6FC6A /* SalesforceAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE2B8D4C1CE932BD00C6FC6A /* SalesforceAnalytics.framework */; };
+		BCAE02051D7F7A9A00944153 /* SalesforceAnalytics.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CE2B8D4C1CE932BD00C6FC6A /* SalesforceAnalytics.framework */; platformFilters = (ios, xros, ); settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		CE2B8D671CE932D600C6FC6A /* SalesforceAnalytics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE2B8D4C1CE932BD00C6FC6A /* SalesforceAnalytics.framework */; platformFilters = (ios, xros, ); };
 		CE6AB39B1C10C4F50012125E /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6AB39A1C10C4F50012125E /* libz.tbd */; };
 /* End PBXBuildFile section */
 
@@ -824,26 +824,40 @@
 		829DA2611C1260A50040F5F1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = MobileSync;
+			platformFilter = ios;
 			targetProxy = 829DA2601C1260A50040F5F1 /* PBXContainerItemProxy */;
 		};
 		82D0AC091C49A7BE0081F833 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SalesforceSDKCore;
+			platformFilters = (
+				ios,
+				xros,
+			);
 			targetProxy = 82D0AC081C49A7BE0081F833 /* PBXContainerItemProxy */;
 		};
 		82D0AC151C49A7F60081F833 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SmartStore;
+			platformFilters = (
+				ios,
+				xros,
+			);
 			targetProxy = 82D0AC141C49A7F60081F833 /* PBXContainerItemProxy */;
 		};
 		82D0AC191C49A8120081F833 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = MobileSync;
+			platformFilter = ios;
 			targetProxy = 82D0AC181C49A8120081F833 /* PBXContainerItemProxy */;
 		};
 		A3D23095219749D4009F433D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SalesforceSDKCommon;
+			platformFilters = (
+				ios,
+				xros,
+			);
 			targetProxy = A3D23094219749D4009F433D /* PBXContainerItemProxy */;
 		};
 		B7A134361D99D52600A4559C /* PBXTargetDependency */ = {
@@ -859,11 +873,19 @@
 		B7D641DD218F42D8006DF5F0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SalesforceSDKCommon;
+			platformFilters = (
+				ios,
+				xros,
+			);
 			targetProxy = B7D641DC218F42D8006DF5F0 /* PBXContainerItemProxy */;
 		};
 		CE2B8D661CE932CC00C6FC6A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = SalesforceAnalytics;
+			platformFilters = (
+				ios,
+				xros,
+			);
 			targetProxy = CE2B8D651CE932CC00C6FC6A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -1022,9 +1044,10 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapptwo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1048,9 +1071,10 @@
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = com.bbirman.msdkapptwo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 4.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
@@ -1079,8 +1103,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.MobileSyncExplorerCommon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -1111,8 +1136,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.MobileSyncExplorerCommon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SUPPORTS_MACCATALYST = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = "1,2,7";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
