@@ -111,12 +111,12 @@
 
 + (UIColor *)sfsdk_colorForLightStyle:(UIColor *)lightStyleColor darkStyle:(UIColor *)darkStyleColor {
     return [[UIColor alloc] initWithDynamicProvider:^UIColor * _Nonnull(UITraitCollection * _Nonnull traitCollection) {
-                if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
-                    return darkStyleColor;
-                } else {
-                    return lightStyleColor;
-                }
-            }];
+        if (traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark) {
+            return darkStyleColor;
+        } else {
+            return lightStyleColor;
+        }
+    }];
 }
 
 - (NSString *)sfsdk_hexStringFromColor {

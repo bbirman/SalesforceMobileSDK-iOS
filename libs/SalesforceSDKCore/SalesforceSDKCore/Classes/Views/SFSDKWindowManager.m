@@ -31,6 +31,7 @@
 #import "SFSDKWindowContainer.h"
 #import "SFApplicationHelper.h"
 #import "SFSDKMacDetectUtil.h"
+#import "UIColor+SFColors.h"
 
 /*
 Attempt to resolve issues related to  the multi-windowing implementation in the SDK. Multiple visible UI windows tend to have some really bad side effects with rotations (keyboard and views) and status bar. We previously resorted to using the hidden property, unfortunately using hidden property on the UIWindow leads to really bad flicker issues ( black screen ). Reverted back to using alpha with a slightly different strategy.
@@ -449,6 +450,7 @@ static NSString *const kSFScreenLockWindowKey = @"screenlock";
     SFSDKWindowContainer *container = [[SFSDKWindowContainer alloc] initWithName:kSFLoginWindowKey];
     container.windowDelegate = self;
     container.windowType = SFSDKWindowTypeAuth;
+    container.window.backgroundColor = [UIColor sfsdk_colorForLightStyle:[UIColor whiteColor] darkStyle:[UIColor blackColor]];
     [self setContainer:container windowKey:kSFLoginWindowKey scene:scene];
     return container;
 }
