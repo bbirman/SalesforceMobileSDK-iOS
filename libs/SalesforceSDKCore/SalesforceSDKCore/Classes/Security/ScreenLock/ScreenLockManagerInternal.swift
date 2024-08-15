@@ -66,7 +66,7 @@ public class ScreenLockManagerInternal: NSObject, ScreenLockManager {
     @objc public func handleAppForeground() {
         if let policyTimeout = getTimeout(), lockTimeoutExpired(lockTimeout: policyTimeout) {
             lock()
-        } else {
+        } else if !SFSDKWindowManager.shared().screenLockWindow().isEnabled() {
             unlockPostProcessing()
         }
     }
