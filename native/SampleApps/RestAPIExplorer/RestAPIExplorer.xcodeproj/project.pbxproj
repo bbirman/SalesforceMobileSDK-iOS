@@ -781,12 +781,13 @@
 				CODE_SIGN_ENTITLEMENTS = RestAPIExplorer/RestAPIExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G55Z6RG25S;
 				INFOPLIST_FILE = RestAPIExplorer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.RestAPIExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bvb.SampleApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
@@ -802,12 +803,13 @@
 				CODE_SIGN_ENTITLEMENTS = RestAPIExplorer/RestAPIExplorer.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = G55Z6RG25S;
 				INFOPLIST_FILE = RestAPIExplorer/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.salesforce.mobilesdk.RestAPIExplorer;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bvb.SampleApp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;

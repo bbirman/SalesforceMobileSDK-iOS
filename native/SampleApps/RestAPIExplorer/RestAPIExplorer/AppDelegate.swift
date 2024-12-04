@@ -32,10 +32,24 @@ import SalesforceSDKCommon
 import SalesforceSDKCore
 import MobileCoreServices
 import UniformTypeIdentifiers
+import UserNotifications
+
+
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+     func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+     ) {
+         print(response)
+     }
+}
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
+    var notificationDelegate = NotificationDelegate()
     
     override init() {
         
@@ -44,6 +58,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Uncomment to enable custom log receivers.
         //setUpLoggingCustomizations()
         
+        UNUserNotificationCenter.current().delegate = notificationDelegate
         SalesforceManager.initializeSDK()
         SalesforceManager.shared.appDisplayName = "Rest API Explorer"
         UserAccountManager.shared.navigationPolicyForAction = { webView, action in
@@ -66,7 +81,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // If you wish to register for push notifications, uncomment the line below.  Note that,
         // if you want to receive push notifications from Salesforce, you will also need to
         // implement the application:didRegisterForRemoteNotificationsWithDeviceToken: method (below).
-        // self.registerForRemotePushNotifications()
+         self.registerForRemotePushNotifications()
         
         // Uncomment the code below to see how you can customize the color, textcolor,
         // font and fontsize of the navigation bar
@@ -76,7 +91,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         // Uncomment the code below to register your device token with the push notification manager
-        // didRegisterForRemoteNotifications(deviceToken)
+         didRegisterForRemoteNotifications(deviceToken)
     }
     
     func didRegisterForRemoteNotifications(_ deviceToken: Data) {

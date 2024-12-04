@@ -33,6 +33,7 @@
 #import "SFRestAPI+Blocks.h"
 #import "SFSDKPushNotificationEncryptionConstants.h"
 #import "SFSDKCryptoUtils.h"
+#import <UserNotifications/UserNotifications.h>
 
 static NSString* const kSFDeviceToken = @"deviceToken";
 static NSString* const kSFDeviceSalesforceId = @"deviceSalesforceId";
@@ -109,6 +110,7 @@ static NSString * const kSFAppFeaturePushNotifications = @"PN";
 - (void)didRegisterForRemoteNotificationsWithDeviceToken:(NSData*)deviceTokenData {
     [SFSDKCoreLogger i:[self class] format:@"Registration with Apple for remote push notifications succeeded"];
     _deviceToken = [NSString sfsdk_stringWithHexData:deviceTokenData];
+    NSLog(@"Device token for push notifications: %@", _deviceToken);
     [[SFPreferences currentUserLevelPreferences] setObject:_deviceToken forKey:kSFDeviceToken];
     [[SFPreferences currentUserLevelPreferences] synchronize];
 }
@@ -244,6 +246,9 @@ static NSString * const kSFAppFeaturePushNotifications = @"PN";
         [strongSelf postPushNotificationUnregistration:completionBlock];
     }];
     [SFSDKCoreLogger i:[self class] format:@"Unregister from notifications with Salesforce sent"];
+     
+    [self resetNotificationCategories];
+    
     return YES;
 }
 
@@ -262,12 +267,35 @@ static NSString * const kSFAppFeaturePushNotifications = @"PN";
     return rsaPublicKey;
 }
 
+- (void)registerNotificationCategories {
+    [[UNUserNotificationCenter currentNotificationCenter] getNotificationCategoriesWithCompletionHandler:^(NSSet<UNNotificationCategory *> * _Nonnull existingCategories) {
+        NSLog(@"[Actionable push notifications] Existing categories: %@", existingCategories);
+        
+        // New category
+        UNNotificationAction *acceptAction = [UNNotificationAction actionWithIdentifier:@"ACCEPT_ACTION" title:@"Accept" options:0];
+        UNNotificationAction *declineAction = [UNNotificationAction actionWithIdentifier:@"DECLINE_ACTION" title:@"Decline" options:0];
+        UNNotificationCategory *meetingInviteCategory = [UNNotificationCategory categoryWithIdentifier:@"MEETING_INVITATION" actions:@[acceptAction, declineAction] intentIdentifiers:@[] options:0];
+        
+        NSSet *categoriesToSet = [NSSet setWithArray:@[meetingInviteCategory]];
+        
+        NSLog(@"[Actionable push notifications] Setting categories: %@", categoriesToSet);
+        // Additive across users?
+        // NSSet *categoriesToSet = [existingCategories setByAddingObjectsFromArray:@[meetingInviteCategory]];
+        [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:categoriesToSet];
+    }];
+}
+
+- (void)resetNotificationCategories {
+    [[UNUserNotificationCenter currentNotificationCenter] setNotificationCategories:[NSSet setWithArray:@[]]];
+}
+
 #pragma mark - Events observers
 - (void)onUserLoggedIn:(NSNotification *)notification {
     // Registering with Salesforce after login
     if (self.deviceToken) {
         [SFSDKCoreLogger i:[self class] format:@"Registering for Salesforce notification because user just logged in"];
         [self registerSalesforceNotificationsWithCompletionBlock:nil failBlock:nil];
+        [self registerNotificationCategories];
     }
 }
 
