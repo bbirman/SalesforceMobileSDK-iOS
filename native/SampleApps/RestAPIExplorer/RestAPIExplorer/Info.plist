@@ -36,7 +36,7 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>"Use FaceID"</string>
 	<key>SFDCOAuthLoginHost</key>
-	<string>mobilesdk.my.salesforce.com</string>
+	<string>orgfarm-9f79d8a3a8.my.salesforce.com</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
