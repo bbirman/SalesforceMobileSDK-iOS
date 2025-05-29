@@ -162,6 +162,8 @@ NS_SWIFT_NAME(OAuthCredentials)
  */
 @property (nonatomic, readonly, nullable) NSURL *instanceUrl;
 
+@property (nonatomic, readonly, nullable) NSURL *apiInstanceUrl;
+
 /** The community ID the user choose to log into. This usually happens when the user
  logs into the app using a community-based login page
  
