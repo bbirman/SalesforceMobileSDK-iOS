@@ -372,6 +372,14 @@ NSException * SFOAuthInvalidIdentifierException(void) {
     return [NSURL URLWithString:protocolHost];
 }
 
+- (NSURL *)refreshURL {
+    if (self.communityId) {
+        return self.communityUrl;
+    } else {
+        return self.instanceUrl;
+    }
+}
+
 /** Update the credentials using the provided oauth parameters.
  This method only update the following parameters:
  - accessToken

@@ -443,7 +443,7 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     request.clientID = credentials.clientId;
     request.refreshToken = credentials.refreshToken;
     request.redirectURI = credentials.redirectUri;
-    request.serverURL = [credentials overrideDomainIfNeeded];
+    request.serverURL = [credentials refreshURL];
     
     __weak typeof(self) weakSelf = self;
     id<SFSDKOAuthProtocol> authClient = self.authClient();

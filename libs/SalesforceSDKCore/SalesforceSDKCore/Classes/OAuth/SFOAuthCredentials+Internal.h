@@ -91,6 +91,9 @@ extern NSException * _Nullable SFOAuthInvalidIdentifierException(void);
 /** Reset changes to credentials, called at the end of auth flow.
  */
 - (void)resetCredentialsChangeSet;
+
+- (nullable NSURL *)refreshURL;
+
 @end
 
 
