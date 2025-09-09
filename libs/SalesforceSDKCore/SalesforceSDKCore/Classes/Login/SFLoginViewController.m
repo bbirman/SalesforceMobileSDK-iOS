@@ -208,12 +208,12 @@
         if(self.showSettingsIcon) {
             // Setup right bar button.
             UIBarButtonItem *button = [self createSettingsButton];
-            if (!button.target){
-                [button setTarget:self];
-            }
-            if (!button.action){
-                [button setAction:@selector(showLoginHost:)];
-            }
+//            if (!button.target){
+//                [button setTarget:self];
+//            }
+//            if (!button.action){
+//                [button setAction:@selector(showLoginHost:)];
+//            }
             self.navBar.topItem.rightBarButtonItem = button;
         }
         [self styleNavigationBar:self.navBar];
@@ -264,8 +264,48 @@
 }
 
 - (UIBarButtonItem *)createSettingsButton {
+    NSMutableArray  *theMenuActions = [[NSMutableArray alloc] initWithCapacity:3];
+
+    [theMenuActions addObject:[UIAction actionWithTitle:NSLocalizedString(@"Change Server", @"")
+                                                  image:nil
+                                             identifier:@"search_scope_full"
+                                                handler:^(__kindof UIAction* _Nonnull action) {
+   // self.mySearchScope  = @"full";
+    }]];
+        
+    [theMenuActions addObject:[UIAction actionWithTitle:NSLocalizedString(@"Clear Cookies", @"")
+                                                  image:nil
+                                             identifier:@"search_scope_first"
+                                                handler:^(__kindof UIAction* _Nonnull action) {
+   // self.mySearchScope  = @"first";
+    }]];
+
+    [theMenuActions addObject:[UIAction actionWithTitle:NSLocalizedString(@"Clear Cache", @"")
+                                                  image:nil
+                                             identifier:@"search_scope_last"
+                                                handler:^(__kindof UIAction* _Nonnull action) {
+   // self.mySearchScope  = @"last";
+    }]];
+    
+    [theMenuActions addObject:[UIAction actionWithTitle:NSLocalizedString(@"Reload", @"")
+                                                  image:nil
+                                             identifier:@"search_scope_last2"
+                                                handler:^(__kindof UIAction* _Nonnull action) {
+   // self.mySearchScope  = @"last";
+    }]];
+    
+    
+    
+    
     UIImage *image = [[SFSDKResourceUtils imageNamed:@"login-window-gear"] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
-    UIBarButtonItem *settingsButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(showLoginHost:)];
+//    UIBarButtonItem *settingsButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(showLoginHost:)];
+//    
+    
+    UIMenu *menu = [UIMenu menuWithTitle:NSLocalizedString(@"", @"")
+                                    children:theMenuActions];
+    UIBarButtonItem *settingsButton = [[UIBarButtonItem alloc] initWithImage:image menu:menu];
+    
+    
     settingsButton.accessibilityLabel = [SFSDKResourceUtils localizedString:@"LOGIN_CHOOSE_SERVER"];
     settingsButton.accessibilityIdentifier = @"choose connection button";
     return settingsButton;
