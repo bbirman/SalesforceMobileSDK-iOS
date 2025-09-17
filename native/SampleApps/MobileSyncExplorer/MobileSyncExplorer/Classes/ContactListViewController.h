@@ -24,7 +24,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ContactListViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate>
+@interface ContactListViewController : UITableViewController <UITableViewDataSource, UITableViewDelegate, UIActionSheetDelegate>
 
 - (void)popoverOptionSelected:(NSString *)text;
 

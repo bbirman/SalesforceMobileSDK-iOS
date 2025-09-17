@@ -91,8 +91,8 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
     [super viewDidLoad];
 
     // Configure table view
-    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"ContactListCellIdentifier"];
-    self.tableView.rowHeight = kTableViewRowHeight;
+   // [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"ContactListCellIdentifier"];
+   // self.tableView.rowHeight = kTableViewRowHeight;
     
     // Load data
     if (!self.dataMgr) {
@@ -195,7 +195,13 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 #pragma mark - UITableView delegate methods
 
 - (UITableViewCell *)tableView:(UITableView *)tableView_ cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView_ dequeueReusableCellWithIdentifier:@"ContactListCellIdentifier" forIndexPath:indexPath];
+    static NSString *CellIdentifier = @"ContactListCellIdentifier";
+
+        UITableViewCell *cell = [tableView_ dequeueReusableCellWithIdentifier:CellIdentifier];
+        if (cell == nil) {
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
+        }
+//    UITableViewCell *cell = [tableView_ dequeueReusableCellWithIdentifier:@"ContactListCellIdentifier" forIndexPath:indexPath];
     
     ContactSObjectData *obj = [self.dataMgr.dataRows objectAtIndex:indexPath.row];
     cell.textLabel.text = [self formatNameFromContact:obj];
