@@ -45,7 +45,7 @@ static CGFloat    const kToastMessageFontSize           = 16.0;
 static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0x9b59b6,  0x34495e,  0x16a085,  0x27ae60,  0x2980b9,  0x8e44ad,  0x2c3e50,  0xf1c40f,  0xe67e22,  0xe74c3c,  0x95a5a6,  0xf39c12,  0xd35400,  0xc0392b,  0xbdc3c7,  0x7f8c8d };
 
 
-@interface ContactListViewController ()
+@interface ContactListViewController () <UISearchBarDelegate>
 
 @property (nonatomic, strong) UIViewController *actionsPopupPresentingController;
 @property (nonatomic, strong) UIAlertController *logoutActionSheet;
@@ -71,8 +71,8 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 
 #pragma mark - init/setup
 
-- (instancetype)initWithStyle:(UITableViewStyle)style {
-    self = [super initWithStyle:UITableViewStyleInsetGrouped];
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         self.dataMgr = [[SObjectDataManager alloc] initWithDataSpec:[ContactSObjectData dataSpec]];
         self.isSearching = NO;
