@@ -87,6 +87,34 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 
 #pragma mark - View lifecycle
 
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    // Configure table view
+    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"ContactListCellIdentifier"];
+    self.tableView.rowHeight = kTableViewRowHeight;
+    
+    // Load data
+    if (!self.dataMgr) {
+        self.dataMgr = [[SObjectDataManager alloc] initWithDataSpec:[ContactSObjectData dataSpec]];
+    }
+    
+    __weak typeof(self) weakSelf = self;
+    void (^completionBlock)(void) = ^{
+        [weakSelf refreshList];
+    };
+    
+    [self.dataMgr refreshLocalData:completionBlock];
+    if ([self.dataMgr.dataRows count] == 0) {
+        [self.dataMgr refreshRemoteData:completionBlock];
+    }
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(clearPopovers:)
+                                               name:kSFScreenLockFlowWillBegin
+                                             object:nil];
+}
+
 - (void)loadView {
     [super loadView];
 
@@ -149,42 +177,10 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
     [self.tableView setSectionHeaderTopPadding:0.0f];
 }
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    
-    // Configure navigation
-//    self.title = kNavBarTitleText;
-    
-    // Configure table view
-    [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"ContactListCellIdentifier"];
-    self.tableView.rowHeight = kTableViewRowHeight;
-    
-    // Load data
-    if (!self.dataMgr) {
-        self.dataMgr = [[SObjectDataManager alloc] initWithDataSpec:[ContactSObjectData dataSpec]];
-    }
-    
-    __weak typeof(self) weakSelf = self;
-    void (^completionBlock)(void) = ^{
-        [weakSelf refreshList];
-    };
-    
-    [self.dataMgr refreshLocalData:completionBlock];
-    if ([self.dataMgr.dataRows count] == 0) {
-        [self.dataMgr refreshRemoteData:completionBlock];
-    }
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(clearPopovers:)
-                                               name:kSFScreenLockFlowWillBegin
-                                             object:nil];
-}
-
 #pragma mark - UITableView delegate methods
 
 - (UITableViewCell *)tableView:(UITableView *)tableView_ cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView_ dequeueReusableCellWithIdentifier:@"ContactListCellIdentifier" forIndexPath:indexPath];
-    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     
     ContactSObjectData *obj = [self.dataMgr.dataRows objectAtIndex:indexPath.row];
     cell.textLabel.text = [self formatNameFromContact:obj];
@@ -193,6 +189,7 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
     cell.detailTextLabel.font = [UIFont systemFontOfSize:kContactDetailFontSize];
     cell.detailTextLabel.textColor = [[self class] colorFromRgbHexValue:kContactTitleTextColor];
     cell.imageView.image = [self initialsBackgroundImageWithColor:[self colorFromContact:obj] initials:[self formatInitialsFromContact:obj]];
+    cell.accessoryView = [self accessoryViewForContact:obj];
     
     return cell;
 }
