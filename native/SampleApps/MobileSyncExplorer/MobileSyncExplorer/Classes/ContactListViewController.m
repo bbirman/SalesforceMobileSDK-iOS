@@ -110,9 +110,9 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
     }
     
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(clearPopovers:)
-                                               name:kSFScreenLockFlowWillBegin
-                                             object:nil];
+                                             selector:@selector(clearPopovers:)
+                                                 name:kSFScreenLockFlowWillBegin
+                                               object:nil];
 }
 
 - (void)loadView {
@@ -175,6 +175,21 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
     // To address iOS 15 spacing issue
     // See https://developer.apple.com/forums/thread/684706
     [self.tableView setSectionHeaderTopPadding:0.0f];
+}
+
+- (void)viewWillAppear:(BOOL)animated {
+
+    [super viewWillAppear:animated];
+
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+}
+
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - UITableView delegate methods
