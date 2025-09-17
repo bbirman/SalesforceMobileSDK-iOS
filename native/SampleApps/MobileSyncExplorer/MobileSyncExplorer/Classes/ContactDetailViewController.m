@@ -37,6 +37,7 @@
 @property (nonatomic, assign) BOOL contactUpdated;
 @property (nonatomic, assign) BOOL isNewContact;
 
+
 @end
 
 @implementation ContactDetailViewController

@@ -12,6 +12,7 @@
 		4FCA4A9D1FBE61C300F081B3 /* usersyncs.json in Resources */ = {isa = PBXBuildFile; fileRef = 4FCA4A9C1FBE61C300F081B3 /* usersyncs.json */; };
 		4FEAC2451B97C65C00B08512 /* ActionsPopupController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4FEAC2421B97C65C00B08512 /* ActionsPopupController.m */; };
 		6931EAD92490097D00417362 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6931EAD82490097D00417362 /* CoreServices.framework */; };
+		694BB02A2E7B5F18003C709D /* TestView.m in Sources */ = {isa = PBXBuildFile; fileRef = 694BB0292E7B5F18003C709D /* TestView.m */; };
 		696A8B6A2AD0F7B300A85A1D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 696A8B692AD0F7B300A85A1D /* PrivacyInfo.xcprivacy */; };
 		820C8B0E19E6054E00E9BE5C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 820C8B0D19E6054E00E9BE5C /* AppDelegate.m */; };
 		820C8B1119E6059400E9BE5C /* InitialViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 820C8B1019E6059400E9BE5C /* InitialViewController.m */; };
@@ -267,6 +268,8 @@
 		4FEAC2421B97C65C00B08512 /* ActionsPopupController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActionsPopupController.m; sourceTree = "<group>"; };
 		4FEAC2431B97C65C00B08512 /* ActionsPopupController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActionsPopupController.h; sourceTree = "<group>"; };
 		6931EAD82490097D00417362 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		694BB0282E7B5F18003C709D /* TestView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestView.h; sourceTree = "<group>"; };
+		694BB0292E7B5F18003C709D /* TestView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestView.m; sourceTree = "<group>"; };
 		696A8B692AD0F7B300A85A1D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		820C8B0C19E6054E00E9BE5C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		820C8B0D19E6054E00E9BE5C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -365,6 +368,8 @@
 				8284055519EA09E40079AB60 /* ContactDetailViewController.m */,
 				820C8B3019E60BDE00E9BE5C /* ContactListViewController.h */,
 				820C8B3119E60BDE00E9BE5C /* ContactListViewController.m */,
+				694BB0282E7B5F18003C709D /* TestView.h */,
+				694BB0292E7B5F18003C709D /* TestView.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -795,6 +800,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				694BB02A2E7B5F18003C709D /* TestView.m in Sources */,
 				820C8B1119E6059400E9BE5C /* InitialViewController.m in Sources */,
 				820C8B0E19E6054E00E9BE5C /* AppDelegate.m in Sources */,
 				4FEAC2451B97C65C00B08512 /* ActionsPopupController.m in Sources */,

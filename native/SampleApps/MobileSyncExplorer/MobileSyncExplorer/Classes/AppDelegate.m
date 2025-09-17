@@ -24,6 +24,7 @@
 
 #import "AppDelegate.h"
 #import "InitialViewController.h"
+#import "TestView.h"
 #import "ContactListViewController.h"
 #import <MobileSyncExplorerCommon/MobileSyncExplorerConfig.h>
 #import <UserNotifications/UserNotifications.h>
@@ -86,7 +87,8 @@
     // lead to weird UIWindow behaviors. To avoid such rotation and other issues
     // between visible and hidden windows use the SFSDKUIWindow instead of  
     // UIWindow.
-    self.window = [[SFSDKUIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+//    [[SFSDKUIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     [self initializeAppViewState];
     
     // If you wish to register for push notifications, uncomment the line below.  Note that,
@@ -95,10 +97,10 @@
 //    [self registerForRemotePushNotifications];
     
     __weak typeof (self) weakSelf = self;
-    [SFSDKAuthHelper loginIfRequired:^{
+//    [SFSDKAuthHelper loginIfRequired:^{
         [weakSelf resetUserloginStatus];
         [weakSelf setupRootViewController];
-    }];
+//    }];
     return YES;
 }
 
@@ -155,17 +157,31 @@
 
 - (void)initializeAppViewState
 {
-    self.window.rootViewController = [[InitialViewController alloc] initWithNibName:nil bundle:nil];
+    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
+//    InitialViewController *ivVC =  [[InitialViewController alloc] initWithNibName:nil bundle:nil];
+//    SFSDKNavigationController *navVC = [[SFSDKNavigationController alloc] initWithRootViewController:rootVC];
+    TestView *test = [TestView new];
+    UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:rootVC];
+    self.window.rootViewController = navVC;
     [self.window makeKeyAndVisible];
+//    self.window.rootViewController = [[InitialViewController alloc] initWithNibName:nil bundle:nil];
+//    [self.window makeKeyAndVisible];
 }
 
 - (void)setupRootViewController
 {
-    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStylePlain];
-    SFSDKNavigationController *navVC = [[SFSDKNavigationController alloc] initWithRootViewController:rootVC];
-    self.window.rootViewController = navVC;
-    [self.window makeKeyAndVisible];
+//    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
+//    SFSDKNavigationController *navVC = [[SFSDKNavigationController alloc] initWithRootViewController:rootVC];
+//    self.window.rootViewController = rootVC;
+//    [self.window makeKeyAndVisible];
 }
+
+//func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool { let timeline = TimelineViewController()
+//    let navigation = UINavigationController(rootViewController: timeline)
+//    let frame = UIScreen.main.bounds
+//    window = UIWindow(frame: frame) window!.rootViewController = navigation
+//    window!.makeKeyAndVisible() return true
+//}
 
 - (void)resetViewState:(void (^)(void))postResetBlock
 {
