@@ -97,10 +97,10 @@
 //    [self registerForRemotePushNotifications];
     
     __weak typeof (self) weakSelf = self;
-//    [SFSDKAuthHelper loginIfRequired:^{
+    [SFSDKAuthHelper loginIfRequired:^{
         [weakSelf resetUserloginStatus];
         [weakSelf setupRootViewController];
-//    }];
+    }];
     return YES;
 }
 
@@ -157,23 +157,23 @@
 
 - (void)initializeAppViewState
 {
-    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
+//    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
 //    InitialViewController *ivVC =  [[InitialViewController alloc] initWithNibName:nil bundle:nil];
 //    SFSDKNavigationController *navVC = [[SFSDKNavigationController alloc] initWithRootViewController:rootVC];
-    TestView *test = [TestView new];
-    UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:rootVC];
-    self.window.rootViewController = navVC;
-    [self.window makeKeyAndVisible];
-//    self.window.rootViewController = [[InitialViewController alloc] initWithNibName:nil bundle:nil];
+//    TestView *test = [TestView new];
+//    UINavigationController *navVC = [[UINavigationController alloc] initWithRootViewController:rootVC];
+//    self.window.rootViewController = navVC;
 //    [self.window makeKeyAndVisible];
+    self.window.rootViewController = [[InitialViewController alloc] initWithNibName:nil bundle:nil];
+    [self.window makeKeyAndVisible];
 }
 
 - (void)setupRootViewController
 {
-//    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStyleInsetGrouped];
-//    SFSDKNavigationController *navVC = [[SFSDKNavigationController alloc] initWithRootViewController:rootVC];
-//    self.window.rootViewController = rootVC;
-//    [self.window makeKeyAndVisible];
+    ContactListViewController *rootVC = [[ContactListViewController alloc] initWithStyle:UITableViewStylePlain];
+    SFSDKNavigationController *navVC = [[SFSDKNavigationController alloc] initWithRootViewController:rootVC];
+    self.window.rootViewController = navVC;
+    [self.window makeKeyAndVisible];
 }
 
 //func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool { let timeline = TimelineViewController()

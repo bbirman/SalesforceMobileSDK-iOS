@@ -49,13 +49,21 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 
 @property (nonatomic, strong) UIViewController *actionsPopupPresentingController;
 @property (nonatomic, strong) UIAlertController *logoutActionSheet;
+
+@property (nonatomic, strong) UILabel *navBarLabel;
 @property (nonatomic, strong) UISearchBar *searchBar;
 @property (nonatomic, strong) UIBarButtonItem *syncButton;
 @property (nonatomic, strong) UIBarButtonItem *addButton;
 @property (nonatomic, strong) UIBarButtonItem *moreButton;
+@property (nonatomic, strong) UIView *toastView;
+@property (nonatomic, strong) UILabel *toastViewMessageLabel;
+@property (nonatomic, copy) NSString *toastMessage;
+
+
 @property (nonatomic, strong) SObjectDataManager *dataMgr;
 @property (nonatomic, assign) BOOL isSearching;
 @property (nonatomic, strong) NSString* searchText;
+
 
 @end
 
@@ -72,34 +80,80 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
     return self;
 }
 
-- (void)dealloc {
+- (void)dealloc
+{
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 #pragma mark - View lifecycle
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    
-    // Configure navigation
-    self.title = kNavBarTitleText;
+- (void)loadView {
+    [super loadView];
+
+    self.navigationController.navigationBar.barTintColor = [[self class] colorFromRgbHexValue:kNavBarTintColor];
+
+    // Without the following, the top bar becomes transparent on iOS 15 unless one scrolls all the way up
+    // See https://developer.apple.com/forums/thread/682420
     UINavigationBarAppearance* appearance = [UINavigationBarAppearance new];
     [appearance configureWithOpaqueBackground];
-    appearance.backgroundColor = [[self class] colorFromRgbHexValue:kNavBarTintColor];
+    appearance.backgroundColor = [UIColor redColor];
     self.navigationController.navigationBar.standardAppearance = appearance;
     self.navigationController.navigationBar.scrollEdgeAppearance = appearance;
     
-    // Setup navigation items
+    [self addTapGestureRecognizers];
+
+    // Nav bar label
+    self.navBarLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+    self.navBarLabel.text = kNavBarTitleText;
+    self.navBarLabel.textAlignment = NSTextAlignmentLeft;
+    self.navBarLabel.textColor = [UIColor whiteColor];
+    self.navBarLabel.backgroundColor = [UIColor clearColor];
+    self.navBarLabel.font = [UIFont systemFontOfSize:kNavBarTitleFontSize];
+    self.navigationItem.titleView = self.navBarLabel;
+
+    // Navigation bar buttons
     self.addButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"add"] style:UIBarButtonItemStylePlain target:self action:@selector(addContact)];
     self.syncButton = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"sync"] style:UIBarButtonItemStylePlain target:self action:@selector(syncUpDown)];
     self.moreButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(showOtherActions)];
-    self.navigationItem.rightBarButtonItems = @[self.moreButton, self.syncButton, self.addButton];
-    
+    self.navigationItem.rightBarButtonItems = @[ self.moreButton, self.syncButton, self.addButton ];
+    for (UIBarButtonItem *bbi in self.navigationItem.rightBarButtonItems) {
+        bbi.tintColor = [UIColor whiteColor];
+    }
+//
+//    // Search header
+//    self.searchHeader = [[UIView alloc] initWithFrame:CGRectZero];
+//    self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectZero];
+//    self.searchBar.placeholder = @"Search";
+//    self.searchBar.delegate = self;
+//    [self.searchHeader addSubview:self.searchBar];
     // Configure search bar
     self.searchBar = [[UISearchBar alloc] initWithFrame:CGRectMake(0, 0, self.tableView.bounds.size.width, 44)];
     self.searchBar.placeholder = @"Search";
     self.searchBar.delegate = self;
     self.tableView.tableHeaderView = self.searchBar;
+
+    // Toast view
+    self.toastView = [[UIView alloc] initWithFrame:CGRectZero];
+    self.toastView.backgroundColor = [UIColor colorWithRed:(38.0 / 255.0) green:(38.0 / 255.0) blue:(38.0 / 255.0) alpha:0.7];
+    self.toastView.layer.cornerRadius = 10.0;
+    self.toastView.alpha = 0.0;
+
+    self.toastViewMessageLabel = [[UILabel alloc] initWithFrame:CGRectZero];
+    self.toastViewMessageLabel.font = [UIFont systemFontOfSize:kToastMessageFontSize];
+    self.toastViewMessageLabel.textColor = [UIColor whiteColor];
+    [self.toastView addSubview:self.toastViewMessageLabel];
+    [self.view addSubview:self.toastView];
+    
+    // To address iOS 15 spacing issue
+    // See https://developer.apple.com/forums/thread/684706
+    [self.tableView setSectionHeaderTopPadding:0.0f];
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // Configure navigation
+//    self.title = kNavBarTitleText;
     
     // Configure table view
     [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"ContactListCellIdentifier"];
@@ -124,8 +178,6 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
                                            selector:@selector(clearPopovers:)
                                                name:kSFScreenLockFlowWillBegin
                                              object:nil];
-    
-    [self addTapGestureRecognizers];
 }
 
 #pragma mark - UITableView delegate methods
@@ -289,7 +341,7 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 
 - (void)syncUpDown {
     self.navigationItem.rightBarButtonItem.enabled = NO;
-  //  [self showToast:@"Syncing with Salesforce"];
+    [self showToast:@"Syncing with Salesforce"];
     __weak typeof(self) weakSelf = self;
     void(^completionBlock)(void) = ^{
         [weakSelf refreshList];
@@ -307,9 +359,9 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 
             // Letting the user know whether it was a complete success or not
             if ([syncProgressDetails isDone]) {
-             //   [strongSelf showToast:@"Sync complete!"];
+                [strongSelf showToast:@"Sync complete!"];
             } else if ([syncProgressDetails hasFailed]) {
-               // [strongSelf showToast:@"Sync failed."];
+                [strongSelf showToast:@"Sync failed."];
             }
         });
     }];
@@ -381,47 +433,47 @@ static NSUInteger const kColorCodesList[] = { 0x1abc9c,  0x2ecc71,  0x3498db,  0
 }
 
 
-//- (void)layoutToastView {
-//    CGFloat toastWidth = 250.0;
-//    CGFloat toastHeight = 50.0;
-//    CGFloat bottomScreenPadding = 40.0;
-//
-//    self.toastView.frame = CGRectMake(CGRectGetMidX([self.toastView superview].bounds) - (toastWidth / 2.0),
-//                                      CGRectGetMaxY([self.toastView superview].bounds) - bottomScreenPadding - toastHeight,
-//                                      toastWidth,
-//                                      toastHeight);
-//
-//    //
-//    // messageLabel
-//    //
-//    NSDictionary *messageAttrs = @{ NSForegroundColorAttributeName: self.toastViewMessageLabel.textColor, NSFontAttributeName: self.toastViewMessageLabel.font };
-//    if (self.toastMessage == nil) {
-//        self.toastMessage = @" ";
-//    }
-//    CGSize messageTextSize = [self.toastMessage sizeWithAttributes:messageAttrs];
-//    CGRect messageRect = CGRectMake(CGRectGetMidX(self.toastView.bounds) - (messageTextSize.width / 2.0),
-//                                    CGRectGetMidY(self.toastView.bounds) - (messageTextSize.height / 2.0),
-//                                    messageTextSize.width, messageTextSize.height);
-//    self.toastViewMessageLabel.frame = messageRect;
-//    self.toastViewMessageLabel.text = self.toastMessage;
-//}
+- (void)layoutToastView {
+    CGFloat toastWidth = 250.0;
+    CGFloat toastHeight = 50.0;
+    CGFloat bottomScreenPadding = 40.0;
 
-//- (void)showToast:(NSString *)message {
-//    NSTimeInterval const toastDisplayTimeSecs = 2.0;
-//
-//    self.toastMessage = message;
-//    [self layoutToastView];
-//    self.toastView.alpha = 0.0;
-//    [UIView animateWithDuration:0.3 animations:^{
-//        self.toastView.alpha = 1.0;
-//    }];
-//
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, toastDisplayTimeSecs * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-//        [UIView animateWithDuration:0.3 animations:^{
-//            self.toastView.alpha = 0.0;
-//        }];
-//    });
-//}
+    self.toastView.frame = CGRectMake(CGRectGetMidX([self.toastView superview].bounds) - (toastWidth / 2.0),
+                                      CGRectGetMaxY([self.toastView superview].bounds) - bottomScreenPadding - toastHeight,
+                                      toastWidth,
+                                      toastHeight);
+
+    //
+    // messageLabel
+    //
+    NSDictionary *messageAttrs = @{ NSForegroundColorAttributeName: self.toastViewMessageLabel.textColor, NSFontAttributeName: self.toastViewMessageLabel.font };
+    if (self.toastMessage == nil) {
+        self.toastMessage = @" ";
+    }
+    CGSize messageTextSize = [self.toastMessage sizeWithAttributes:messageAttrs];
+    CGRect messageRect = CGRectMake(CGRectGetMidX(self.toastView.bounds) - (messageTextSize.width / 2.0),
+                                    CGRectGetMidY(self.toastView.bounds) - (messageTextSize.height / 2.0),
+                                    messageTextSize.width, messageTextSize.height);
+    self.toastViewMessageLabel.frame = messageRect;
+    self.toastViewMessageLabel.text = self.toastMessage;
+}
+
+- (void)showToast:(NSString *)message {
+    NSTimeInterval const toastDisplayTimeSecs = 2.0;
+
+    self.toastMessage = message;
+    [self layoutToastView];
+    self.toastView.alpha = 0.0;
+    [UIView animateWithDuration:0.3 animations:^{
+        self.toastView.alpha = 1.0;
+    }];
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, toastDisplayTimeSecs * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+        [UIView animateWithDuration:0.3 animations:^{
+            self.toastView.alpha = 0.0;
+        }];
+    });
+}
 
 - (void)searchResignFirstResponder {
     if ([self.searchBar isFirstResponder]) {
