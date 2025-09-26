@@ -96,12 +96,15 @@ NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.userAcco
 }
 
 - (void)encodeWithCoder:(NSCoder*)encoder {
-    [encoder encodeObject:_accessScopes forKey:kUser_ACCESS_SCOPES];
-    [encoder encodeObject:_credentials forKey:kUser_CREDENTIALS];
-    [encoder encodeObject:_idData forKey:kUser_ID_DATA];
-    [encoder encodeObject:_customData forKey:kUser_CUSTOM_DATA];
-    [encoder encodeInteger:_accessRestrictions forKey:kUser_ACCESS_RESTRICTIONS];
-    [encoder encodeObject:_notificationTypes forKey:kUser_NOTIFICATION_TYPES];
+    // Potential fix for test issue
+    dispatch_barrier_sync(_syncQueue, ^{
+        [encoder encodeObject:self->_accessScopes forKey:kUser_ACCESS_SCOPES];
+        [encoder encodeObject:self->_credentials forKey:kUser_CREDENTIALS];
+        [encoder encodeObject:self->_idData forKey:kUser_ID_DATA];
+        [encoder encodeObject:self->_customData forKey:kUser_CUSTOM_DATA];
+        [encoder encodeInteger:self->_accessRestrictions forKey:kUser_ACCESS_RESTRICTIONS];
+        [encoder encodeObject:self->_notificationTypes forKey:kUser_NOTIFICATION_TYPES];
+    });
 }
 
 - (id)initWithCoder:(NSCoder*)decoder {
@@ -133,13 +136,14 @@ NSString * const kUserAccountPhotoEncryptionKeyLabel = @"com.salesforce.userAcco
     return identity;
 }
 
+// No matching getter with _syncQueue
 - (void)setAccessScopes:(NSSet<NSString *> *)accessScopes {
     dispatch_barrier_async(_syncQueue, ^{
         self->_accessScopes = accessScopes;
     });
 }
 
-
+// notificationTypes setter & getter don't use _syncQueue
 - (NSArray<NotificationType *> *)notificationTypes {
     return _notificationTypes;
 }

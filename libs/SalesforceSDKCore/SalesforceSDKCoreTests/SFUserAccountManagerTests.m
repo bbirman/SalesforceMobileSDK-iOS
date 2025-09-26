@@ -647,7 +647,7 @@ static NSString * const kOrgIdFormatString = @"00D000000000062EA%lu";
     [userIn setCustomDataObject:customData forKey:@"allTheThings"];
 
     // Archive/unarchive
-    [archiver encodeObject:userIn forKey:@"account"];
+    [archiver encodeObject:userIn forKey:@"account"]; // <-- On a failing test, "userIn.accessScopes" is still nil at this point
     [archiver finishEncoding];
     data = archiver.encodedData;
     
@@ -660,7 +660,7 @@ static NSString * const kOrgIdFormatString = @"00D000000000062EA%lu";
     XCTAssertNotNil(userOut.idData, @"couldn't unarchive idData");
    
     XCTAssertEqualObjects(userIn.customData, userOut.customData, @"customData mismatch");
-    XCTAssertEqual(userIn.accessScopes.count, userOut.accessScopes.count);
+    XCTAssertEqual(userIn.accessScopes.count, userOut.accessScopes.count); // <-- Which later fails here because "userIn.accessScopes" is now populated but since it was after the account was encoded, "userOut.accessScopes" is still nil
     XCTAssertEqual(userIn.accessRestrictions, userOut.accessRestrictions, @"accessRestrictions mismatch");
 }
 
