@@ -1044,6 +1044,25 @@ static NSString * const kSFGenericFailureAuthErrorHandler = @"GenericFailureErro
     [[NSNotificationCenter defaultCenter] postNotification:loginHostChangedNotification];
     NSString *sceneId = loginViewController.view.window.windowScene.session.persistentIdentifier;
     self.authSessions[sceneId].oauthRequest.loginHost = newLoginHost.host;
+    [self restartAuthenticationForViewController:loginViewController];
+}
+
+- (void)loginViewControllerDidClearCache:(SFLoginViewController *)loginViewController {
+    [SFSDKWebViewStateManager clearCacheWithCompletionHandler:^{}];
+    [self restartAuthenticationForViewController:loginViewController];
+}
+
+- (void)loginViewControllerDidClearCookies:(SFLoginViewController *)loginViewController {
+    [SFSDKWebViewStateManager resetSessionCookie];
+    [self restartAuthenticationForViewController:loginViewController];
+}
+
+- (void)loginViewControllerDidReload:(SFLoginViewController *)loginViewController {
+    [self restartAuthenticationForViewController:loginViewController];
+}
+
+- (void)restartAuthenticationForViewController:(SFLoginViewController *)loginViewController {
+    NSString *sceneId = loginViewController.view.window.windowScene.session.persistentIdentifier;
     [self restartAuthentication:self.authSessions[sceneId]];
 }
 
