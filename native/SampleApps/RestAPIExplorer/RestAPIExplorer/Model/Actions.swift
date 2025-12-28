@@ -60,6 +60,7 @@ enum ActionType {
     case overrideStyleLight
     case overrideStyleDark
     case overrideStyleUnspecified
+    case recaptcha
 }
 
 struct Action {

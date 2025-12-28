@@ -81,6 +81,7 @@ struct ContentSection {
 class RootViewController: UIViewController {
     weak var presentedActions: ActionTableViewController?
     weak var logoutAlert: UIAlertController?
+    let recaptchaViewModel = RecaptchaViewModel()
     
     fileprivate let paramSection = ContentSection("Parameters for action based query")
     fileprivate let querySection = ContentSection("Manual query")
@@ -705,6 +706,7 @@ class RootViewController: UIViewController {
 }
 
 extension RootViewController: ActionTableViewDelegate {
+
     
     func userDidSelectAction(_ action: Action) {
         self.dismissPopover()
@@ -881,6 +883,8 @@ extension RootViewController: ActionTableViewDelegate {
         case .overrideStyleUnspecified:
             SFSDKWindowManager.shared().userInterfaceStyle = .unspecified
             return
+        case .recaptcha:
+            recaptchaViewModel.execute()
         }
         
         if let requestToSend = request {

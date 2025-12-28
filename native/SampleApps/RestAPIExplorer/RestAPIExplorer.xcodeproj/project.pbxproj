@@ -3,11 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		6965555E2589961000A1AB82 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6965555D2589961000A1AB82 /* SceneDelegate.swift */; };
+		696908FC2F01B747000D6880 /* RecaptchaEnterprise in Frameworks */ = {isa = PBXBuildFile; productRef = 696908FB2F01B747000D6880 /* RecaptchaEnterprise */; };
 		696A8B5A2AD0F75900A85A1D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 696A8B592AD0F75900A85A1D /* PrivacyInfo.xcprivacy */; };
 		A3D23079219749C3009F433D /* SalesforceSDKCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B7D641C8218F429D006DF5F0 /* SalesforceSDKCommon.framework */; };
 		A3D2307A219749C3009F433D /* SalesforceSDKCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B7D641C8218F429D006DF5F0 /* SalesforceSDKCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -208,6 +209,10 @@
 		B7D641C1218F429C006DF5F0 /* SalesforceSDKCommon.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SalesforceSDKCommon.xcodeproj; path = ../../../libs/SalesforceSDKCommon/SalesforceSDKCommon.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		6969090D2F01B75F000D6880 /* Recaptcha */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Recaptcha; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		B7CEA6EC20B7105E007D0564 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -216,6 +221,7 @@
 				B79F072720EA938300BC7D6F /* SalesforceAnalytics.framework in Frameworks */,
 				B79F07CB20EA943400BC7D6F /* SalesforceSDKCore.framework in Frameworks */,
 				A3D23079219749C3009F433D /* SalesforceSDKCommon.framework in Frameworks */,
+				696908FC2F01B747000D6880 /* RecaptchaEnterprise in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,6 +299,7 @@
 		B7CEA6F120B7105E007D0564 /* RestAPIExplorer */ = {
 			isa = PBXGroup;
 			children = (
+				6969090D2F01B75F000D6880 /* Recaptcha */,
 				B7CEA71220B71202007D0564 /* Helpers */,
 				B7CEA71020B71202007D0564 /* Model */,
 				B7CEA70A20B71202007D0564 /* ViewControllers */,
@@ -393,6 +400,9 @@
 				B79F07CE20EA943400BC7D6F /* PBXTargetDependency */,
 				A3D2307C219749C3009F433D /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				6969090D2F01B75F000D6880 /* Recaptcha */,
+			);
 			name = RestAPIExplorer;
 			productName = RestAPIExplorer;
 			productReference = B7CEA6EF20B7105E007D0564 /* RestAPIExplorer.app */;
@@ -423,6 +433,9 @@
 				Base,
 			);
 			mainGroup = B7CEA6E620B7105E007D0564;
+			packageReferences = (
+				696908FA2F01B747000D6880 /* XCRemoteSwiftPackageReference "recaptcha-enterprise-mobile-sdk" */,
+			);
 			productRefGroup = B7CEA6F020B7105E007D0564 /* Products */;
 			projectDirPath = "";
 			projectReferences = (
@@ -803,6 +816,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		696908FA2F01B747000D6880 /* XCRemoteSwiftPackageReference "recaptcha-enterprise-mobile-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/GoogleCloudPlatform/recaptcha-enterprise-mobile-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 18.8.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		696908FB2F01B747000D6880 /* RecaptchaEnterprise */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 696908FA2F01B747000D6880 /* XCRemoteSwiftPackageReference "recaptcha-enterprise-mobile-sdk" */;
+			productName = RecaptchaEnterprise;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B7CEA6E720B7105E007D0564 /* Project object */;
 }

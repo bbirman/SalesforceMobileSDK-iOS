@@ -39,6 +39,7 @@ class ActionTableViewController: UIViewController {
     fileprivate var tableView = UITableView(frame: .zero, style: .plain)
     
     init() {
+        let recaptcha = Action(type: .recaptcha, method: "Recaptcha", objectTypes: nil)
         let versions = Action(type: ActionType.versions, method: "versions", objectTypes: nil)
         let resources = Action(type: ActionType.resources, method: "resources", objectTypes: nil)
         let describeGlobal = Action(type: ActionType.describeGlobal, method: "describeGlobal", objectTypes: nil)
@@ -70,7 +71,7 @@ class ActionTableViewController: UIViewController {
         let overrideStyleDark = Action(type: ActionType.overrideStyleDark, method: "Override user interface style: dark", objectTypes: nil)
         let overrideStyleUnspecified = Action(type: ActionType.overrideStyleUnspecified, method: "Override user interface style: unspecified", objectTypes: nil)
         
-        self.actions = [versions, resources, describeGlobal, metadata, describe, retrieve, create, upsert, update, delete, query, search, searchScope, searchResultLayout, ownedFiles, filesInUserGroups, filesShared, fileDetails, batchFileDetails, fileShares, addFileShare, deleteFileShare, primingRecords, currentUserInfo, logout, switchUser, exportCredentials, overrideStyleLight, overrideStyleDark, overrideStyleUnspecified]
+        self.actions = [recaptcha, versions, resources, describeGlobal, metadata, describe, retrieve, create, upsert, update, delete, query, search, searchScope, searchResultLayout, ownedFiles, filesInUserGroups, filesShared, fileDetails, batchFileDetails, fileShares, addFileShare, deleteFileShare, primingRecords, currentUserInfo, logout, switchUser, exportCredentials, overrideStyleLight, overrideStyleDark, overrideStyleUnspecified]
         
         super.init(nibName: nil, bundle: nil)
         
