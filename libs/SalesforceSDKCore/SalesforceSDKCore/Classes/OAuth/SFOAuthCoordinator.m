@@ -57,6 +57,7 @@
 
 @property (nonatomic) NSString *networkIdentifier;
 @property (nonatomic, strong) SFDomainDiscoveryCoordinator *domainDiscoveryCoordinator;
+@property (nonatomic) NSString *attestation;
 
 @end
 
@@ -160,56 +161,67 @@
         return;
     }
     
-    if (self.credentials.refreshToken) {
-        // clear any access token we may have and begin refresh flow
-        [self notifyDelegateOfBeginAuthentication];
-        [self beginTokenEndpointFlow];
-    } else if (self.credentials.jwt) {
-        // JWT token existence means we're doing JWT token exchange.
-        self.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeJwtTokenExchange];
-        [self notifyDelegateOfBeginAuthentication];
-        [self beginJwtTokenExchangeFlow];
-    } else {
-        __weak typeof(self) weakSelf = self;
-        if (self.useNativeAuth) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeNative];
-                [strongSelf notifyDelegateOfBeginAuthentication];
-                [strongSelf beginHeadlessNativeLoginFlow];
-            });
-        } else if (!self.frontdoorBridgeLoginOverride && self.useBrowserAuth) {
-            [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
-                [strongSelf notifyDelegateOfBeginAuthentication];
-                [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:false];
-            });
-        } else {
-            NSString *loginDomain = self.credentials.domain;
-            if (self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
-                loginDomain = _frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
-            }
-            [SFSDKAuthConfigUtil getMyDomainAuthConfig:^(SFOAuthOrgAuthConfiguration *authConfig, NSError *error) {
-                __strong typeof(weakSelf) strongSelf = weakSelf;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    // Ignore any errors why retrieving authconfig. Default to WKWebView
-                    // Errors should have already been logged.
-                    if (!self.frontdoorBridgeLoginOverride && authConfig.useNativeBrowserForAuth) {
-                        [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
-                        strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
-                        [strongSelf notifyDelegateOfBeginAuthentication];
-                        [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:authConfig.shareBrowserSession];
-                    } else {
-                        [SFSDKAppFeatureMarkers unregisterAppFeature:kSFAppFeatureSafariBrowserForLogin];
-                        [strongSelf notifyDelegateOfBeginAuthentication];
-                        [strongSelf beginWebViewFlow];
-                    }
-                });
-            } loginDomain:loginDomain];
+    // TODO: check domain with frontdoor override
+    [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
+        self.attestation = attestation;
+        if (error) {
+            NSLog(@"Attestation error: %@", error.localizedDescription);
         }
-    }
+        
+        if (self.credentials.refreshToken) {
+            // clear any access token we may have and begin refresh flow
+            [self notifyDelegateOfBeginAuthentication];
+            [self beginTokenEndpointFlow];
+        } else if (self.credentials.jwt) {
+            // JWT token existence means we're doing JWT token exchange.
+            self.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeJwtTokenExchange];
+            [self notifyDelegateOfBeginAuthentication];
+            [self beginJwtTokenExchangeFlow];
+        } else {
+            __weak typeof(self) weakSelf = self;
+            if (self.useNativeAuth) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeNative];
+                    [strongSelf notifyDelegateOfBeginAuthentication];
+                    [strongSelf beginHeadlessNativeLoginFlow];
+                });
+            } else if (!self.frontdoorBridgeLoginOverride && self.useBrowserAuth) {
+                [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
+                    [strongSelf notifyDelegateOfBeginAuthentication];
+                    [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:false];
+                });
+            } else {
+                NSString *loginDomain = self.credentials.domain;
+                if (self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
+                    loginDomain = _frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
+                }
+                [SFSDKAuthConfigUtil getMyDomainAuthConfig:^(SFOAuthOrgAuthConfiguration *authConfig, NSError *error) {
+                    __strong typeof(weakSelf) strongSelf = weakSelf;
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        // Ignore any errors why retrieving authconfig. Default to WKWebView
+                        // Errors should have already been logged.
+                        if (!self.frontdoorBridgeLoginOverride && authConfig.useNativeBrowserForAuth) {
+                            [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
+                            strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
+                            [strongSelf notifyDelegateOfBeginAuthentication];
+                            [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:authConfig.shareBrowserSession];
+                        } else {
+                            [SFSDKAppFeatureMarkers unregisterAppFeature:kSFAppFeatureSafariBrowserForLogin];
+                            [strongSelf notifyDelegateOfBeginAuthentication];
+                            [strongSelf beginWebViewFlow];
+                        }
+                    });
+                } loginDomain:loginDomain];
+            }
+        }
+        
+    }];
+    
+    
 }
 
 - (void)authenticateWithCredentials:(SFOAuthCredentials *)credentials {
@@ -315,6 +327,13 @@
         return NO;
     }
     NSDictionary *queryDict = [SFSDKOAuth2 parseQueryString:query decodeParams:NO];
+    
+    NSString *error = queryDict[@"error"];
+    if (error) {
+        NSString *errorDescription =  queryDict[@"error_description"];
+        [SFSDKCoreLogger i:[self class] format:@"%@ Web server response contains error: %@ - %@.", NSStringFromSelector(_cmd), kSFOAuthResponseTypeCode, error, errorDescription];
+    }
+    
     NSString *codeVal = queryDict[kSFOAuthResponseTypeCode];
     if ([codeVal length] == 0) {
         [SFSDKCoreLogger i:[self class] format:@"%@ URL has no '%@' parameter value.", NSStringFromSelector(_cmd), kSFOAuthResponseTypeCode];
@@ -811,6 +830,11 @@
                                           kSFOAuthRedirectUri, credentials.redirectUri,
                                           kSFOAuthDisplay, kSFOAuthDisplayTouch,
                                           kSFOAuthDeviceId, [[[UIDevice currentDevice] identifierForVendor] UUIDString]];
+    
+    if (_attestation) {
+        [approvalUrlString appendFormat:@"&%@=%@", @"attestation", _attestation];
+    }
+    
     if (webServerFlow) {
         [approvalUrlString appendFormat:@"&%@=%@", kSFOAuthResponseType, kSFOAuthResponseTypeCode];
 
