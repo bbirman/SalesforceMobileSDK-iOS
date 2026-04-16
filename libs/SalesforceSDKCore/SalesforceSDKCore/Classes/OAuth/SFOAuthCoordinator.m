@@ -630,39 +630,46 @@
 }
 
 - (void)beginTokenEndpointFlow {
-    self.responseData = [NSMutableData dataWithLength:512];
-    SFSDKOAuthTokenEndpointRequest *request = [[SFSDKOAuthTokenEndpointRequest alloc] init];
-    request.additionalOAuthParameterKeys = self.additionalOAuthParameterKeys;
-    request.additionalTokenRefreshParams = self.additionalTokenRefreshParams;
-    request.clientID = self.credentials.clientId;
-    request.refreshToken = self.credentials.refreshToken;
-    request.redirectURI = self.credentials.redirectUri;
-    request.serverURL = [self.credentials overrideDomainIfNeeded];
-   
-    // TODO: Remove in Mobile SDK 14.0
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    request.userAgentForAuth = self.userAgentForAuth;
-    #pragma clang diagnostic pop
     
-    __weak typeof (self) weakSelf = self;
-    if (self.approvalCode) {
-        [SFSDKCoreLogger i:[self class] format:@"%@: Initiating authorization code flow.", NSStringFromSelector(_cmd)];
-        request.approvalCode = self.approvalCode;
-        // Choose either the default generated code verifier or the code verifier matching the overriding Salesforce Identity API UI Bridge front door bridge.
-        request.codeVerifier = self.frontdoorBridgeLoginOverride.codeVerifier ? self.frontdoorBridgeLoginOverride.codeVerifier : self.codeVerifier;
-        [self.authClient accessTokenForApprovalCode:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
-             __strong typeof (weakSelf) strongSelf = weakSelf;
-            [strongSelf handleResponse:response];
-        }];
-    } else {
-        // Assumes refresh token flow.
-        [SFSDKCoreLogger i:[self class] format:@"%@: Initiating refresh token flow.", NSStringFromSelector(_cmd)];
-        [self.authClient accessTokenForRefresh:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
-            __strong typeof (weakSelf) strongSelf = weakSelf;
-            [strongSelf handleResponse:response];
-        }];
-    }
+    // Override domain?
+    [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
+        self.responseData = [NSMutableData dataWithLength:512];
+        SFSDKOAuthTokenEndpointRequest *request = [[SFSDKOAuthTokenEndpointRequest alloc] init];
+        request.additionalOAuthParameterKeys = self.additionalOAuthParameterKeys;
+        request.additionalTokenRefreshParams = self.additionalTokenRefreshParams;
+        request.clientID = self.credentials.clientId;
+        request.refreshToken = self.credentials.refreshToken;
+        request.redirectURI = self.credentials.redirectUri;
+        request.serverURL = [self.credentials overrideDomainIfNeeded];
+        request.attestation = attestation;
+       
+        // TODO: Remove in Mobile SDK 14.0
+        #pragma clang diagnostic push
+        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        request.userAgentForAuth = self.userAgentForAuth;
+        #pragma clang diagnostic pop
+        
+        __weak typeof (self) weakSelf = self;
+        if (self.approvalCode) {
+            [SFSDKCoreLogger i:[self class] format:@"%@: Initiating authorization code flow.", NSStringFromSelector(_cmd)];
+            request.approvalCode = self.approvalCode;
+            // Choose either the default generated code verifier or the code verifier matching the overriding Salesforce Identity API UI Bridge front door bridge.
+            request.codeVerifier = self.frontdoorBridgeLoginOverride.codeVerifier ? self.frontdoorBridgeLoginOverride.codeVerifier : self.codeVerifier;
+            [self.authClient accessTokenForApprovalCode:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
+                 __strong typeof (weakSelf) strongSelf = weakSelf;
+                [strongSelf handleResponse:response];
+            }];
+        } else {
+            // Assumes refresh token flow.
+            [SFSDKCoreLogger i:[self class] format:@"%@: Initiating refresh token flow.", NSStringFromSelector(_cmd)];
+            [self.authClient accessTokenForRefresh:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
+                __strong typeof (weakSelf) strongSelf = weakSelf;
+                [strongSelf handleResponse:response];
+            }];
+        }
+    }];
+    
+   
 }
 
 - (void)beginHeadlessNativeLoginFlow {

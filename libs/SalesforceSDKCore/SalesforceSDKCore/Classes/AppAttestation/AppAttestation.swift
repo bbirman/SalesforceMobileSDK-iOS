@@ -72,12 +72,35 @@ public class AppAttestation: NSObject {
         let challenge = try await requestChallenge(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
         let challengeData = challenge.data(using: .utf8)! // TODO: force unwrap
         let hash = Data(SHA256.hash(data: challengeData))
-        let assertion = try await DCAppAttestService.shared.generateAssertion(keyId, clientDataHash: hash)
-        let assertionString = assertion.base64EncodedString()
-        
-        let attestationObject = AttestationObject(attestationId: attestationId, attestationData: assertionString)
-        let jsonData = try JSONEncoder().encode(attestationObject)
-        return jsonData.base64EncodedString()
+       
+        do {
+            let assertion = try await DCAppAttestService.shared.generateAssertion(keyId, clientDataHash: hash)
+            let assertionString = assertion.base64EncodedString()
+            
+            let attestationObject = AttestationObject(attestationId: attestationId, attestationData: assertionString)
+            let jsonData = try JSONEncoder().encode(attestationObject)
+            return jsonData.base64EncodedString()
+        }   catch let error as DCError {
+            switch error.code {
+            case .featureUnsupported:
+            print("feature unsupported")
+            case .invalidInput:
+            print("invalid input")
+            case .invalidKey:
+            print("invalid key")
+            case .serverUnavailable:
+                print("server unavailable")
+            case .unknownSystemFailure:
+                print("unknown system failure")
+            default:
+                print("default")
+            }
+            throw error
+    
+        } catch {
+            print("Error generating key: \(error.localizedDescription)")
+            throw error
+        }
     }
     
     
@@ -119,44 +142,95 @@ public class AppAttestation: NSObject {
 //    3. Client creates an Apple attestation object with obtained challenge
 //    4. Client makes request to pre-register public key - /mobile/attest/registerkey
     static func preregisterKey(attestationId: String, domain: String, consumerKey: String) async throws -> String {
+       // let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
         
-        let challenge = try await requestChallenge(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
-        let keyId = try await keyId(for: nil)
-        
-        print("KeyId: \(keyId)")
+        let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: nil) // TODO: User account
+        if let attestKeyData = attestKeyQuery.data {
+            // Key already exists, skip registration & attestation
+            // TODO: Guards on migration / app deletion / etc
+            return  String(data: attestKeyData, encoding: .utf8)! // BB TODO encoding?
+        }
+               
        
-        let attestation = try await generateAttestation(keyId: keyId, challenge: challenge)
-        print("Attestation: \(attestation)")
         
-        try await registerKey(keyId: keyId, consumerKey: consumerKey, attestationId: attestationId, attestationObject: attestation, domain: domain)
-        
-        return keyId
-    }
 
-    
-    static func keyId(for userAccount: UserAccount?) async throws -> String {
-        let account = userAccount?.idData.userId
+       
+
         
-        // TODO Store key and make sure it's only attested once
-//        let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: account)
-//        if let attestKeyData = attestKeyQuery.data {
-//            return attestKeyData.base64EncodedString() // BB TODO encoding?
-//        }
-//        
         
-        let keyId = try await DCAppAttestService.shared.generateKey()
-        if let keyIsData = keyId.data(using: .utf8) {
-                  
-            let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keyIsData, account: account)
-        } else {
+        do {
+            let keyId = try await DCAppAttestService.shared.generateKey()
+            print("KeyId: \(keyId)")
+            if let keyIdData = keyId.data(using: .utf8) {
+                
+                let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keyIdData, account: nil)
+                // TODO: error handling
+            }
+           
+            let challenge = try await requestChallenge(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
+            let attestation = try await generateAttestation(keyId: keyId, challenge: challenge)
+            print("Attestation: \(attestation)")
             
+            try await registerKey(keyId: keyId, consumerKey: consumerKey, attestationId: attestationId, attestationObject: attestation, domain: domain)
+            
+            return keyId
+           
+        }  catch let error as DCError {
+            switch error.code {
+            case .featureUnsupported:
+            print("feature unsupported")
+            case .invalidInput:
+            print("invalid input")
+            case .invalidKey:
+            print("invalid key")
+            case .serverUnavailable:
+                print("server unavailable")
+            case .unknownSystemFailure:
+                print("unknown system failure")
+            default:
+                print("default")
+            }
+            throw error
+    
+        } catch {
+            print("Error generating key: \(error.localizedDescription)")
+            throw error
         }
         
-        return keyId
         
-        
-        //KeychainHelper.createIfNotPresent(service: appAttestKeyName, account: account)
+       
     }
+
+//    
+//    static func keyId(for userAccount: UserAccount?) async throws -> String {
+//        let account = userAccount?.idData.userId
+//        
+//        // TODO Store key and make sure it's only attested once
+////        let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: account)
+////        if let attestKeyData = attestKeyQuery.data {
+////            return attestKeyData.base64EncodedString() // BB TODO encoding?
+////        }
+////        
+//        
+//        let keyId = try await DCAppAttestService.shared.generateKey()
+//        if let keyIdData = keyId.data(using: .utf8) {
+//                  
+//            let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keyIdData, account: nil)
+//            
+//            
+//            let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: nil)
+//            if let attestKeyData = attestKeyQuery.data {
+//                String(data: attestKeyData, encoding: .utf8) // BB TODO encoding?
+//           }
+//        } else {
+//            
+//        }
+//        
+//        return keyId
+//        
+//        
+//        //KeychainHelper.createIfNotPresent(service: appAttestKeyName, account: account)
+//    }
     
     // 2. Client makes request to get challenge - /mobile/attest/challenge
     // https://msdkappattestationtestorg.test1.my.pc-rnd.salesforce.com/mobile/attest/challenge?consumerKey=3MVG9.AgwtoIvERQAaXavOqevMWM.dGcHogkREX3wZnckV7FTqdLvsJVC4z3sLMtSuxqbjWMilFuwxFyc00A_&attestationId=sashatest
