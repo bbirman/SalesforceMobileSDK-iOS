@@ -43,8 +43,8 @@
     self = [super init];
     if (self) {
         MobileSyncExplorerConfig *config = [MobileSyncExplorerConfig sharedInstance];
-        [SFSDKDatasharingHelper sharedInstance].appGroupName = config.appGroupName;
-        [SFSDKDatasharingHelper sharedInstance].appGroupEnabled = config.appGroupsEnabled;
+//        [SFSDKDatasharingHelper sharedInstance].appGroupName = config.appGroupName;
+        [SFSDKDatasharingHelper sharedInstance].appGroupEnabled = NO;// config.appGroupsEnabled;
 
         [MobileSyncSDKManager initializeSDK];
 
