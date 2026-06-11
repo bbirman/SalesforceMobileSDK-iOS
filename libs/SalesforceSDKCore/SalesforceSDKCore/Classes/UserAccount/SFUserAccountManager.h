@@ -391,7 +391,10 @@ NS_SWIFT_NAME(UserAccountManager)
  */
 @property (nonatomic, copy, nullable) NSArray<NotificationType*>* (^filterSupportedNotificationTypes)(NSArray<NotificationType*>* notificationTypes);
 
-@property (nonatomic, copy, nullable) BOOL (^attestForDomain)(NSString *domain);
+/** Whether or not app attestation is enabled. When YES, the SDK will include attestation
+ *  in token endpoint requests (code exchange and refresh). Defaults to NO.
+ */
+@property (nonatomic, assign) BOOL appAttestationEnabled;
 
 /**
  Adds a delegate to this user account manager.

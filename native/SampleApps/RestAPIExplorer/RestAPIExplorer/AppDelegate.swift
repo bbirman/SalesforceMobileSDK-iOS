@@ -57,9 +57,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
             return .allow
         }
-        UserAccountManager.shared.attestForDomain = { domain in
-            return true
-        }
+        
+        // Uncomment following line to enable app attestation
+        UserAccountManager.shared.appAttestationEnabled = true
         
         // Uncomment following block to enable IDP Login flow.
         //SalesforceManager.shared.identityProviderURLScheme = "sampleidpapp"

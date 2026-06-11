@@ -57,7 +57,6 @@
 
 @property (nonatomic) NSString *networkIdentifier;
 @property (nonatomic, strong) SFDomainDiscoveryCoordinator *domainDiscoveryCoordinator;
-@property (nonatomic) NSString *attestation;
 
 @end
 
@@ -161,67 +160,56 @@
         return;
     }
     
-    BOOL attestationEnabled = [SFUserAccountManager sharedInstance].attestForDomain(self.credentials.domain);
-    
-    
-    // TODO: check domain with frontdoor override
-    [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
-        self.attestation = attestation;
-        if (error) {
-            NSLog(@"Attestation error: %@", error.localizedDescription);
-        }
-        
-        if (self.credentials.refreshToken) {
-            // clear any access token we may have and begin refresh flow
-            [self notifyDelegateOfBeginAuthentication];
-            [self beginTokenEndpointFlow];
-        } else if (self.credentials.jwt) {
-            // JWT token existence means we're doing JWT token exchange.
-            self.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeJwtTokenExchange];
-            [self notifyDelegateOfBeginAuthentication];
-            [self beginJwtTokenExchangeFlow];
+    if (self.credentials.refreshToken) {
+        // clear any access token we may have and begin refresh flow
+        [self notifyDelegateOfBeginAuthentication];
+        [self beginTokenEndpointFlow];
+    } else if (self.credentials.jwt) {
+        // JWT token existence means we're doing JWT token exchange.
+        self.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeJwtTokenExchange];
+        [self notifyDelegateOfBeginAuthentication];
+        [self beginJwtTokenExchangeFlow];
+    } else {
+        __weak typeof(self) weakSelf = self;
+        if (self.useNativeAuth) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeNative];
+                [strongSelf notifyDelegateOfBeginAuthentication];
+                [strongSelf beginHeadlessNativeLoginFlow];
+            });
+        } else if (!self.frontdoorBridgeLoginOverride && self.useBrowserAuth) {
+            [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
+                [strongSelf notifyDelegateOfBeginAuthentication];
+                [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:false];
+            });
         } else {
-            __weak typeof(self) weakSelf = self;
-            if (self.useNativeAuth) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    __strong typeof(weakSelf) strongSelf = weakSelf;
-                    strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeNative];
-                    [strongSelf notifyDelegateOfBeginAuthentication];
-                    [strongSelf beginHeadlessNativeLoginFlow];
-                });
-            } else if (!weakSelf.frontdoorBridgeLoginOverride && weakSelf.useBrowserAuth) {
-                [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    __strong typeof(weakSelf) strongSelf = weakSelf;
-                    strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
-                    [strongSelf notifyDelegateOfBeginAuthentication];
-                    [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:false];
-                });
-            } else {
-                NSString *loginDomain = weakSelf.credentials.domain;
-                if (weakSelf.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
-                    loginDomain = weakSelf.frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
-                }
-                [SFSDKAuthConfigUtil getMyDomainAuthConfig:^(SFOAuthOrgAuthConfiguration *authConfig, NSError *error) {
-                    __strong typeof(weakSelf) strongSelf = weakSelf;
-                    dispatch_async(dispatch_get_main_queue(), ^{
-                        // Ignore any errors why retrieving authconfig. Default to WKWebView
-                        // Errors should have already been logged.
-                        if (!self.frontdoorBridgeLoginOverride && authConfig.useNativeBrowserForAuth) {
-                            [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
-                            strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
-                            [strongSelf notifyDelegateOfBeginAuthentication];
-                            [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:authConfig.shareBrowserSession];
-                        } else {
-                            [SFSDKAppFeatureMarkers unregisterAppFeature:kSFAppFeatureSafariBrowserForLogin];
-                            [strongSelf notifyDelegateOfBeginAuthentication];
-                            [strongSelf beginWebViewFlow];
-                        }
-                    });
-                } loginDomain:loginDomain];
+            NSString *loginDomain = self.credentials.domain;
+            if (self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
+                loginDomain = self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
             }
+            [SFSDKAuthConfigUtil getMyDomainAuthConfig:^(SFOAuthOrgAuthConfiguration *authConfig, NSError *error) {
+                __strong typeof(weakSelf) strongSelf = weakSelf;
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    // Ignore any errors why retrieving authconfig. Default to WKWebView
+                    // Errors should have already been logged.
+                    if (!strongSelf.frontdoorBridgeLoginOverride && authConfig.useNativeBrowserForAuth) {
+                        [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
+                        strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
+                        [strongSelf notifyDelegateOfBeginAuthentication];
+                        [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:authConfig.shareBrowserSession];
+                    } else {
+                        [SFSDKAppFeatureMarkers unregisterAppFeature:kSFAppFeatureSafariBrowserForLogin];
+                        [strongSelf notifyDelegateOfBeginAuthentication];
+                        [strongSelf beginWebViewFlow];
+                    }
+                });
+            } loginDomain:loginDomain];
         }
-    }];
+    }
 }
 
 - (void)authenticateWithCredentials:(SFOAuthCredentials *)credentials {
@@ -630,46 +618,57 @@
 }
 
 - (void)beginTokenEndpointFlow {
-    
-    // Override domain?
-    [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
-        self.responseData = [NSMutableData dataWithLength:512];
-        SFSDKOAuthTokenEndpointRequest *request = [[SFSDKOAuthTokenEndpointRequest alloc] init];
-        request.additionalOAuthParameterKeys = self.additionalOAuthParameterKeys;
-        request.additionalTokenRefreshParams = self.additionalTokenRefreshParams;
-        request.clientID = self.credentials.clientId;
-        request.refreshToken = self.credentials.refreshToken;
-        request.redirectURI = self.credentials.redirectUri;
-        request.serverURL = [self.credentials overrideDomainIfNeeded];
-        request.attestation = attestation;
-       
-        // TODO: Remove in Mobile SDK 14.0
-        #pragma clang diagnostic push
-        #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        request.userAgentForAuth = self.userAgentForAuth;
-        #pragma clang diagnostic pop
-        
-        __weak typeof (self) weakSelf = self;
-        if (self.approvalCode) {
-            [SFSDKCoreLogger i:[self class] format:@"%@: Initiating authorization code flow.", NSStringFromSelector(_cmd)];
-            request.approvalCode = self.approvalCode;
-            // Choose either the default generated code verifier or the code verifier matching the overriding Salesforce Identity API UI Bridge front door bridge.
-            request.codeVerifier = self.frontdoorBridgeLoginOverride.codeVerifier ? self.frontdoorBridgeLoginOverride.codeVerifier : self.codeVerifier;
-            [self.authClient accessTokenForApprovalCode:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
-                 __strong typeof (weakSelf) strongSelf = weakSelf;
-                [strongSelf handleResponse:response];
-            }];
-        } else {
-            // Assumes refresh token flow.
-            [SFSDKCoreLogger i:[self class] format:@"%@: Initiating refresh token flow.", NSStringFromSelector(_cmd)];
-            [self.authClient accessTokenForRefresh:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
-                __strong typeof (weakSelf) strongSelf = weakSelf;
-                [strongSelf handleResponse:response];
-            }];
-        }
-    }];
-    
-   
+    BOOL attestationEnabled = [SFUserAccountManager sharedInstance].attestForDomain
+        ? [SFUserAccountManager sharedInstance].attestForDomain(self.credentials.domain)
+        : NO;
+
+    if (attestationEnabled && self.credentials.domain && self.credentials.clientId) {
+        [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
+            if (error) {
+                [SFSDKCoreLogger e:[self class] format:@"Attestation error: %@", error.localizedDescription];
+            }
+            [self executeTokenEndpointFlowWithAttestation:attestation];
+        }];
+    } else {
+        [self executeTokenEndpointFlowWithAttestation:nil];
+    }
+}
+
+- (void)executeTokenEndpointFlowWithAttestation:(NSString * _Nullable)attestation {
+    self.responseData = [NSMutableData dataWithLength:512];
+    SFSDKOAuthTokenEndpointRequest *request = [[SFSDKOAuthTokenEndpointRequest alloc] init];
+    request.additionalOAuthParameterKeys = self.additionalOAuthParameterKeys;
+    request.additionalTokenRefreshParams = self.additionalTokenRefreshParams;
+    request.clientID = self.credentials.clientId;
+    request.refreshToken = self.credentials.refreshToken;
+    request.redirectURI = self.credentials.redirectUri;
+    request.serverURL = [self.credentials overrideDomainIfNeeded];
+    request.attestation = attestation;
+
+    // TODO: Remove in Mobile SDK 14.0
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    request.userAgentForAuth = self.userAgentForAuth;
+    #pragma clang diagnostic pop
+
+    __weak typeof (self) weakSelf = self;
+    if (self.approvalCode) {
+        [SFSDKCoreLogger i:[self class] format:@"%@: Initiating authorization code flow.", NSStringFromSelector(_cmd)];
+        request.approvalCode = self.approvalCode;
+        // Choose either the default generated code verifier or the code verifier matching the overriding Salesforce Identity API UI Bridge front door bridge.
+        request.codeVerifier = self.frontdoorBridgeLoginOverride.codeVerifier ? self.frontdoorBridgeLoginOverride.codeVerifier : self.codeVerifier;
+        [self.authClient accessTokenForApprovalCode:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
+             __strong typeof (weakSelf) strongSelf = weakSelf;
+            [strongSelf handleResponse:response];
+        }];
+    } else {
+        // Assumes refresh token flow.
+        [SFSDKCoreLogger i:[self class] format:@"%@: Initiating refresh token flow.", NSStringFromSelector(_cmd)];
+        [self.authClient accessTokenForRefresh:request completion:^(SFSDKOAuthTokenEndpointResponse * response) {
+            __strong typeof (weakSelf) strongSelf = weakSelf;
+            [strongSelf handleResponse:response];
+        }];
+    }
 }
 
 - (void)beginHeadlessNativeLoginFlow {
@@ -837,10 +836,6 @@
                                           kSFOAuthRedirectUri, credentials.redirectUri,
                                           kSFOAuthDisplay, kSFOAuthDisplayTouch,
                                           kSFOAuthDeviceId, [[[UIDevice currentDevice] identifierForVendor] UUIDString]];
-    
-    if (_attestation) {
-        [approvalUrlString appendFormat:@"&%@=%@", kSFOAuthAttestation, _attestation];
-    }
     
     if (webServerFlow) {
         [approvalUrlString appendFormat:@"&%@=%@", kSFOAuthResponseType, kSFOAuthResponseTypeCode];
