@@ -391,6 +391,8 @@ NS_SWIFT_NAME(UserAccountManager)
  */
 @property (nonatomic, copy, nullable) NSArray<NotificationType*>* (^filterSupportedNotificationTypes)(NSArray<NotificationType*>* notificationTypes);
 
+@property (nonatomic, copy, nullable) BOOL (^attestForDomain)(NSString *domain);
+
 /**
  Adds a delegate to this user account manager.
  @param delegate The delegate to add.

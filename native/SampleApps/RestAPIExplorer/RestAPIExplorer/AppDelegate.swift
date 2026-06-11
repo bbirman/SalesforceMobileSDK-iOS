@@ -44,6 +44,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Uncomment to enable custom log receivers.
         //setUpLoggingCustomizations()
         
+        let bioManager = BiometricAuthenticationManagerInternal.shared.hasBiometricOptedIn()
+        
+        let bm2 = SalesforceManager.shared.biometricAuthenticationManager().hasBiometricOptedIn()
+        
         SalesforceManager.initializeSDK()
         SalesforceManager.shared.appDisplayName = "Rest API Explorer"
         UserAccountManager.shared.navigationPolicyForAction = { webView, action in
@@ -52,6 +56,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 return .cancel
             }
             return .allow
+        }
+        UserAccountManager.shared.attestForDomain = { domain in
+            return true
         }
         
         // Uncomment following block to enable IDP Login flow.

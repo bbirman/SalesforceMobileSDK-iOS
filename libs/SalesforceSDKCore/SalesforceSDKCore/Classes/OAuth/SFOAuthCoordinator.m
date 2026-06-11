@@ -161,6 +161,9 @@
         return;
     }
     
+    BOOL attestationEnabled = [SFUserAccountManager sharedInstance].attestForDomain(self.credentials.domain);
+    
+    
     // TODO: check domain with frontdoor override
     [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
         self.attestation = attestation;
@@ -186,7 +189,7 @@
                     [strongSelf notifyDelegateOfBeginAuthentication];
                     [strongSelf beginHeadlessNativeLoginFlow];
                 });
-            } else if (!self.frontdoorBridgeLoginOverride && self.useBrowserAuth) {
+            } else if (!weakSelf.frontdoorBridgeLoginOverride && weakSelf.useBrowserAuth) {
                 [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
                 dispatch_async(dispatch_get_main_queue(), ^{
                     __strong typeof(weakSelf) strongSelf = weakSelf;
@@ -195,9 +198,9 @@
                     [strongSelf beginNativeBrowserFlowWithSharedBrowserSessionEnabled:false];
                 });
             } else {
-                NSString *loginDomain = self.credentials.domain;
-                if (self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
-                    loginDomain = _frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
+                NSString *loginDomain = weakSelf.credentials.domain;
+                if (weakSelf.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
+                    loginDomain = weakSelf.frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
                 }
                 [SFSDKAuthConfigUtil getMyDomainAuthConfig:^(SFOAuthOrgAuthConfiguration *authConfig, NSError *error) {
                     __strong typeof(weakSelf) strongSelf = weakSelf;
@@ -218,10 +221,7 @@
                 } loginDomain:loginDomain];
             }
         }
-        
     }];
-    
-    
 }
 
 - (void)authenticateWithCredentials:(SFOAuthCredentials *)credentials {
@@ -839,7 +839,7 @@
                                           kSFOAuthDeviceId, [[[UIDevice currentDevice] identifierForVendor] UUIDString]];
     
     if (_attestation) {
-        [approvalUrlString appendFormat:@"&%@=%@", @"attestation", _attestation];
+        [approvalUrlString appendFormat:@"&%@=%@", kSFOAuthAttestation, _attestation];
     }
     
     if (webServerFlow) {
