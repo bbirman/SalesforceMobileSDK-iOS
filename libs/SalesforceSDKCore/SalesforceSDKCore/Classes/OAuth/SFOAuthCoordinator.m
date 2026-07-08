@@ -189,14 +189,14 @@
         } else {
             NSString *loginDomain = self.credentials.domain;
             if (self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl) {
-                loginDomain = _frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
+                loginDomain = self.frontdoorBridgeLoginOverride.frontdoorBridgeUrl.host;
             }
             [SFSDKAuthConfigUtil getMyDomainAuthConfig:^(SFOAuthOrgAuthConfiguration *authConfig, NSError *error) {
                 __strong typeof(weakSelf) strongSelf = weakSelf;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     // Ignore any errors why retrieving authconfig. Default to WKWebView
                     // Errors should have already been logged.
-                    if (!self.frontdoorBridgeLoginOverride && authConfig.useNativeBrowserForAuth) {
+                    if (!strongSelf.frontdoorBridgeLoginOverride && authConfig.useNativeBrowserForAuth) {
                         [SFSDKAppFeatureMarkers registerAppFeature:kSFAppFeatureSafariBrowserForLogin];
                         strongSelf.authInfo = [[SFOAuthInfo alloc] initWithAuthType:SFOAuthTypeAdvancedBrowser];
                         [strongSelf notifyDelegateOfBeginAuthentication];
@@ -315,6 +315,13 @@
         return NO;
     }
     NSDictionary *queryDict = [SFSDKOAuth2 parseQueryString:query decodeParams:NO];
+    
+    NSString *error = queryDict[@"error"];
+    if (error) {
+        NSString *errorDescription =  queryDict[@"error_description"];
+        [SFSDKCoreLogger i:[self class] format:@"%@ Web server response contains error: %@ - %@.", NSStringFromSelector(_cmd), kSFOAuthResponseTypeCode, error, errorDescription];
+    }
+    
     NSString *codeVal = queryDict[kSFOAuthResponseTypeCode];
     if ([codeVal length] == 0) {
         [SFSDKCoreLogger i:[self class] format:@"%@ URL has no '%@' parameter value.", NSStringFromSelector(_cmd), kSFOAuthResponseTypeCode];
@@ -611,6 +618,12 @@
 }
 
 - (void)beginTokenEndpointFlow {
+    [SFSDKAppAttestation attestationIfEnabledFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation) {
+        [self executeTokenEndpointFlowWithAttestation:attestation];
+    }];
+}
+
+- (void)executeTokenEndpointFlowWithAttestation:(NSString * _Nullable)attestation {
     self.responseData = [NSMutableData dataWithLength:512];
     SFSDKOAuthTokenEndpointRequest *request = [[SFSDKOAuthTokenEndpointRequest alloc] init];
     request.additionalOAuthParameterKeys = self.additionalOAuthParameterKeys;
@@ -619,13 +632,14 @@
     request.refreshToken = self.credentials.refreshToken;
     request.redirectURI = self.credentials.redirectUri;
     request.serverURL = [self.credentials overrideDomainIfNeeded];
-   
+    request.attestation = attestation;
+
     // TODO: Remove in Mobile SDK 14.0
     #pragma clang diagnostic push
     #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     request.userAgentForAuth = self.userAgentForAuth;
     #pragma clang diagnostic pop
-    
+
     __weak typeof (self) weakSelf = self;
     if (self.approvalCode) {
         [SFSDKCoreLogger i:[self class] format:@"%@: Initiating authorization code flow.", NSStringFromSelector(_cmd)];
@@ -811,6 +825,7 @@
                                           kSFOAuthRedirectUri, credentials.redirectUri,
                                           kSFOAuthDisplay, kSFOAuthDisplayTouch,
                                           kSFOAuthDeviceId, [[[UIDevice currentDevice] identifierForVendor] UUIDString]];
+    
     if (webServerFlow) {
         [approvalUrlString appendFormat:@"&%@=%@", kSFOAuthResponseType, kSFOAuthResponseTypeCode];
 
