@@ -618,22 +618,9 @@
 }
 
 - (void)beginTokenEndpointFlow {
-    NSString *domain = self.credentials.domain;
-    BOOL isAttestationDomain = domain
-        && ![domain isEqualToString:kSFOAuthProductionLoginURL]
-        && ![domain isEqualToString:kSFOAuthSandboxLoginURL]
-        && ![domain isEqualToString:kSFOAuthWelcomeLoginURL];
-
-    if ([SFUserAccountManager sharedInstance].appAttestationEnabled && isAttestationDomain && self.credentials.clientId) {
-        [SFSDKAppAttestation attestationObjectFor:domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
-            if (error) {
-                [SFSDKCoreLogger e:[self class] format:@"Attestation error: %@", error.localizedDescription];
-            }
-            [self executeTokenEndpointFlowWithAttestation:attestation];
-        }];
-    } else {
-        [self executeTokenEndpointFlowWithAttestation:nil];
-    }
+    [SFSDKAppAttestation attestationIfEnabledFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation) {
+        [self executeTokenEndpointFlowWithAttestation:attestation];
+    }];
 }
 
 - (void)executeTokenEndpointFlowWithAttestation:(NSString * _Nullable)attestation {

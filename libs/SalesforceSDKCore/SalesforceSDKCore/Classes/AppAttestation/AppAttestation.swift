@@ -43,6 +43,28 @@ public class AppAttestation: NSObject {
     static let appAttestKeyName = "AppAttestKey"
 
     
+    /// Returns an attestation string if attestation is enabled and the domain is a My Domain,
+    /// otherwise returns nil. Callers do not need to check gating conditions themselves.
+    @objc static func attestationIfEnabled(for domain: String, consumerKey: String) async -> String? {
+        let isLoginPool = domain == "login.salesforce.com"
+            || domain == "test.salesforce.com"
+            || domain == "welcome.salesforce.com/discovery"
+
+        guard UserAccountManager.shared.appAttestationEnabled,
+              !isLoginPool,
+              !consumerKey.isEmpty else {
+            return nil
+        }
+
+        do {
+            return try await attestationObject(for: domain, consumerKey: consumerKey)
+        } catch {
+            SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: "Attestation error: \(error.localizedDescription)")
+            // TODO: In coordination with error stories, if device error prevents attestation from being generated, should this throw and/or have a retry path like deleting old key?
+            return nil
+        }
+    }
+
     @objc static func attestationObject(for domain: String, consumerKey: String) async throws -> String {
         let attestationId = SalesforceManager.shared.deviceId()
 
@@ -83,7 +105,7 @@ public class AppAttestation: NSObject {
 //    4. Client makes request to pre-register public key - /mobile/attest/registerkey
     static func keyId(for attestationId: String, domain: String, consumerKey: String) async throws -> String {
         // TODO: Remove - temporarily clearing keychain for development/testing
-        // let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
+         let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
 
         let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: nil)
         if let attestKeyData = attestKeyQuery.data,
@@ -112,6 +134,7 @@ public class AppAttestation: NSObject {
         let attestation = try await generateAttestation(keyId: keyId, challenge: challenge)
 
         try await registerKeyWithSalesforce(keyId: keyId, consumerKey: consumerKey, attestationId: attestationId, attestationObject: attestation, domain: domain)
+        // TODO: If registration fails, should key be deleted? Or switch order so it's only stored if registration is successful?
 
         return keyId
     }
