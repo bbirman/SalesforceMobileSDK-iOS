@@ -31,6 +31,10 @@ import DeviceCheck
 
 @objc(SFSDKAppAttestation)
 public class AppAttestation: NSObject {
+    enum AppAttestationError: Error {
+        case challengeEncodingFailed
+    }
+
     struct AttestationObject: Codable {
         let attestationId: String
         let attestationData: String // Base-64 encoded
@@ -40,147 +44,89 @@ public class AppAttestation: NSObject {
 
     
     @objc static func attestationObject(for domain: String, consumerKey: String) async throws -> String {
-        // TODO check for my domain
-        
-        let attestationId = "bvbtest1"  // TODO: real id
+        let attestationId = SalesforceManager.shared.deviceId()
 
         let keyId = try await keyId(for: attestationId, domain: domain, consumerKey: consumerKey)
-        
+
         let challenge = try await requestChallengeFromSalesforce(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
-        let challengeData = challenge.data(using: .utf8)! // TODO: force unwrap
-        let hash = Data(SHA256.hash(data: challengeData))
-       
-        do {
-            let assertion = try await DCAppAttestService.shared.generateAssertion(keyId, clientDataHash: hash)
-            let assertionString = assertion.base64EncodedString()
-            
-            let attestationObject = AttestationObject(attestationId: attestationId, attestationData: assertionString)
-            let jsonData = try JSONEncoder().encode(attestationObject)
-            return jsonData.base64EncodedString()
-        }   catch let error as DCError {
-            switch error.code {
-            case .featureUnsupported:
-            print("feature unsupported")
-            case .invalidInput:
-            print("invalid input")
-            case .invalidKey:
-            print("invalid key")
-            case .serverUnavailable:
-                print("server unavailable")
-            case .unknownSystemFailure:
-                print("unknown system failure")
-            default:
-                print("default")
-            }
-            throw error
-    
-        } catch {
-            print("Error generating key: \(error.localizedDescription)")
-            throw error
+        guard let challengeData = challenge.data(using: .utf8) else {
+            throw AppAttestationError.challengeEncodingFailed
         }
+        let hash = Data(SHA256.hash(data: challengeData))
+
+        let assertion = try await performAppAttestOperation {
+            try await DCAppAttestService.shared.generateAssertion(keyId, clientDataHash: hash)
+        }
+        let assertionString = assertion.base64EncodedString()
+
+        let attestationObject = AttestationObject(attestationId: attestationId, attestationData: assertionString)
+        let jsonData = try JSONEncoder().encode(attestationObject)
+        return jsonData.base64EncodedString()
     }
-    
-    
+
+
     static func generateAttestation(keyId: String, challenge: String) async throws -> String {
-        let challengeData = challenge.data(using: .utf8)! // TODO: force unwrap
-        let hash = Data(SHA256.hash(data: challengeData))
-        
-        
-        do {
-            let attestation = try await DCAppAttestService.shared.attestKey(keyId, clientDataHash: hash)
-            return attestation.base64EncodedString()
-        }  catch let error as DCError {
-            switch error.code {
-            case .featureUnsupported:
-            print("feature unsupported")
-            case .invalidInput:
-            print("invalid input")
-            case .invalidKey:
-            print("invalid key")
-            case .serverUnavailable:
-                print("server unavailable")
-            case .unknownSystemFailure:
-                print("unknown system failure")
-            default:
-                print("default")
-            }
-            throw error
-    
-        } catch {
-            print("Error generating key: \(error.localizedDescription)")
-            throw error
+        guard let challengeData = challenge.data(using: .utf8) else {
+            throw AppAttestationError.challengeEncodingFailed
         }
-       
-        
+        let hash = Data(SHA256.hash(data: challengeData))
+
+        let attestation = try await performAppAttestOperation {
+            try await DCAppAttestService.shared.attestKey(keyId, clientDataHash: hash)
+        }
+        return attestation.base64EncodedString()
     }
-    
+
 //    1. Client creates a key pair
 //    2. Client makes request to get challenge  - /mobile/attest/challenge
 //    3. Client creates an Apple attestation object with obtained challenge
 //    4. Client makes request to pre-register public key - /mobile/attest/registerkey
     static func keyId(for attestationId: String, domain: String, consumerKey: String) async throws -> String {
-        let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
-        
-        let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: nil) // TODO: User account
+        // TODO: Remove - temporarily clearing keychain for development/testing
+        // let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
+
+        let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: nil)
         if let attestKeyData = attestKeyQuery.data,
             let keyId = String(data: attestKeyData, encoding: .utf8) {
             // Key already exists, skip registration & attestation
             // TODO: Guards on migration / app deletion / etc
-            return  keyId
-        }
-        
-        do {
-            let keyId = try await DCAppAttestService.shared.generateKey()
-            print("KeyId: \(keyId)")
-            if let keyIdData = keyId.data(using: .utf8) {
-                
-                let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keyIdData, account: nil)
-                if !keychainResult.success {
-                    var message = "Unable to write attestation keyId to keychain"
-                    
-                    if let error = keychainResult.error {
-                        message += ": \(error.localizedDescription)"
-                    }
-
-                    SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: message)
-                }
-            }
-           
-            let challenge = try await requestChallengeFromSalesforce(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
-            let attestation = try await generateAttestation(keyId: keyId, challenge: challenge)
-            print("Attestation: \(attestation)")
-            
-            try await registerKeyWithSalesforce(keyId: keyId, consumerKey: consumerKey, attestationId: attestationId, attestationObject: attestation, domain: domain)
-            
             return keyId
-           
-        }  catch let error as DCError {
-            switch error.code {
-            case .featureUnsupported:
-            print("feature unsupported")
-            case .invalidInput:
-            print("invalid input")
-            case .invalidKey:
-            print("invalid key")
-            case .serverUnavailable:
-                print("server unavailable")
-            case .unknownSystemFailure:
-                print("unknown system failure")
-            default:
-                print("default")
-            }
-            throw error
-    
-        } catch {
-            print("Error generating key: \(error.localizedDescription)")
-            throw error
         }
 
+        let keyId = try await performAppAttestOperation {
+            try await DCAppAttestService.shared.generateKey()
+        }
+
+        if let keyIdData = keyId.data(using: .utf8) {
+            let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keyIdData, account: nil)
+            if !keychainResult.success {
+                var message = "Unable to write attestation keyId to keychain"
+                if let error = keychainResult.error {
+                    message += ": \(error.localizedDescription)"
+                }
+                SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: message)
+            }
+        }
+
+        let challenge = try await requestChallengeFromSalesforce(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
+        let attestation = try await generateAttestation(keyId: keyId, challenge: challenge)
+
+        try await registerKeyWithSalesforce(keyId: keyId, consumerKey: consumerKey, attestationId: attestationId, attestationObject: attestation, domain: domain)
+
+        return keyId
+    }
+
+    private static func performAppAttestOperation<T>(_ operation: () async throws -> T) async throws -> T {
+        do {
+            return try await operation()
+        } catch let error as DCError {
+            SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: "App Attest error: \(error.code.rawValue)")
+            throw error
+        }
     }
 
     
-    // 2. Client makes request to get challenge - /mobile/attest/challenge
-    // https://msdkappattestationtestorg.test1.my.pc-rnd.salesforce.com/mobile/attest/challenge?consumerKey=3MVG9.AgwtoIvERQAaXavOqevMWM.dGcHogkREX3wZnckV7FTqdLvsJVC4z3sLMtSuxqbjWMilFuwxFyc00A_&attestationId=sashatest
+    // Requests a challenge from https://<domain>/mobile/attest/challenge
     static func requestChallengeFromSalesforce(domain: String, consumerKey: String, attestationId: String) async throws -> String {
         let params = ["consumerKey": consumerKey, "attestationId": attestationId]
         let request = RestRequest(method: .GET, baseURL: "https://\(domain)", path: "/mobile/attest/challenge", queryParams: params)
@@ -193,7 +139,7 @@ public class AppAttestation: NSObject {
     }
     
     static func registerKeyWithSalesforce(keyId: String, consumerKey: String, attestationId: String, attestationObject: String, domain: String) async throws {
-        let requestBody = "consumerKey=\(consumerKey)&attestationId=\(attestationId)&keyIdentifier=\(keyId)&attestationObject=\(attestationObject.sfsdk_stringByURLEncoding())" // TODO: do other components need URL encoding?
+        let requestBody = "consumerKey=\(consumerKey.sfsdk_stringByURLEncoding())&attestationId=\(attestationId.sfsdk_stringByURLEncoding())&keyIdentifier=\(keyId.sfsdk_stringByURLEncoding())&attestationObject=\(attestationObject.sfsdk_stringByURLEncoding())"
         let request = RestRequest(method: .POST, baseURL: "https://\(domain)", path: "/mobile/attest/registerkey", queryParams: nil)
         request.endpoint = ""
         request.requiresAuthentication = false

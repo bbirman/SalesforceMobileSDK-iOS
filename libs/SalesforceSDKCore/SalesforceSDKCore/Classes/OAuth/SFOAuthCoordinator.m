@@ -618,12 +618,14 @@
 }
 
 - (void)beginTokenEndpointFlow {
-    BOOL attestationEnabled = [SFUserAccountManager sharedInstance].attestForDomain
-        ? [SFUserAccountManager sharedInstance].attestForDomain(self.credentials.domain)
-        : NO;
+    NSString *domain = self.credentials.domain;
+    BOOL isAttestationDomain = domain
+        && ![domain isEqualToString:kSFOAuthProductionLoginURL]
+        && ![domain isEqualToString:kSFOAuthSandboxLoginURL]
+        && ![domain isEqualToString:kSFOAuthWelcomeLoginURL];
 
-    if (attestationEnabled && self.credentials.domain && self.credentials.clientId) {
-        [SFSDKAppAttestation attestationObjectFor:self.credentials.domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
+    if ([SFUserAccountManager sharedInstance].appAttestationEnabled && isAttestationDomain && self.credentials.clientId) {
+        [SFSDKAppAttestation attestationObjectFor:domain consumerKey:self.credentials.clientId completionHandler:^(NSString * _Nullable attestation, NSError * _Nullable error) {
             if (error) {
                 [SFSDKCoreLogger e:[self class] format:@"Attestation error: %@", error.localizedDescription];
             }

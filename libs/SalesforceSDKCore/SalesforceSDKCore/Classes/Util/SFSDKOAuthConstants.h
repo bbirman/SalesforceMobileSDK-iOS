@@ -142,4 +142,9 @@ static NSString * const kSFOAuthEndPointHeadlessInitRegistration = @"services/au
 /// Endpoint path for Salesforce Identity API headless forgot password flow
 static NSString * const kSFOAuthEndPointHeadlessForgotPassword = @"services/auth/headless/forgot_password";
 
+// Standard login pool URLs (non-My Domain)
+static NSString * const kSFOAuthProductionLoginURL               = @"login.salesforce.com";
+static NSString * const kSFOAuthSandboxLoginURL                  = @"test.salesforce.com";
+static NSString * const kSFOAuthWelcomeLoginURL                  = @"welcome.salesforce.com/discovery";
+
 #endif /* SFSDKOAuthConstants_h */
