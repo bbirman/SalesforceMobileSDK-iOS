@@ -40,6 +40,11 @@ public class AppAttestation: NSObject {
         let attestationData: String // Base-64 encoded
     }
     
+    struct AttestationKeychainItem: Encodable, Decodable {
+        let attestationId: String
+        let keyId: String
+    }
+    
     static let appAttestKeyName = "AppAttestKey"
 
     
@@ -105,29 +110,37 @@ public class AppAttestation: NSObject {
 //    4. Client makes request to pre-register public key - /mobile/attest/registerkey
     static func keyId(for attestationId: String, domain: String, consumerKey: String) async throws -> String {
         // TODO: Remove - temporarily clearing keychain for development/testing
-         let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
+//         let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
 
         let attestKeyQuery = KeychainHelper.read(service: appAttestKeyName, account: nil)
         if let attestKeyData = attestKeyQuery.data,
-            let keyId = String(data: attestKeyData, encoding: .utf8) {
-            // Key already exists, skip registration & attestation
-            // TODO: Guards on migration / app deletion / etc
-            return keyId
+           let keychainItem = try? JSONDecoder().decode(AttestationKeychainItem.self, from: attestKeyData) {
+            if keychainItem.attestationId == attestationId {
+                return keychainItem.keyId
+            } else {
+                // The ID can change if app is deleted / reinstalled but an old key can remain, delete the old one
+                // and then generate a new key like normal
+                let removeResult = KeychainHelper.remove(service: appAttestKeyName, account: nil)
+                if !removeResult.success {
+                    SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: "Unable to delete old attestation keyId from keychain: \(removeResult.error?.localizedDescription ?? "")")
+                }
+                
+            }
         }
 
         let keyId = try await performAppAttestOperation {
             try await DCAppAttestService.shared.generateKey()
         }
 
-        if let keyIdData = keyId.data(using: .utf8) {
-            let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keyIdData, account: nil)
-            if !keychainResult.success {
-                var message = "Unable to write attestation keyId to keychain"
-                if let error = keychainResult.error {
-                    message += ": \(error.localizedDescription)"
-                }
-                SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: message)
+        let keychainItem = AttestationKeychainItem(attestationId: attestationId, keyId: keyId)
+        let keychainItemData = try JSONEncoder().encode(keychainItem)
+        let keychainResult = KeychainHelper.write(service: appAttestKeyName, data: keychainItemData, account: nil)
+        if !keychainResult.success {
+            var message = "Unable to write attestation keyId to keychain"
+            if let error = keychainResult.error {
+                message += ": \(error.localizedDescription)"
             }
+            SFSDKCoreLogger.log(AppAttestation.self, level: .error, message: message)
         }
 
         let challenge = try await requestChallengeFromSalesforce(domain: domain, consumerKey: consumerKey, attestationId: attestationId)
@@ -156,8 +169,6 @@ public class AppAttestation: NSObject {
         request.endpoint = ""
         request.requiresAuthentication = false
         let response = try await RestClient.sharedGlobal.send(request: request)
-        print(response)
-        print("Challenge string: \(response.asString())")
         return response.asString()
     }
     
@@ -169,6 +180,5 @@ public class AppAttestation: NSObject {
         request.setCustomRequestBodyString(requestBody, contentType: kHttpPostContentType)
         
         let response = try await RestClient.sharedGlobal.send(request: request)
-        print(response)
     }
 }
